@@ -714,9 +714,9 @@ caromTable(tableGroup, feltMat, cushionMat, true);
    scoreboard, club sign, sofas and sconces. Background pieces are lit by emissive glow rather than
    extra lights, so the room costs almost nothing on phones. */
 const ROOM_X = 7, ROOM_Z = 5.5, CEIL = 2.2, FLR = -0.8;
-// two folding chairs by the back and front walls (the sofas are on the side walls), set down at a casual angle
-// x, z: centre; a: which way the seat faces (radians, 0 = +x)
-const CHAIRS = [{x: 1.7, z: -ROOM_Z + 0.6, a: Math.PI/2 - 0.7}, {x: -1.9, z: ROOM_Z - 0.6, a: -Math.PI/2 - 0.85}];
+// two folding chairs beside our table, one off each long side, turned to face it (clear of the shooter's stance)
+// x, z: centre; a: which way the seat faces (radians, 0 = +x), toward a point on the table
+const CHAIRS = [[1.0, -2.55, 0.35], [-1.2, 2.55, -0.4]].map(([x, z, tx]) => ({x, z, a: Math.atan2(0 - z, tx - x)}));
 const plankTex = canvasTex(512, 512, (g, w, h) => {
   const rows = 8, rh = h/rows;
   for (let r=0;r<rows;r++){
