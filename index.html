@@ -1,0 +1,2615 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="4자리 방 코드로 친구와 실시간으로 겨루는 3D 캐롬 당구 (4구 · 3구)">
+<title>캐롬 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600&display=swap">
+<style>
+/* Layout: full-bleed 3D carom table; scoreboard on top, a large control dock (당점 · 세기 · 샷) on the right (bottom on phones) */
+:root{
+  --bg:#100c0a;
+  --plate:rgba(27,20,16,.88);
+  --line:rgba(226,198,140,.22);
+  --fg:#f1e8d8;
+  --muted:#b6a78f;
+  --brass:#d6b062;
+  --brass-deep:#9a7533;
+  --alert:#e8705a;
+  --ok:#86c9a0;
+  --white-ball:#f3efe4;
+  --yellow-ball:#f2c428;
+  --red-ball:#c9222c;
+  --display:'Black Han Sans','Noto Sans KR','Malgun Gothic',system-ui,sans-serif;
+  --body:'IBM Plex Sans KR','Noto Sans KR','Malgun Gothic',system-ui,sans-serif;
+  color-scheme:dark;
+}
+html{height:100%;box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+#app{position:relative;height:100%;overflow:hidden}
+#stage{position:absolute;inset:0}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#stage canvas:active{cursor:grabbing}
+button,select{font-family:var(--body)}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+
+.btn{font:600 15px/1.2 var(--body);padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--brass)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:linear-gradient(#e2bf72,var(--brass-deep));color:#1b1209;border-color:transparent}
+.btn.primary:hover:not(:disabled){filter:brightness(1.06)}
+.btn.small{font-size:14px;padding:9px 13px;background:var(--plate);backdrop-filter:blur(6px)}
+.btn.small[aria-pressed="true"]{border-color:var(--brass);color:var(--brass)}
+.plate{background:var(--plate);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(6px)}
+
+.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.seg button{font:600 14px/1.2 var(--body);padding:10px 6px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;display:grid;gap:2px;justify-items:center}
+.seg button small{font-weight:400;font-size:11px;color:var(--muted)}
+.seg button[aria-pressed="true"]{border-color:var(--brass);color:var(--fg);background:rgba(214,176,98,.12)}
+.optrow{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.optrow label{margin:0}
+select.field{width:auto;padding:8px 10px}
+
+/* ---------- Lobby ---------- */
+#lobby{position:absolute;inset:0;display:grid;place-items:center;padding-block:24px;padding-left:16px;padding-right:16px;background:radial-gradient(ellipse at 50% 55%,rgba(16,12,10,.2),rgba(16,12,10,.88) 75%);overflow-y:auto}
+.card{width:min(430px,100%);background:linear-gradient(180deg,rgba(33,25,20,.94),rgba(22,16,13,.96));border:1px solid var(--line);border-radius:18px;padding:26px 24px 20px;display:grid;gap:11px;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,232,180,.08)}
+.eyebrow{font-size:12px;letter-spacing:.18em;color:var(--brass);font-weight:600}
+.card h1{font-family:var(--display);font-weight:400;font-size:48px;line-height:1;margin:0;letter-spacing:.01em}
+.card h1 span{color:var(--brass)}
+.sub{margin:0 0 4px;color:var(--muted);font-size:14px;line-height:1.55}
+.card label{font-size:12px;color:var(--muted);letter-spacing:.06em;margin-top:3px}
+.field{width:100%;font:16px var(--body);color:var(--fg);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.field::placeholder{color:#7d705f}
+.code{display:flex;justify-content:center;gap:14px;padding:4px 0}
+.ballin{width:62px;height:62px;border-radius:50%;border:none;text-align:center;font-family:var(--display);font-size:27px;color:#151210;caret-color:#151210;padding:0;
+  background:radial-gradient(circle at 33% 27%,rgba(255,255,255,.6),rgba(255,255,255,0) 24%),radial-gradient(circle at 42% 36%,var(--c),var(--cd));
+  box-shadow:0 8px 16px rgba(0,0,0,.55),inset -5px -7px 12px rgba(0,0,0,.3)}
+.ballin:focus-visible{outline:3px solid var(--brass);outline-offset:4px}
+.b1{--c:#fbf8ef;--cd:#b9b2a1}.b2{--c:#f6cf3c;--cd:#a57c0c}.b3{--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}.b4{--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}
+#quickBtn{display:grid;gap:2px;justify-items:center;font-size:17px;padding:13px 16px}
+#quickBtn .qsub{font:400 11.5px var(--body);opacity:.8}
+.row{display:flex;gap:10px}
+.row .btn{flex:1}
+.net{margin:2px 0 0;font-size:12.5px;color:var(--muted);line-height:1.5;text-align:center}
+.rules{font-size:12.5px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:10px;margin-top:2px;display:grid;gap:3px}
+.rules b{color:var(--fg);font-weight:600}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;inset:0;pointer-events:none}
+/* no text selection while playing (drags on the table were highlighting the scoreboard) */
+#hud, #stage, #hud *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#hud > *{pointer-events:auto}
+.topbar{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none}
+.topbar > *{pointer-events:auto}
+.roomchip{display:grid;gap:2px;padding:6px 10px;border-radius:10px}
+.roomchip .r1{display:flex;align-items:center;gap:8px}
+.roomchip .lbl{font-size:12px;color:var(--muted)}
+.roomchip b{font-family:var(--display);font-weight:400;font-size:18px;letter-spacing:.14em;color:var(--brass);font-variant-numeric:tabular-nums}
+.roomchip .gm{font-size:11px;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;background:#6b5f50}
+.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.dot.off{background:var(--alert)}
+.mini{font:600 12px var(--body);padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
+.board{display:flex;align-items:stretch;gap:10px}
+.seat{min-width:160px;padding:6px 10px;border-radius:10px;display:grid;grid-template-columns:auto 1fr auto;gap:0 8px;align-items:center;transition:border-color .2s,box-shadow .2s}
+.seat.turn{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass),0 0 18px rgba(214,176,98,.25)}
+.seat .bd{width:18px;height:18px;border-radius:50%;grid-row:span 2;box-shadow:inset -2px -3px 4px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4)}
+.seat .bd.w{background:radial-gradient(circle at 35% 30%,#fff,var(--white-ball) 45%,#a9a291)}
+.seat .bd.y{background:radial-gradient(circle at 35% 30%,#fff3b8,var(--yellow-ball) 45%,#9e7a0a)}
+.seat .nm{font-weight:600;font-size:13px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px}
+.seat .tag{font-size:10.5px;line-height:1.25;color:var(--muted);letter-spacing:.03em;white-space:nowrap}
+.seat.turn .tag{color:var(--brass)}
+.seat .sc{grid-row:span 2;font-family:var(--display);font-size:26px;line-height:1;font-variant-numeric:tabular-nums;text-align:right}
+.seat .sc small{font-size:11px;color:var(--muted);font-family:var(--body);margin-left:2px}
+.seat .take{grid-column:1 / -1;margin-top:4px}
+.vs{align-self:center;font-family:var(--display);color:var(--brass);font-size:12px;letter-spacing:.08em}
+.spect{padding:9px 12px;font-size:13px;color:var(--muted);white-space:nowrap}
+#menuBtn{font-size:18px;line-height:1;padding:10px 14px}
+
+.status{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;width:max-content;max-width:min(620px,calc(100% - 560px));padding:11px 20px 12px;text-align:center;display:grid;gap:4px;justify-items:center}
+.lastmsg{font-size:14px;color:var(--muted);line-height:1.45}
+.lastmsg.good{color:var(--ok);font-weight:600}
+.turnmsg{font-family:var(--display);font-size:24px;line-height:1.2;letter-spacing:.01em;text-wrap:balance}
+.turnmsg.mine{color:var(--brass)}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.5}
+.status .btn{margin-top:6px}
+.tools{position:absolute;right:16px;top:72px;display:none;flex-direction:column;gap:6px;align-items:stretch;width:160px;z-index:5}
+.tools.open{display:flex}
+
+/* control dock */
+.dock{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:244px;padding:14px;display:grid;gap:14px}
+.dock.off .ctl{opacity:.38;pointer-events:none}
+/* 당점: cue-ball face in front, the object ball the aim line meets drawn behind it, offset sideways by the hit thickness */
+.spinwrap{position:relative;display:grid;place-items:center;height:186px;margin:0 -14px;overflow:hidden;--fd:150px}
+.face{width:var(--fd);height:var(--fd);border-radius:50%;position:relative;z-index:1;overflow:hidden;cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none;
+  background:radial-gradient(circle at 38% 32%,#ffffff,#ece6d6 48%,#a8a090);box-shadow:inset -8px -10px 18px rgba(0,0,0,.25),0 6px 16px rgba(0,0,0,.45)}
+.obj{position:absolute;left:50%;top:50%;width:calc(var(--fd)*.92);height:calc(var(--fd)*.92);border-radius:50%;pointer-events:none;
+  transform:translate(calc(-50% + var(--ox,0px)),calc(-50% - var(--fd)*.06));
+  background:radial-gradient(circle at 38% 32%,var(--oc1,#fff),var(--oc2,#ece6d6) 48%,var(--oc3,#a8a090));box-shadow:inset -8px -10px 18px rgba(0,0,0,.3)}
+.face .ax{position:absolute;background:rgba(60,45,30,.18);pointer-events:none}
+.face .ax.v{left:50%;top:8%;bottom:8%;width:1px}
+.face .ax.h{top:50%;left:8%;right:8%;height:1px}
+.face .nogo{position:absolute;left:0;right:0;bottom:0;top:100%;border-radius:0 0 999px 999px;border-top:2px dashed rgba(150,40,30,.7);pointer-events:none;
+  background:repeating-linear-gradient(135deg,rgba(70,30,20,.38) 0 6px,rgba(70,30,20,.22) 6px 12px)}
+.face .pt{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff7a7a,var(--red-ball));box-shadow:0 0 0 3px rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.4);left:50%;top:50%;pointer-events:none}
+/* 큐 각도 (세워치기): vertical slider at the right of the 당점 ball, up = steeper cue */
+.elev{position:absolute;right:10px;top:12px;bottom:12px;width:30px;z-index:2;display:grid;grid-template-rows:auto 1fr;justify-items:center;gap:4px;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
+.elev .ev{font:600 11px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
+.elev.on .ev{color:var(--brass)}
+.elev .trk{position:relative;width:8px;border-radius:4px;background:rgba(255,255,255,.1);border:1px solid var(--line);overflow:hidden}
+.elev .fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,var(--brass-deep),var(--brass))}
+.pw{display:grid}
+/* 세기: one continuous 1–100 gauge, tap or drag anywhere to set it */
+.gauge{position:relative;height:52px;border-radius:12px;overflow:hidden;cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none;background:rgba(255,255,255,.07);border:1px solid var(--line)}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;width:50%;background:linear-gradient(90deg,#7d8f5a,var(--brass) 45%,#e0864f 80%,#c23a2a);background-size:var(--gw,216px) 100%;pointer-events:none}
+.gauge .fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:#fff6dc;box-shadow:0 0 8px rgba(255,240,200,.8)}
+.gauge .tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.14);pointer-events:none}
+.gauge .num{position:absolute;inset:0;display:grid;place-items:center;font:400 26px/1 var(--display);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);font-variant-numeric:tabular-nums;pointer-events:none}
+.shotrow{display:grid;grid-template-columns:52px 1fr 52px;gap:8px}
+.shotrow .nudge{font:600 20px var(--body);border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:pointer;touch-action:none}
+#shotBtn{font-family:var(--display);font-size:24px;font-weight:400;padding:14px 10px;border-radius:12px}
+#shotBtn small{display:block;font:400 11px var(--body);opacity:.75;margin-top:2px}
+
+#ngPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 32px));padding:18px;display:grid;gap:12px;background:rgba(27,20,16,.97)}
+#ngPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
+#replayPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:18px 20px;display:grid;gap:10px;background:rgba(27,20,16,.97);z-index:6}
+#replayPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
+#replayPanel .rpnote{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5}
+#replayList{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:50vh;overflow:auto}
+#replayList li{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
+#replayList .no{font-family:var(--display);color:var(--brass);min-width:28px}
+#replayList .who{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#replayList .who small{display:block;font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+#recBadge{position:absolute;left:50%;top:12px;transform:translateX(-50%);padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;z-index:7}
+#replayInfo{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);padding:10px 16px;display:flex;align-items:center;gap:14px;z-index:7;font-size:13px}
+#replayInfo .rib{width:48px;height:48px;border-radius:50%;position:relative;flex:none;background:radial-gradient(circle at 34% 28%,#fff,#e8e2d4 55%,#b9b2a2);box-shadow:inset -3px -4px 8px rgba(0,0,0,.25)}
+#replayInfo .rib::before,#replayInfo .rib::after{content:'';position:absolute;background:rgba(0,0,0,.18)}
+#replayInfo .rib::before{left:50%;top:8%;bottom:8%;width:1px}
+#replayInfo .rib::after{top:50%;left:8%;right:8%;height:1px}
+#replayInfo .rib i{position:absolute;width:11px;height:11px;border-radius:50%;background:#d23b2f;transform:translate(-50%,-50%);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+#replayInfo .rit{display:grid;gap:5px;min-width:150px}
+#replayInfo .rit b{font-weight:600}
+#replayInfo .rip{height:7px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+#replayInfo .rip i{display:block;height:100%;background:linear-gradient(90deg,#7fb36a,#e0b44a,#d23b2f)}
+#replayInfo small{color:var(--muted)}
+#recBadge .recdot{width:10px;height:10px;border-radius:50%;background:var(--alert);box-shadow:0 0 8px var(--alert)}
+#helpPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:18px 20px;display:grid;gap:10px;background:rgba(27,20,16,.97);font-size:14px;line-height:1.6}
+#helpPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
+#helpPanel dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
+#helpPanel dt{font-weight:600;color:var(--brass);white-space:nowrap}
+#helpPanel dd{margin:0;color:var(--muted)}
+#toast{position:absolute;left:50%;top:120px;transform:translateX(-50%);padding:12px 18px;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+#toast.show{opacity:1}
+
+@media (max-width:1100px) and (min-width:761px){
+  .seat{min-width:150px}
+  .status{max-width:calc(100% - 480px)}
+}
+@media (max-width:760px){
+  .topbar{flex-wrap:wrap;gap:6px;top:8px}
+  .board{order:3;flex:1 1 100%;gap:6px}
+  .seat{min-width:0;flex:1;padding:5px 8px;gap:0 6px}
+  .seat .nm{font-size:12px;max-width:80px}
+  .seat .sc{font-size:22px}
+  .seat .bd{width:16px;height:16px}
+  .vs{font-size:11px}
+  .roomchip{padding:7px 10px}
+  .roomchip b{font-size:19px}
+  .spect{display:none}
+  #menuBtn{margin-left:auto}
+  .tools{top:64px}
+  .dock{top:auto;transform:none;right:8px;left:8px;bottom:8px;width:auto;padding:10px;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center}
+  .spinwrap{grid-row:span 2;--fd:100px;width:156px;height:124px;margin:-10px 0 -10px -10px}
+  .elev{right:2px;top:8px;bottom:8px;width:24px}
+  .gauge{height:46px}
+  .shotrow{grid-template-columns:44px 1fr 44px}
+  #shotBtn{font-size:20px;padding:10px 6px}
+  #shotBtn small{display:none}
+  .status{max-width:calc(100% - 32px);width:calc(100% - 32px);padding:7px 12px;bottom:var(--dockh,200px)}
+  .turnmsg{font-size:18px}
+  .lastmsg{font-size:12.5px}
+  .hint{display:none}
+  .card h1{font-size:40px}
+  .ballin{width:54px;height:54px;font-size:24px}
+  #toast{top:150px}
+}
+@media (prefers-reduced-motion:reduce){ #toast{transition:none} }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage"></div>
+
+  <div id="hud" hidden>
+    <div class="topbar">
+      <div class="roomchip plate">
+        <div class="r1"><span class="dot" id="netDot"></span><span class="lbl">방</span><b id="roomCode">----</b><button id="copyBtn" class="mini">링크 복사</button></div>
+        <div class="gm" id="gameMode"></div>
+      </div>
+      <div class="board">
+        <div class="seat plate" id="seat0"></div>
+        <div class="vs">VS</div>
+        <div class="seat plate" id="seat1"></div>
+      </div>
+      <div class="spect plate" id="spect"></div>
+      <button id="menuBtn" class="btn small" aria-expanded="false" aria-label="메뉴">☰</button>
+    </div>
+
+    <div class="status plate" id="status">
+      <div class="lastmsg" id="lastMsg"></div>
+      <div class="turnmsg" id="turnMsg"></div>
+      <div class="hint" id="hint"></div>
+      <button id="rematchBtn" class="btn primary" hidden>다시 하기</button>
+    </div>
+
+    <div class="tools" id="tools">
+      <button id="replayBtn" class="btn small" disabled>다시 보기 · 영상</button>
+      <button id="viewBtn" class="btn small">탑뷰 (T)</button>
+      <button id="fpBtn" class="btn small">1인칭 (V)</button>
+      <button id="soundBtn" class="btn small">소리 끄기</button>
+      <button id="helpBtn" class="btn small">조작법</button>
+      <button id="newBtn" class="btn small">새 게임</button>
+      <button id="leaveBtn" class="btn small">나가기</button>
+    </div>
+
+    <div class="dock plate" id="dock">
+      <div class="spinwrap ctl">
+        <div class="obj" id="spinObj" hidden></div>
+        <div class="face" id="spinFace" role="slider" aria-label="당점 (두 번 누르면 중앙)">
+          <div class="ax v"></div><div class="ax h"></div>
+          <div class="nogo" id="spinNogo" hidden></div>
+          <div class="pt" id="spinPt"></div>
+        </div>
+        <div class="elev" id="elev" role="slider" aria-label="큐 각도 (세워치기)" aria-valuemin="0" aria-valuemax="75" aria-valuenow="0" tabindex="0">
+          <span class="ev" id="elevVal">0°</span>
+          <div class="trk"><div class="fill" id="elevFill"></div></div>
+        </div>
+      </div>
+      <div class="pw ctl">
+        <div class="gauge" id="bars" role="slider" aria-label="세기" aria-valuemin="1" aria-valuemax="100" tabindex="0">
+          <div class="fill" id="pwFill"></div>
+          <div class="tick" style="left:25%"></div><div class="tick" style="left:50%"></div><div class="tick" style="left:75%"></div>
+          <b class="num" id="pwNum">50</b>
+        </div>
+      </div>
+      <div class="shotrow ctl">
+        <button class="nudge" id="nudgeL" aria-label="조준 왼쪽으로 조금">◀</button>
+        <button class="btn primary" id="shotBtn">샷<small>Space</small></button>
+        <button class="nudge" id="nudgeR" aria-label="조준 오른쪽으로 조금">▶</button>
+      </div>
+    </div>
+
+    <div id="ngPanel" class="plate" hidden>
+      <h2>새 게임</h2>
+      <div class="seg" id="ngMode">
+        <button data-mode="4" aria-pressed="true">4구<small>빨간 공 2개</small></button>
+        <button data-mode="3c" aria-pressed="false">3구<small>쓰리쿠션</small></button>
+      </div>
+      <div class="seg" id="ngSize">
+        <button data-mode="mid" aria-pressed="true">중대<small>2448×1224 · 공 65.5mm</small></button>
+        <button data-mode="big" aria-pressed="false">대대<small>2844×1422 · 공 61.5mm</small></button>
+      </div>
+      <div class="optrow"><label for="ngTarget">목표 점수</label>
+        <select id="ngTarget" class="field"><option>3</option><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option></select></div>
+      <div class="row"><button id="ngCancel" class="btn">취소</button><button id="ngStart" class="btn primary">시작</button></div>
+    </div>
+
+    <div id="replayPanel" class="plate" hidden>
+      <h2>다시 보기</h2>
+      <p class="rpnote">이번 게임의 모든 샷이에요. 영상 저장은 화면 공유 창에서 <b>이 탭</b>을 고르면 점수판까지 전체 화면을 녹화해요.</p>
+      <ol id="replayList"></ol>
+      <button id="replayClose" class="btn">닫기</button>
+    </div>
+    <div id="replayInfo" class="plate" hidden aria-live="polite"><div class="rib" title="당점"><i id="riDot"></i></div>
+      <div class="rit"><b id="riWho"></b><div class="rip" title="세기"><i id="riBar"></i></div><small id="riTxt"></small></div></div>
+    <div id="recBadge" class="plate" hidden><span class="recdot"></span>녹화 중 <button id="recStop" class="mini">중지</button></div>
+
+    <div id="helpPanel" class="plate" hidden>
+      <h2>조작법</h2>
+      <dl>
+        <dt>조준</dt><dd>화면을 좌우로 끌기, 공이나 쿠션을 클릭하면 그쪽으로 조준. ◀ ▶ 버튼이나 ← → 키로 미세 조정 (Shift는 더 미세하게)</dd>
+        <dt>시점</dt><dd>화면을 위아래로 끌면 높이, 휠이나 두 손가락으로 확대·축소. T 키는 탑뷰</dd>
+        <dt>당점</dt><dd>공 그림에서 점을 누르거나 끌기 (두 번 누르면 중앙). 위는 밀어치기, 아래는 끌어치기, 좌우는 회전. W A S D 키, C는 중앙. 뒤에 겹쳐 보이는 공이 맞힐 공의 두께</dd>
+        <dt>세워치기</dt><dd>당점 공 오른쪽 막대로 큐 각도 0~75°. 큐를 세우고 당점을 좌우로 주면 공이 그쪽으로 휘어요 (마세이). E 키는 올리기, Q 키는 내리기, 막대를 두 번 누르면 0°</dd>
+        <dt>벽 쪽 공</dt><dd>수구가 쿠션 가까이 있으면 큐가 레일을 넘어가야 해서 아래 당점(끌어치기)을 칠 수 없어요. 칠 수 없는 부분은 당점 그림에 빗금으로 보여요. 큐를 세우면 조금 더 낮게 칠 수 있어요</dd>
+        <dt>세기</dt><dd>1~100. 막대 아무 곳이나 누르거나 끌기. 숫자 키 1~9는 10~90, 0은 100, + − 키로 5씩</dd>
+        <dt>샷</dt><dd>샷 버튼이나 Space</dd>
+        <dt>1인칭</dt><dd>V 키나 메뉴의 1인칭 버튼. 기다릴 때는 마우스를 움직이면 시선이 따라가고 (화면 끝에 대면 계속 돌아요, 휴대폰은 끌기), 내 차례에는 큐 위에서 수구를 내려다봐요</dd>
+        <dt>캐릭터</dt><dd>내 차례가 아닐 때 바닥이나 테이블을 누르면 그쪽으로 걸어가요. W A S D 키로도 움직여요. 내 차례가 되면 수구 뒤로 가서 큐 자세를 잡아요</dd>
+        <dt>다시 보기</dt><dd>R 키는 마지막 샷. 메뉴의 다시 보기에서 이번 게임의 모든 샷을 골라 보거나 영상으로 저장해요</dd>
+      </dl>
+      <button id="helpClose" class="btn primary">닫기</button>
+    </div>
+  </div>
+
+  <div id="lobby">
+    <div class="card">
+      <div class="eyebrow">3D 캐롬 당구 · 멀티플레이</div>
+      <h1>캐롬 <span>3D</span></h1>
+      <p class="sub">구멍 없는 당구대에서 4구와 3구(쓰리쿠션)를 칩니다. 같은 방 코드 네 자리를 넣은 사람끼리 한 테이블에 앉아요.</p>
+      <label for="nameIn">닉네임</label>
+      <input id="nameIn" class="field" maxlength="12" placeholder="예: 큐대장" autocomplete="off">
+      <label for="c0">방 코드</label>
+      <div class="code">
+        <input id="c0" class="ballin b1" inputmode="numeric" maxlength="1" aria-label="방 코드 첫째 자리" autocomplete="off">
+        <input id="c1" class="ballin b2" inputmode="numeric" maxlength="1" aria-label="방 코드 둘째 자리" autocomplete="off">
+        <input id="c2" class="ballin b3" inputmode="numeric" maxlength="1" aria-label="방 코드 셋째 자리" autocomplete="off">
+        <input id="c3" class="ballin b4" inputmode="numeric" maxlength="1" aria-label="방 코드 넷째 자리" autocomplete="off">
+      </div>
+      <label>게임 종류 <span style="letter-spacing:0">(새 테이블을 열 때 적용)</span></label>
+      <div class="seg" id="lobbyMode">
+        <button data-mode="4" aria-pressed="true">4구<small>빨간 공 2개</small></button>
+        <button data-mode="3c" aria-pressed="false">3구<small>쓰리쿠션</small></button>
+      </div>
+      <label>테이블 <span style="letter-spacing:0">(새 테이블을 열 때 적용)</span></label>
+      <div class="seg" id="lobbySize">
+        <button data-mode="mid" aria-pressed="true">중대<small>2448×1224 · 공 65.5mm</small></button>
+        <button data-mode="big" aria-pressed="false">대대<small>2844×1422 · 공 61.5mm</small></button>
+      </div>
+      <div class="optrow"><label for="lobbyTarget">목표 점수</label>
+        <select id="lobbyTarget" class="field"><option>3</option><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option></select></div>
+      <button id="quickBtn" class="btn primary">빠른 참가<small class="qsub">상대를 기다리는 방에 바로 들어가요</small></button>
+      <button id="joinBtn" class="btn">코드로 입장하기</button>
+      <div class="row">
+        <button id="createBtn" class="btn">새 방 만들기</button>
+        <button id="localBtn" class="btn">한 기기 2인</button>
+      </div>
+      <p class="net" id="netNote">친구에게 이 주소와 방 코드를 알려 주세요</p>
+      <div class="rules">
+        <div><b>4구</b> 내 공으로 빨간 공 두 개를 모두 맞히면 1점. 상대 공을 맞히거나 아무것도 못 맞히면 파울 −1점.</div>
+        <div><b>3구</b> 쓰리쿠션. 빨간 공과 상대 공을 모두 맞히되, 두 번째 공을 맞히기 전에 쿠션을 3번 이상 맞혀야 1점.</div>
+        <div>득점하면 계속 치고, 못 하면 차례가 넘어가요. 흰 공은 1번 선수, 노란 공은 2번 선수 공입니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="plate" role="status" aria-live="polite"></div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const r5 = v => Math.round(v * 1e5) / 1e5;
+const reduceMotion = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } })();
+
+/* ================= Table (metres, Korean 중대 carom table) ================= */
+// table sizes (playing surface between cushion noses) and ball size: 중대 = Korean 4-ball table, 대대 = international match table
+const SIZES = {mid: {W:2.448, H:1.224, R:0.03275, name:'중대'}, big: {W:2.844, H:1.422, R:0.03075, name:'대대'}};
+let tableSize = 'mid', W = 2.448, H = 1.224, HW = W/2, HH = H/2, R = 0.03275;
+const CW = 0.045, RW = 0.13, CH = 0.045;
+const NB = 4;                                   // 0 white (seat 1), 1 yellow (seat 2), 2 red, 3 red (4구 only)
+const BALL_NAME = ['흰 공','노란 공','빨간 공','빨간 공'];
+const MODE_NAME = {'4':'4구', '3c':'3구'};
+// cue-ball launch speed (m/s) for power 1..100: from a barely-rolling touch to a full break; the curve gives the soft end finer steps
+const speedOf = p => 0.21 + 4.28*Math.pow((p-1)/99, 1.3);
+
+/* ================= Physics =================
+   Rigid-ball model with full 3D spin (wx, wy, wz) per ball, integrated at 600 Hz.
+   Only + - * / sqrt / min / abs are used so every peer replays a shot bit-for-bit.
+   Coefficients follow pooltool's three-cushion preset (BILLIARD_GENERIC) and its
+   default ball-cushion model, Han (2005) "Dynamics in carom and three cushion billiards".
+   - Cloth: the contact point slips at v + w x r; sliding friction (u_s 0.2) drives it
+     to pure rolling (the 5/7 rule), which produces stun, follow and draw. Rolling
+     resistance is u_r 0.007, easing off at a crawl so the ball glides to a stop.
+   - Side spin (wy) decays at 5·u_sp·g / 2R (u_sp = 0.444·R), the same as pooltool.
+   - Cushion (Han 2005): the rail nose touches the ball above its centre, so the
+     impulse is solved at that contact point (e_c 0.88, f_c 0.15). Side spin bends
+     the rebound and topspin is partly kept, both falling out of the contact slip.
+   - Ball-ball: elastic normal impulse (e_b 0.95) with a little contact friction
+     (u_b 0.05) for throw and spin transfer. */
+const DT = 1/600, SUB = 10, G = 9.81;
+const MU_CLOTH = 0.2*G;               // sliding friction acceleration (m/s²)
+const ROLL_A = 0.007*G, ROLL_EASE = 0.25, STOP = 0.004;  // rolling resistance (m/s²) and the speed below which it eases off
+const SPIN_A = 5*(10*2/5/9)*G/2;      // side-spin decay (rad/s²); R cancels out of u_sp·g/R
+const E_BALL = 0.95, MU_BALL = 0.05;
+const E_CUSH = 0.88, MU_CUSH = 0.15;   // u_r and e_c sit a little past pooltool's 0.01 / 0.85: heated carom cloth rolls longer and carom rails are livelier
+const CUSH_S = 0.2, CUSH_C = Math.sqrt(1 - CUSH_S*CUSH_S);   // sin/cos of the contact angle: nose height 1.2 R (37 mm on a 61.5 mm ball)
+const TIP = 0.72;                     // tip offset at full 당점 = 0.72 R (clamped to 0.85 → ~0.6 R)
+const EL_MAX = 75;                    // highest cue elevation for 마세이 (degrees)
+// sin/cos from + − × ÷ only (Taylor series, exact to ~1e-15 below 90°), so every peer gets the same bits
+function sinDeg(d){ const x = d*3.141592653589793/180, x2 = x*x; let t = x, s = x; for (let n=1;n<10;n++){ t *= -x2/((2*n)*(2*n+1)); s += t; } return s; }
+function cosDeg(d){ const x = d*3.141592653589793/180, x2 = x*x; let t = 1, s = 1; for (let n=1;n<10;n++){ t *= -x2/((2*n-1)*(2*n)); s += t; } return s; }
+function simulate(start, sh){
+  const px = new Float64Array(NB), pz = new Float64Array(NB), vx = new Float64Array(NB), vz = new Float64Array(NB);
+  const wx = new Float64Array(NB), wy = new Float64Array(NB), wz = new Float64Array(NB), on = new Uint8Array(NB);
+  for (let i=0;i<NB;i++) if (start[i]) { px[i]=start[i][0]; pz[i]=start[i][1]; on[i]=1; }
+  const c = sh.c, sp = speedOf(sh.p), dx = sh.dx, dz = sh.dz;
+  // cue strike (Leckie & Greenspan / pooltool): cue axis k = d·cosθ − up·sinθ, tip offsets a (right) and b (up, square to the cue).
+  // ω = F/I · [a(cosθ·up + sinθ·d) − b·right]; the slate takes the downward part of the impulse.
+  // With the cue raised (마세이), a·sinθ spins the ball about its line of travel and cloth friction bends the path.
+  const el = sh.el || 0, sth = sinDeg(el), cth = cosDeg(el);
+  vx[c] = dx*sp*cth; vz[c] = dz*sp*cth;
+  const k = 2.5*sp/R*TIP, a = k*sh.sx, b = k*sh.sy, lx = -dz, lz = dx;
+  wy[c] = a*cth;
+  wx[c] = a*sth*dx - b*lx; wz[c] = a*sth*dz - b*lz;
+  const frames = [], events = [], hitOrder = [];
+  let cushions = 0, cushAtSecond = -1;
+  const snap = () => {
+    const f = new Float32Array(NB*5);
+    for (let i=0;i<NB;i++){ f[5*i]=px[i]; f[5*i+1]=pz[i]; f[5*i+2]=wx[i]; f[5*i+3]=wy[i]; f[5*i+4]=wz[i]; }
+    frames.push(f);
+  };
+  snap();
+  const XL = HW-R, ZL = HH-R, RR = 4*R*R, dv = MU_CLOTH*DT;
+  const cushion = (i, nx, nz) => {
+    const vn = vx[i]*nx+vz[i]*nz;
+    if (vn >= 0) return;
+    // Han 2005: contact normal points into the rail and up by the contact angle; r = R·nc
+    const ncx = -CUSH_C*nx, ncy = CUSH_S, ncz = -CUSH_C*nz, rx = R*ncx, ry = R*ncy, rz = R*ncz;
+    // contact-point velocity u = v + w × r (the ball has no vertical velocity)
+    const ux = vx[i] + wy[i]*rz - wz[i]*ry, uy = wz[i]*rx - wx[i]*rz, uz = vz[i] + wx[i]*ry - wy[i]*rx;
+    const cn = ux*ncx + uy*ncy + uz*ncz;               // approach speed along nc
+    const pn = (1+E_CUSH)*cn;                          // normal impulse per unit mass
+    const sx = ux-cn*ncx, sy = uy-cn*ncy, sz = uz-cn*ncz, sl = Math.sqrt(sx*sx + sy*sy + sz*sz);
+    let px_ = -pn*ncx, py_ = -pn*ncy, pz_ = -pn*ncz;
+    if (sl > 1e-12){
+      // stick if the slip can be cancelled within the friction cone (effective mass 2/7 m), else slide
+      const f = Math.min(sl/3.5, MU_CUSH*pn)/sl;
+      px_ -= sx*f; py_ -= sy*f; pz_ -= sz*f;
+    }
+    vx[i] += px_; vz[i] += pz_;                        // the vertical part is taken by the slate
+    const k = 2.5/(R*R);                               // 1/I per unit mass
+    wx[i] += k*(ry*pz_ - rz*py_); wy[i] += k*(rz*px_ - rx*pz_); wz[i] += k*(rx*py_ - ry*px_);
+    if (i === c) cushions++;
+    if (-vn > 0.05) events.push({f:frames.length, t:'rail', v:-vn});
+  };
+  let step = 0, moving = true;
+  while (moving && step < 600*50){
+    step++;
+    for (let i=0;i<NB;i++){
+      if (!on[i]) continue;
+      const cx = vx[i] + R*wz[i], cz = vz[i] - R*wx[i], c2 = cx*cx + cz*cz;
+      if (c2 > 1e-10){
+        const cl = Math.sqrt(c2);
+        if (cl <= 3.5*dv){
+          vx[i] -= cx/3.5; vz[i] -= cz/3.5;
+          wz[i] = -vx[i]/R; wx[i] = vz[i]/R;
+        } else {
+          const fx = -cx/cl*dv, fz = -cz/cl*dv;
+          vx[i] += fx; vz[i] += fz;
+          wx[i] -= 2.5/R*fz; wz[i] += 2.5/R*fx;
+        }
+      } else {
+        const s2 = vx[i]*vx[i] + vz[i]*vz[i];
+        if (s2 > 0){
+          // u_r eases off as the ball slows (cloth nap gives less drag at a crawl), so the stop glides in instead of braking
+          const s = Math.sqrt(s2), ns = s - ROLL_A*(0.35 + 0.65*s/(s + ROLL_EASE))*DT;
+          if (ns < STOP){ vx[i]=vz[i]=wx[i]=wz[i]=0; }
+          else { const q = ns/s; vx[i]*=q; vz[i]*=q; wz[i] = -vx[i]/R; wx[i] = vz[i]/R; }
+        }
+      }
+      if (wy[i] !== 0){
+        const a = SPIN_A*DT;
+        wy[i] = Math.abs(wy[i]) <= a ? 0 : (wy[i] > 0 ? wy[i]-a : wy[i]+a);
+      }
+      px[i] += vx[i]*DT; pz[i] += vz[i]*DT;
+    }
+    for (let i=0;i<NB;i++){
+      if (!on[i]) continue;
+      for (let j=i+1;j<NB;j++){
+        if (!on[j]) continue;
+        const ddx = px[j]-px[i], ddz = pz[j]-pz[i], d2 = ddx*ddx+ddz*ddz;
+        if (d2 >= RR || d2 < 1e-14) continue;
+        const d = Math.sqrt(d2), nx = ddx/d, nz = ddz/d, ov = (2*R-d)/2;
+        px[i]-=nx*ov; pz[i]-=nz*ov; px[j]+=nx*ov; pz[j]+=nz*ov;
+        const rel = (vx[i]-vx[j])*nx + (vz[i]-vz[j])*nz;
+        if (rel <= 0) continue;
+        const jn = rel*(1+E_BALL)/2;
+        vx[i]-=jn*nx; vz[i]-=jn*nz; vx[j]+=jn*nx; vz[j]+=jn*nz;
+        const tx = -nz, tz = nx;
+        const vt = (vx[i]-vx[j])*tx + (vz[i]-vz[j])*tz - R*wy[i] - R*wy[j];
+        if (vt !== 0){
+          const m = Math.min(MU_BALL*jn, Math.abs(vt)/7), jt = vt > 0 ? -m : m;
+          vx[i]+=jt*tx; vz[i]+=jt*tz; vx[j]-=jt*tx; vz[j]-=jt*tz;
+          wy[i] -= 2.5*jt/R; wy[j] -= 2.5*jt/R;
+        }
+        if (i === c || j === c){
+          const o = i === c ? j : i;
+          if (!hitOrder.includes(o)){ hitOrder.push(o); if (hitOrder.length === 2) cushAtSecond = cushions; }
+        }
+        if (rel > 0.03) events.push({f:frames.length, t:'ball', v:rel});
+      }
+    }
+    for (let i=0;i<NB;i++){
+      if (!on[i]) continue;
+      if (px[i] > XL){ px[i]=2*XL-px[i]; cushion(i,-1,0); }
+      else if (px[i] < -XL){ px[i]=-2*XL-px[i]; cushion(i,1,0); }
+      if (pz[i] > ZL){ pz[i]=2*ZL-pz[i]; cushion(i,0,-1); }
+      else if (pz[i] < -ZL){ pz[i]=-2*ZL-pz[i]; cushion(i,0,1); }
+    }
+    if (step % SUB === 0){
+      snap();
+      moving = false;
+      // the shot (and the turn) ends only once every ball is completely still: rolling, sliding and spinning in place
+      for (let i=0;i<NB;i++) if (on[i] && (vx[i]!==0 || vz[i]!==0 || wx[i]!==0 || wz[i]!==0 || wy[i]!==0)){ moving = true; break; }
+    }
+  }
+  snap();
+  const final = [];
+  for (let i=0;i<NB;i++) final.push(on[i] ? [r5(clamp(px[i],-HW+R,HW-R)), r5(clamp(pz[i],-HH+R,HH-R))] : null);
+  return {frames, events, hitOrder, cushions, cushAtSecond, final, on0:Array.from(on)};
+}
+
+/* ================= Rules (Korean carom) ================= */
+function newRack(players, n, mode, target, breaker, au, size){
+  size = size === 'big' ? 'big' : 'mid';
+  const balls = new Array(NB).fill(null);
+  const b = players.length > 1 ? breaker : 0, o = 1-b, Z = SIZES[size];
+  // spots on the long axis: head spot (−X), centre spot (0), foot spot (+X), a quarter table from the centre.
+  // The breaker's ball sits on the head string beside the head spot: 18.25 cm on a match table (USBA/UMB three-cushion
+  // break), scaled to the table's width on the smaller table.
+  const X = r5(Z.W/4), off = r5(0.1825*Z.H/1.422);
+  // 4구 (Korean sagu): reds on the head and foot spots, the breaker half a diamond (1/8 of the width) beside the head
+  // red aiming at the far red, the opponent's ball one diamond behind the foot red (3/8 of the length from the centre)
+  if (mode === '4'){ balls[2] = [X, 0]; balls[3] = [-X, 0]; balls[b] = [-X, r5(Z.H/8)]; balls[o] = [r5(Z.W*3/8), 0]; }
+  // 3구 (three-cushion): red on the foot spot, the opponent's ball on the head spot, the breaker 18.25 cm beside it
+  else { balls[2] = [X, 0]; balls[o] = [-X, 0]; balls[b] = [-X, off]; }
+  return {n, au, players, turn:b, mode, target, size, scores:[0,0], balls, winner:-1, msg:'', rk:n, inning:1};
+}
+function evaluate(prev, res, au){
+  const P = prev.players, me = prev.turn, two = P.length > 1, op = two ? 1-me : me;
+  const nm = i => (P[i] && P[i].name) || '플레이어';
+  const opBall = 1-me, hit = res.hitOrder;
+  const st = Object.assign({}, prev, {n:prev.n+1, au, players:P.slice(), scores:prev.scores.slice(), balls:res.final.map(b => b ? [b[0],b[1]] : null), winner:-1, msg:''});
+  let point = 0, foul = '';
+  const cushTxt = `쿠션 ${res.cushAtSecond >= 0 ? res.cushAtSecond : res.cushions}개`;
+  if (prev.mode === '4'){
+    if (!hit.length){ foul = '아무 공도 맞히지 못함'; point = -1; }
+    else if (hit.includes(opBall)){ foul = '상대 공을 맞힘'; point = -1; }
+    else if (hit.includes(2) && hit.includes(3)) point = 1;
+  } else {
+    const both = hit.includes(2) && hit.includes(opBall);
+    point = prev.mode === '3' ? (both ? 1 : 0) : (both && res.cushAtSecond >= 3 ? 1 : 0);
+  }
+  st.scores[me] = Math.max(0, st.scores[me]+point);
+  if (point > 0){
+    if (st.scores[me] >= prev.target){ st.winner = me; st.msg = `${nm(me)} 승리! ${st.scores[me]}점 달성`; return st; }
+    st.msg = `득점! ${prev.mode === '3c' ? '쓰리쿠션 성공 (' + cushTxt + ')' : prev.mode === '4' ? '빨간 공 두 개' : '두 공 모두'} · ${nm(me)} ${st.scores[me]}점 · 계속`;
+    st.turn = me;
+  } else {
+    let why;
+    if (foul) why = `파울: ${foul} (−1점)`;
+    else if (!hit.length) why = '아무 공도 못 맞힘';
+    else if (prev.mode === '3c' && hit.length >= 2) why = `두 공은 맞혔지만 ${cushTxt}`;
+    else why = `${hit.map(b => BALL_NAME[b]).join(' → ')}만 맞힘`;
+    st.turn = op;
+    if (two && op === 0) st.inning = (prev.inning || 1) + 1;
+    st.msg = why + (two ? ` · ${nm(op)} 차례` : ' · 다시 쳐 보세요');
+  }
+  return st;
+}
+function sanitize(st){
+  if (!st || typeof st !== 'object') return null;
+  const n = st.n;
+  if (!Number.isInteger(n) || n < 1 || n > 1e9) return null;
+  if (!Array.isArray(st.balls) || st.balls.length !== NB) return null;
+  const mode = st.mode === '3' || st.mode === '3c' ? '3c' : st.mode === '4' ? '4' : null;   // the old plain 3구 ('3') is played as three-cushion now
+  if (!mode) return null;
+  const size = st.size === 'big' ? 'big' : 'mid', bw = SIZES[size].W/2, bh = SIZES[size].H/2;
+  const balls = st.balls.map(b => Array.isArray(b) && b.length===2 && Number.isFinite(b[0]) && Number.isFinite(b[1]) && Math.abs(b[0])<=bw && Math.abs(b[1])<=bh ? [b[0],b[1]] : null);
+  if (!balls[0] || !balls[1] || !balls[2] || (mode === '4' && !balls[3])) return null;
+  if (mode !== '4') balls[3] = null;
+  const players = (Array.isArray(st.players) ? st.players : []).filter(p => p && typeof p.pid==='string').slice(0,2).map(p => ({pid:p.pid.slice(0,24), name:String(p.name||'플레이어').slice(0,12)}));
+  const sc = v => Number.isInteger(v) && v >= 0 && v < 1000 ? v : 0;
+  const scores = Array.isArray(st.scores) ? [sc(st.scores[0]), sc(st.scores[1])] : [0,0];
+  const target = Number.isInteger(st.target) && st.target >= 1 && st.target <= 99 ? st.target : 10;
+  return {n, au: typeof st.au==='string' ? st.au.slice(0,24) : '', players, turn: st.turn===1 && players.length>1 ? 1 : 0, mode, target, size, scores, balls,
+    winner: st.winner===0 || (st.winner===1 && players.length>1) ? st.winner : -1, msg:String(st.msg||'').slice(0,140), rk: Number.isInteger(st.rk) ? st.rk : 0,
+    inning: Number.isInteger(st.inning) && st.inning > 0 ? st.inning : 1};
+}
+function sanitizeShot(s){
+  if (!s || typeof s !== 'object') return null;
+  const ok = v => typeof v === 'number' && Number.isFinite(v);
+  if (!ok(s.n) || !ok(s.dx) || !ok(s.dz) || !ok(s.sx) || !ok(s.sy) || (s.c !== 0 && s.c !== 1) || !Number.isInteger(s.p) || s.p < 1 || s.p > 100) return null;
+  if (Math.abs(Math.hypot(s.dx,s.dz)-1) > 1e-3 || Math.hypot(s.sx, s.sy) > 0.9) return null;
+  const el = s.el == null ? 0 : s.el;
+  if (!Number.isInteger(el) || el < 0 || el > EL_MAX) return null;
+  const out = {n:s.n, c:s.c, dx:s.dx, dz:s.dz, p:s.p, sx:s.sx, sy:s.sy, el};
+  if (ok(s.at)) out.at = s.at;                                            // when the cue meets the ball (room clock, ms)
+  if (Array.isArray(s.b0) && s.b0.length === NB && s.b0.every(b => b === null || (Array.isArray(b) && b.length === 2 && ok(b[0]) && ok(b[1]))))
+    out.b0 = s.b0.map(b => b && [b[0], b[1]]);                            // the balls the shot starts from (for late joiners)
+  return out;
+}
+const better = (a,b) => !b || a.n > b.n || (a.n === b.n && a.au > b.au);
+
+/* ================= Three.js scene ================= */
+const stage = $('#stage');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+const canvas = renderer.domElement;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0f0b09);
+scene.fog = new THREE.Fog(0x0f0b09, 5, 14);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.02, 60);
+
+(function(){
+  const pm = new THREE.PMREMGenerator(renderer);
+  const es = new THREE.Scene();
+  es.add(new THREE.Mesh(new THREE.BoxGeometry(12,6,12), new THREE.MeshBasicMaterial({color:0x1b1310, side:THREE.BackSide})));
+  const lampPanel = new THREE.Mesh(new THREE.PlaneGeometry(2.4,0.5), new THREE.MeshBasicMaterial({color:0xfff0d0}));
+  lampPanel.position.set(0,2.4,0); lampPanel.rotation.x = Math.PI/2; es.add(lampPanel);
+  const side = new THREE.Mesh(new THREE.PlaneGeometry(3,1.2), new THREE.MeshBasicMaterial({color:0x5a4030}));
+  side.position.set(0,1.2,-5.9); es.add(side);
+  scene.environment = pm.fromScene(es, 0.04).texture;
+})();
+
+function canvasTex(w, h, draw, rx, ry){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  if (rx){ t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); }
+  return t;
+}
+const feltTex = canvasTex(256,256,(g,w,h) => {
+  g.fillStyle = '#d8d8d8'; g.fillRect(0,0,w,h);
+  const img = g.getImageData(0,0,w,h);
+  for (let i=0;i<img.data.length;i+=4){ const v = 210+Math.random()*34; img.data[i]=img.data[i+1]=img.data[i+2]=v; }
+  g.putImageData(img,0,0);
+}, 8, 4);
+const woodTex = canvasTex(512,128,(g,w,h) => {
+  g.fillStyle = '#7a4a2c'; g.fillRect(0,0,w,h);
+  for (let y=0;y<h;y++){ const a = 0.08+0.08*Math.sin(y*0.35+Math.sin(y*0.07)*3); g.fillStyle = `rgba(40,18,8,${a})`; g.fillRect(0,y,w,1); }
+  for (let i=0;i<40;i++){ g.strokeStyle = 'rgba(30,12,4,.18)'; g.beginPath(); const y = Math.random()*h; g.moveTo(0,y); g.bezierCurveTo(w*.3,y+8*Math.random()-4,w*.7,y+8*Math.random()-4,w,y+6*Math.random()-3); g.stroke(); }
+}, 3, 1);
+
+const feltMat = new THREE.MeshStandardMaterial({color:0x2a6fb0, map:feltTex, roughness:0.95, metalness:0});
+const cushionMat = new THREE.MeshStandardMaterial({color:0x245f99, map:feltTex, roughness:0.9});
+const woodMat = new THREE.MeshPhysicalMaterial({color:0x6b3b22, map:woodTex, roughness:0.38, clearcoat:0.6, clearcoatRoughness:0.25});
+const darkWoodMat = new THREE.MeshStandardMaterial({color:0x2c170d, map:woodTex, roughness:0.55});
+const brassMat = new THREE.MeshStandardMaterial({color:0xc9a050, metalness:0.9, roughness:0.3});
+const pearlMat = new THREE.MeshStandardMaterial({color:0xf3ead6, roughness:0.25, metalness:0.1});
+
+function box(w,h,d,mat,x,y,z,cast){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z); m.receiveShadow = true; m.castShadow = cast !== false;
+  scene.add(m); return m;
+}
+let OW = W+2*(CW+RW), OH = H+2*(CW+RW);
+const dGeo = new THREE.CylinderGeometry(0.0085,0.0085,0.003,18);
+const spotGeo = new THREE.CircleGeometry(0.004, 16), spotMat = new THREE.MeshBasicMaterial({color:0xcfe0f0});
+// cushion cross-section, the "7": flat top, nose overhanging at about ball-centre-plus height, then undercut back to the slate
+function cushionGeo(len){
+  const sh = new THREE.Shape();
+  sh.moveTo(0, 0); sh.lineTo(0, CH); sh.lineTo(CW, CH); sh.lineTo(CW, CH - 0.007); sh.lineTo(CW*0.32, 0.002); sh.lineTo(CW*0.18, 0); sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, {depth: len, bevelEnabled: false}); g.translate(0, 0, -len/2); return g;
+}
+// the carom table as a group (felt, cushions, rails, body, legs, diamonds, spots): our table and the other tables in the hall
+function caromTable(parent, felt, cushion, cast){
+  const b = (w, h, d, mat, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; m.castShadow = !!cast; parent.add(m); return m; };
+  b(W+2*CW+0.01, 0.03, H+2*CW+0.01, felt, 0, -0.015, 0).castShadow = false;
+  // cushions: local x of the profile points from the rail toward the nose, rotated into place on each side
+  for (const [len, x, z, ry] of [[W+2*CW, 0, HH+CW, Math.PI/2], [W+2*CW, 0, -(HH+CW), -Math.PI/2], [H, HW+CW, 0, Math.PI], [H, -(HW+CW), 0, 0]]){
+    const m = new THREE.Mesh(cushionGeo(len), cushion); m.position.set(x, 0, z); m.rotation.y = ry; m.receiveShadow = true; m.castShadow = !!cast; parent.add(m);
+  }
+  for (const sz of [-1,1]) b(OW, 0.125, RW, woodMat, 0, -0.0125, sz*(HH+CW+RW/2));
+  for (const sx of [-1,1]) b(RW, 0.125, H+2*CW, woodMat, sx*(HW+CW+RW/2), -0.0125, 0);
+  b(OW-0.02, 0.2, OH-0.02, darkWoodMat, 0, -0.175, 0);
+  for (const sx of [-1,1]) for (const sz of [-1,1]) b(0.16, 0.52, 0.16, darkWoodMat, sx*(OW/2-0.2), -0.535, sz*(OH/2-0.18));
+  const dot = (x, z) => { const d = new THREE.Mesh(dGeo, pearlMat); d.position.set(x, 0.0515, z); parent.add(d); };
+  for (let k=1;k<8;k++) for (const sz of [-1,1]) dot(-HW+k*W/8, sz*(HH+CW+RW*0.45));
+  for (let k=1;k<4;k++) for (const sx of [-1,1]) dot(sx*(HW+CW+RW*0.45), -HH+k*H/4);
+  for (const x of [-W/4, 0, W/4]){ const s = new THREE.Mesh(spotGeo, spotMat); s.rotation.x = -Math.PI/2; s.position.set(x, 0.0008, 0); parent.add(s); }
+}
+const tableGroup = new THREE.Group(); scene.add(tableGroup);
+caromTable(tableGroup, feltMat, cushionMat, true);
+/* ---------- the billiard hall around the table ----------
+   A room with plank floor, panelled walls, four more tables (one per corner) under their own lamps, a cue rack,
+   scoreboard, club sign, sofas and sconces. Background pieces are lit by emissive glow rather than
+   extra lights, so the room costs almost nothing on phones. */
+const ROOM_X = 7, ROOM_Z = 5.5, CEIL = 2.2, FLR = -0.8;
+// two folding chairs by the back and front walls (the sofas are on the side walls), set down at a casual angle
+// x, z: centre; a: which way the seat faces (radians, 0 = +x)
+const CHAIRS = [{x: 1.7, z: -ROOM_Z + 0.6, a: Math.PI/2 - 0.7}, {x: -1.9, z: ROOM_Z - 0.6, a: -Math.PI/2 - 0.85}];
+const plankTex = canvasTex(512, 512, (g, w, h) => {
+  const rows = 8, rh = h/rows;
+  for (let r=0;r<rows;r++){
+    let x = -(r*97 % 180);
+    while (x < w){
+      const len = 150 + Math.random()*170, t = 0.82 + Math.random()*0.3;
+      g.fillStyle = `rgb(${Math.round(92*t)},${Math.round(58*t)},${Math.round(36*t)})`; g.fillRect(x, r*rh, len, rh);
+      for (let k=0;k<6;k++){ g.strokeStyle = `rgba(30,14,6,${0.08+Math.random()*0.08})`; g.beginPath(); const y = r*rh + Math.random()*rh; g.moveTo(x, y); g.bezierCurveTo(x+len*.3, y+3*Math.random()-1.5, x+len*.7, y+3*Math.random()-1.5, x+len, y); g.stroke(); }
+      g.fillStyle = 'rgba(18,9,4,.75)'; g.fillRect(x, r*rh, 2, rh);
+      x += len;
+    }
+    g.fillStyle = 'rgba(18,9,4,.8)'; g.fillRect(0, r*rh, w, 2);
+  }
+}, 7, 7);
+const wallTex = canvasTex(256, 256, (g, w, h) => {
+  g.fillStyle = '#5b4a36'; g.fillRect(0, 0, w, h);
+  for (let x=0;x<w;x+=32){ g.fillStyle = 'rgba(255,230,180,.05)'; g.fillRect(x, 0, 14, h); g.fillStyle = 'rgba(30,18,8,.08)'; g.fillRect(x+15, 0, 2, h); }
+  g.strokeStyle = 'rgba(214,176,98,.13)'; g.lineWidth = 2;
+  for (let y=24;y<h;y+=64) for (let x=16;x<w;x+=64){ g.beginPath(); g.moveTo(x, y-10); g.lineTo(x+8, y); g.lineTo(x, y+10); g.lineTo(x-8, y); g.closePath(); g.stroke(); }
+}, 10, 2);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_X*2, ROOM_Z*2), new THREE.MeshStandardMaterial({color:0xffffff, map:plankTex, roughness:0.55, metalness:0}));
+floor.rotation.x = -Math.PI/2; floor.position.y = FLR; floor.receiveShadow = true; scene.add(floor);
+const hall = new THREE.Group(); scene.add(hall);
+const hallCeil = [], hallTables = [];                          // beams and hanging lamps: hidden when the camera rises above the ceiling (top view)
+const hallBox = (w, h, d, mat, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); if (ry) m.rotation.y = ry; hall.add(m); return m; };
+(function buildHall(){
+  const wallMat = new THREE.MeshStandardMaterial({color:0xffffff, map:wallTex, roughness:0.9});
+  const panelMat = new THREE.MeshStandardMaterial({color:0x3a2114, map:woodTex, roughness:0.6});
+  const trimMat = new THREE.MeshStandardMaterial({color:0x24140b, roughness:0.5});
+  const ceilMat = new THREE.MeshStandardMaterial({color:0x17110d, roughness:1});
+  const RH = CEIL - FLR, wainH = 1.05;               // room height (not H, which is the table's width)
+  // four walls: wallpaper above a wood wainscot, with a chair rail, skirting and crown moulding
+  for (const [w, x, z, ry] of [[ROOM_X*2, 0, -ROOM_Z, 0], [ROOM_X*2, 0, ROOM_Z, Math.PI], [ROOM_Z*2, -ROOM_X, 0, Math.PI/2], [ROOM_Z*2, ROOM_X, 0, -Math.PI/2]]){
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(w, RH), wallMat); wall.position.set(x, FLR + RH/2, z); wall.rotation.y = ry; hall.add(wall);
+    const nx = Math.sin(ry), nz = Math.cos(ry);                                   // inward normal of this wall
+    hallBox(w, wainH, 0.04, panelMat, x + nx*0.02, FLR + wainH/2, z + nz*0.02, ry);
+    hallBox(w, 0.05, 0.07, trimMat, x + nx*0.035, FLR + wainH, z + nz*0.035, ry);
+    hallBox(w, 0.12, 0.06, trimMat, x + nx*0.03, FLR + 0.06, z + nz*0.03, ry);
+    hallBox(w, 0.14, 0.12, trimMat, x + nx*0.06, CEIL - 0.07, z + nz*0.06, ry);
+  }
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_X*2, ROOM_Z*2), ceilMat); ceil.rotation.x = Math.PI/2; ceil.position.y = CEIL; hall.add(ceil);
+  for (let x=-ROOM_X+1.75; x<ROOM_X; x+=1.75) hallCeil.push(hallBox(0.08, 0.1, ROOM_Z*2, trimMat, x, CEIL - 0.05, 0));   // ceiling beams
+
+  // four more carom tables near the corners, each under its own lamp, with balls left on the cloth
+  const bodyMat = new THREE.MeshStandardMaterial({color:0x2c170d, map:woodTex, roughness:0.5});
+  const railMat = new THREE.MeshStandardMaterial({color:0x6b3b22, map:woodTex, roughness:0.4});
+  const clothMat = new THREE.MeshStandardMaterial({color:0x2a6fb0, map:feltTex, roughness:0.95, emissive:0x0d2a48, emissiveIntensity:0.55});
+  const bgCushionMat = new THREE.MeshStandardMaterial({color:0x245f99, map:feltTex, roughness:0.9, emissive:0x0b2440, emissiveIntensity:0.5});
+  const shadeMat = new THREE.MeshStandardMaterial({color:0x1d3a2c, metalness:0.4, roughness:0.4});
+  const glowMat = new THREE.MeshBasicMaterial({color:0xfff0d2});
+  const poolMat = new THREE.MeshBasicMaterial({color:0xfff0d0, transparent:true, opacity:0.10, depthWrite:false});
+  const tables = [[-4.9, -2.6], [4.9, -2.6], [-4.9, 2.6], [4.9, 2.6]];
+  tables.forEach(([tx, tz], ti) => {
+    const T = new THREE.Group(); T.position.set(tx, 0, tz); hall.add(T);
+    const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); T.add(m); return m; };
+    caromTable(T, clothMat, bgCushionMat);                                 // the same table we play on
+    hallCeil.push(add(new THREE.BoxGeometry(2.1, 0.09, 0.36), shadeMat, 0, 1.08, 0));
+    const gl = add(new THREE.PlaneGeometry(2.0, 0.3), glowMat, 0, 1.034, 0); gl.rotation.x = Math.PI/2; hallCeil.push(gl);
+    for (const s of [-0.85, 0.85]) hallCeil.push(add(new THREE.CylinderGeometry(0.004, 0.004, CEIL - 1.08, 6), brassMat, s, (CEIL + 1.08)/2, 0));
+    const pool = add(new THREE.PlaneGeometry(OW + 0.9, OH + 0.9), poolMat, 0, FLR + 0.003, 0); pool.rotation.x = -Math.PI/2;   // light spilling onto the floor
+    hallTables.push(T);                                                    // balls and a cue are set on it once those exist (see dressHallTables)
+  });
+
+  // cue rack on the back wall
+  const rack = new THREE.Group(); rack.position.set(-2.6, FLR, -ROOM_Z + 0.06); hall.add(rack);
+  const rb = (w, h, d, mat, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); rack.add(m); return m; };
+  rb(1.3, 0.06, 0.12, trimMat, 0, 0.45, 0.05); rb(1.3, 0.06, 0.08, trimMat, 0, 1.55, 0.03); rb(1.36, 1.5, 0.03, panelMat, 0, 1.0, 0);
+  for (let i=0;i<9;i++){
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.014, 1.42, 8), i % 3 === 1 ? bodyMat : railMat);
+    c.position.set(-0.56 + i*0.14, 0.45 + 0.71, 0.07); c.rotation.z = (i - 4)*0.006; rack.add(c);
+    const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.0062, 0.0062, 0.02, 8), new THREE.MeshStandardMaterial({color:0x3d6fa8})); tip.position.set(c.position.x, 0.45 + 1.43, 0.07); rack.add(tip);
+  }
+
+  // club sign and a scoreboard on the back wall, a clock on the side wall
+  const sign = canvasTex(1024, 256, (g, w, h) => {
+    g.fillStyle = '#120c09'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#d6b062'; g.lineWidth = 8; g.strokeRect(14, 14, w-28, h-28);
+    g.font = '400 118px "Black Han Sans", "Malgun Gothic", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.shadowColor = 'rgba(255,190,90,.85)'; g.shadowBlur = 26; g.fillStyle = '#f2d18b'; g.fillText('캐롬 당구클럽', w/2, h/2 + 6);
+  });
+  const signM = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({map:sign})); signM.position.set(0.6, 1.55, -ROOM_Z + 0.03); hall.add(signM);
+  const board = canvasTex(512, 320, (g, w, h) => {
+    g.fillStyle = '#0d1a14'; g.fillRect(0, 0, w, h); g.strokeStyle = '#6b3b22'; g.lineWidth = 18; g.strokeRect(9, 9, w-18, h-18);
+    g.fillStyle = 'rgba(240,235,220,.85)'; g.font = '600 34px "IBM Plex Sans KR", sans-serif'; g.textAlign = 'center';
+    g.fillText('오늘의 하이런', w/2, 70);
+    g.font = '400 30px "IBM Plex Sans KR", sans-serif'; ['4구   김큐대  ·  12', '3구   박쿠션  ·  9', '3구   이마세  ·  7'].forEach((t, i) => g.fillText(t, w/2, 130 + i*55));
+  });
+  const boardM = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.69), new THREE.MeshStandardMaterial({map:board, roughness:0.9})); boardM.position.set(3.6, 1.35, -ROOM_Z + 0.03); hall.add(boardM);
+  const clock = canvasTex(256, 256, (g, w) => {
+    g.fillStyle = '#f1e8d8'; g.beginPath(); g.arc(128, 128, 120, 0, Math.PI*2); g.fill(); g.lineWidth = 10; g.strokeStyle = '#2a1a10'; g.stroke();
+    g.fillStyle = '#2a1a10'; for (let i=0;i<12;i++){ const a = i*Math.PI/6; g.fillRect(128 + Math.sin(a)*96 - 4, 128 - Math.cos(a)*96 - 4, 8, 8); }
+    g.lineCap = 'round'; g.lineWidth = 9; g.beginPath(); g.moveTo(128, 128); g.lineTo(128 + 50, 128 - 30); g.stroke(); g.lineWidth = 6; g.beginPath(); g.moveTo(128, 128); g.lineTo(128 - 10, 128 - 85); g.stroke();
+  });
+  const clockM = new THREE.Mesh(new THREE.CircleGeometry(0.22, 32), new THREE.MeshStandardMaterial({map:clock, roughness:0.6})); clockM.position.set(-ROOM_X + 0.03, 1.55, 0); clockM.rotation.y = Math.PI/2; hall.add(clockM);
+
+  // sofas with side tables along the side walls, and warm sconces between them
+  const sofaMat = new THREE.MeshStandardMaterial({color:0x5a1f1c, roughness:0.75}), legMat = new THREE.MeshStandardMaterial({color:0x140c08}), sofaGeo = roundedBox(0.3, 6);
+  const sofa = (x, z, ry) => {
+    const s = new THREE.Group(); s.position.set(x, FLR, z); s.rotation.y = ry; hall.add(s);
+    const sb = (w, h, d, m, px, py, pz) => { const o = new THREE.Mesh(sofaGeo, m); o.scale.set(w, h, d); o.position.set(px, py, pz); s.add(o); };
+    sb(1.6, 0.22, 0.62, sofaMat, 0, 0.32, 0); sb(1.6, 0.5, 0.18, sofaMat, 0, 0.62, -0.24); sb(0.16, 0.36, 0.62, sofaMat, -0.82, 0.48, 0); sb(0.16, 0.36, 0.62, sofaMat, 0.82, 0.48, 0);
+    sb(1.5, 0.1, 0.5, legMat, 0, 0.16, 0);
+  };
+  const sideTable = (x, z) => { hallBox(0.45, 0.04, 0.45, panelMat, x, FLR + 0.55, z); hallBox(0.06, 0.53, 0.06, trimMat, x, FLR + 0.27, z);
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.1, 12), new THREE.MeshStandardMaterial({color:0xf1e8d8, roughness:0.4})); cup.position.set(x + 0.08, FLR + 0.62, z); hall.add(cup); };
+  for (const sx of [-1, 1]){
+    sofa(sx*(ROOM_X - 0.45), -0.9, -sx*Math.PI/2); sofa(sx*(ROOM_X - 0.45), 0.9, -sx*Math.PI/2); sideTable(sx*(ROOM_X - 0.45), 0);
+  }
+  // folding chairs: thin steel legs crossed in an X, a slatted seat and a curved backrest
+  const steel = new THREE.MeshStandardMaterial({color:0x8d8a86, metalness:0.75, roughness:0.35}), seatM = new THREE.MeshStandardMaterial({color:0x2b2523, roughness:0.6});
+  for (const c of CHAIRS){
+    const g = new THREE.Group(); g.position.set(c.x, FLR, c.z); g.rotation.y = Math.PI/2 - c.a; hall.add(g);   // local +z = the way it faces
+    const bar = (x0, y0, z0, x1, y1, z1) => {                        // a steel tube from one point to another
+      const d = new THREE.Vector3(x1 - x0, y1 - y0, z1 - z0), L = d.length();
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, L, 8), steel);
+      m.position.set((x0 + x1)/2, (y0 + y1)/2, (z0 + z1)/2); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); g.add(m);
+    };
+    for (const sx of [-0.2, 0.2]){
+      bar(sx, 0, -0.2, sx, 0.9, -0.25);                                   // back leg, up into the backrest
+      bar(sx, 0, 0.22, sx, 0.45, -0.14);                                  // front leg crossing under the seat (the fold)
+    }
+    bar(-0.2, 0.05, 0.22, 0.2, 0.05, 0.22); bar(-0.2, 0.05, -0.2, 0.2, 0.05, -0.2);
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.035, 0.4), seatM); seat.position.set(0, 0.46, 0.02); g.add(seat);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.17, 0.03), seatM); back.position.set(0, 0.8, -0.235); back.rotation.x = -0.12; g.add(back);
+    for (const o of g.children){ o.castShadow = true; }
+  }
+  const sconceMat = new THREE.MeshBasicMaterial({color:0xffd9a0});
+  for (const [x, z, ry] of [[-ROOM_X + 0.05, -2.6, Math.PI/2], [-ROOM_X + 0.05, 2.6, Math.PI/2], [ROOM_X - 0.05, -2.6, -Math.PI/2], [ROOM_X - 0.05, 2.6, -Math.PI/2], [-4.8, -ROOM_Z + 0.05, 0], [5.6, -ROOM_Z + 0.05, 0], [-4.8, ROOM_Z - 0.05, Math.PI], [4.8, ROOM_Z - 0.05, Math.PI]]){
+    const g = new THREE.Group(); g.position.set(x, 1.45, z); g.rotation.y = ry; hall.add(g);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.26, 0.03), brassMat); g.add(back);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 10), sconceMat); bulb.position.set(0, 0.04, 0.09); bulb.scale.set(1, 1.3, 1); g.add(bulb);
+    const halo = new THREE.Mesh(new THREE.CircleGeometry(0.42, 24), new THREE.MeshBasicMaterial({color:0xffc070, transparent:true, opacity:0.08, depthWrite:false})); halo.position.set(0, 0.04, 0.02); g.add(halo);
+  }
+  // a rug under the main table
+  const rugTex = canvasTex(512, 256, (g, w, h) => {
+    g.fillStyle = '#3a1513'; g.fillRect(0, 0, w, h); g.strokeStyle = '#b58a46'; g.lineWidth = 6; g.strokeRect(14, 14, w-28, h-28); g.lineWidth = 2; g.strokeRect(28, 28, w-56, h-56);
+    const img = g.getImageData(0, 0, w, h); for (let i=0;i<img.data.length;i+=4){ const n = (Math.random()-0.5)*14; img.data[i]+=n; img.data[i+1]+=n; img.data[i+2]+=n; } g.putImageData(img, 0, 0);
+  });
+  const rug = new THREE.Mesh(new THREE.PlaneGeometry(OW + 2.6, OH + 2.2), new THREE.MeshStandardMaterial({map:rugTex, roughness:0.95})); rug.rotation.x = -Math.PI/2; rug.position.y = FLR + 0.004; rug.receiveShadow = true; hall.add(rug);
+})();
+scene.fog.near = 7; scene.fog.far = 20; scene.fog.color.set(0x15100c); scene.background.set(0x15100c);
+const shade = new THREE.Mesh(new THREE.BoxGeometry(2.1,0.09,0.36), new THREE.MeshStandardMaterial({color:0x1d3a2c, metalness:0.4, roughness:0.4}));
+shade.position.set(0,1.08,0); scene.add(shade);
+const glow = new THREE.Mesh(new THREE.PlaneGeometry(2.0,0.3), new THREE.MeshBasicMaterial({color:0xfff0d2}));
+glow.rotation.x = Math.PI/2; glow.position.set(0,1.034,0); scene.add(glow);
+const lampParts = [shade, glow];
+for (const sx of [-0.85,0.85]){ const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,CEIL-1.08,6), brassMat); ch.position.set(sx,(CEIL+1.08)/2,0); scene.add(ch); lampParts.push(ch); }
+scene.add(new THREE.HemisphereLight(0x8a7560, 0x120a06, 0.35));
+for (const x of [-0.75,0,0.75]){
+  const s = new THREE.SpotLight(0xffe8c4, 1.25, 4.5, 0.9, 0.65, 1.2);
+  s.position.set(x,1.0,0); s.target.position.set(x*1.05,0,0);
+  s.castShadow = true; s.shadow.mapSize.set(1024,1024); s.shadow.bias = -0.0004; s.shadow.camera.near = 0.3; s.shadow.camera.far = 3;
+  scene.add(s); scene.add(s.target);
+}
+
+const BALL_HEX = ['#f3efe4','#f2c428','#c9222c','#c9222c'];
+function ballTex(i){
+  return canvasTex(512,256,(g,w,h) => {
+    g.fillStyle = BALL_HEX[i]; g.fillRect(0,0,w,h);
+    g.fillStyle = i === 0 ? '#d23a32' : i === 1 ? '#c2332c' : '#f5efe2';
+    // equirectangular map: widen each dot by 1/cos(latitude) so it stays round on the sphere
+    const dot = (x, y) => { const rx = 12/Math.cos((0.5 - y/h)*Math.PI); g.beginPath(); g.ellipse(x, y, rx, 12, 0, 0, Math.PI*2); g.fill(); };
+    for (const [x,y] of [[128,128],[384,128],[0,40],[256,216]]){ dot(x, y); if (x === 0) dot(w, y); }
+  });
+}
+const ballGeo = new THREE.SphereGeometry(R,44,30);
+const ballMeshes = [];
+for (let i=0;i<NB;i++){
+  const m = new THREE.Mesh(ballGeo, new THREE.MeshPhysicalMaterial({map:ballTex(i), roughness:0.12, metalness:0, clearcoat:1, clearcoatRoughness:0.05, envMapIntensity:0.9}));
+  m.castShadow = true; m.position.y = R; scene.add(m); ballMeshes.push(m);
+}
+function resetRotations(){ ballMeshes.forEach(m => { m.quaternion.identity(); m.rotation.set(Math.random()*6, Math.random()*6, Math.random()*6); }); }
+
+const stick = new THREE.Group();
+(function(){
+  const parts = [[0.012,0.0062,0.0062,0x3d6fa8,0.3],[0.022,0.0064,0.0064,0xf2eee4,0.3],[0.80,0.0066,0.0098,0xe2c79a,0.45],[0.012,0.0099,0.0099,0xc9a050,0.25],[0.58,0.0100,0.0145,0x2a120a,0.35],[0.02,0.0146,0.0146,0x111111,0.6]];
+  let x = 0;
+  for (const [len, r1, r2, col, rough] of parts){
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, 20), col===0xc9a050 ? brassMat : new THREE.MeshStandardMaterial({color:col, roughness:rough}));
+    m.rotation.z = -Math.PI/2;          // cylinder top (thin end) points at the tip
+    m.position.x = -(x + len/2); m.castShadow = true; stick.add(m); x += len;
+  }
+})();
+stick.visible = false; scene.add(stick);
+// the other tables in the hall get the same balls (white, yellow, red) and, on every other table, the same cue left on the cloth
+(function dressHallTables(){
+  hallTables.forEach((T, ti) => {
+    const rnd = a => Math.abs((Math.sin(ti*12.9898 + a*78.233)*43758.5453) % 1);
+    for (let b=0;b<3;b++){
+      const m = new THREE.Mesh(ballGeo, ballMeshes[b].material);
+      m.position.set((rnd(b+1)*1.6 - 0.8)*HW, R, (rnd(b+7)*1.6 - 0.8)*HH); m.rotation.set(rnd(b+3)*6, rnd(b+5)*6, 0); T.add(m);
+    }
+    if (ti % 2 === 0){
+      const c = stick.clone(); c.visible = true;
+      const a = (rnd(11) > 0.5 ? 0 : Math.PI) + (rnd(13) - 0.5)*0.3;                                   // along the long axis so it stays on the cloth
+      c.position.set(Math.cos(a)*0.62, R*0.6, Math.sin(a)*0.62 + (rnd(17) - 0.5)*0.5); c.rotation.set(0, -a, 0);
+      c.traverse(o => { o.castShadow = false; }); T.add(c);
+    }
+  });
+})();
+const stickPose = {tx:0, ty:0, tz:0, kx:1, ky:0, kz:0, dx:1, dz:0};   // tip and cue axis of the last poseStick()
+
+/* ================= Players' characters =================
+   Built from primitives; joints are placed procedurally every frame and limbs solved with two-bone IK,
+   so the same body can walk around the table, stand holding a cue, or bend into a shooting stance
+   whose hands follow the real cue (bridge on the cloth, grip on the butt, through the stroke). */
+const ARM_U = 0.29, ARM_F = 0.27;   // upper arm and forearm (+hand)
+const FLOOR = -0.8, KM = 0.3, SH_DROP = 0.12;   // SH_DROP: shoulder joints sit this far below the top of the torso                               // floor height; walk keep-out margin around the table
+let KX = OW/2 + KM, KZ = OH/2 + KM;
+const UP = new THREE.Vector3(0,1,0);
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _m4 = new THREE.Matrix4();
+const _ld = new THREE.Vector3(), _bx = new THREE.Vector3(), _by = new THREE.Vector3(), _bz = new THREE.Vector3();
+const _tor = new THREE.Vector3(), _mid = new THREE.Vector3(), _face = new THREE.Vector3(), _ca = new THREE.Vector3(), _cb = new THREE.Vector3(), _cm = new THREE.Vector3(), _ft = new THREE.Vector3(), _fx = new THREE.Vector3(), _fz = new THREE.Vector3(), _an = new THREE.Vector3();
+const cylGeo = new THREE.CylinderGeometry(1, 1, 1, 16), sphGeo = new THREE.SphereGeometry(1, 20, 14);
+// unit cube with rounded edges: each vertex is pulled onto a sphere of radius r around the inner core, so boxes read as soft shapes
+function roundedBox(r, seg){
+  const g = new THREE.BoxGeometry(1, 1, 1, seg, seg, seg), a = g.attributes.position, inner = 0.5 - r, v = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let i=0;i<a.count;i++){
+    v.fromBufferAttribute(a, i); c.set(clamp(v.x, -inner, inner), clamp(v.y, -inner, inner), clamp(v.z, -inner, inner));
+    v.sub(c); if (v.lengthSq() > 1e-12) v.setLength(r); v.add(c); a.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals(); return g;
+}
+const bodyGeo = roundedBox(0.34, 8), shoeGeo = roundedBox(0.42, 6);
+const HEAD_R = 0.125;                                                  // a slightly big head reads as cute
+const SHIRT = [0xe9e2d2, 0xe8b923];
+function labelSprite(text){
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+  const g = c.getContext('2d'); g.font = '600 30px "IBM Plex Sans KR", "Malgun Gothic", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const w = Math.min(244, g.measureText(text).width + 28);
+  g.fillStyle = 'rgba(20,14,10,.72)'; g.beginPath(); g.roundRect ? g.roundRect(128-w/2, 10, w, 44, 22) : g.rect(128-w/2, 10, w, 44); g.fill();
+  g.fillStyle = '#f1e8d8'; g.fillText(text, 128, 33);
+  const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false}));
+  s.scale.set(0.4, 0.1, 1); return s;
+}
+function makeAvatar(seat){
+  const mats = [];
+  const mat = (color, rough) => { const m = new THREE.MeshStandardMaterial({color, roughness: rough == null ? 0.7 : rough, transparent:true}); mats.push(m); return m; };
+  const skin = mat(0xe0b08c, 0.6), shirt = mat(SHIRT[seat] || SHIRT[0], 0.8), vest = mat(0x22181a, 0.55), pants = mat(0x1d1b22, 0.8), shoe = mat(0x0e0c0c, 0.35), hair = mat(0x2a1a12, 0.85), eye = mat(0x1a1210, 0.3), white = mat(0xfbf7ef, 0.35);
+  const cueM = mat(0xd9bf91, 0.45), cueB = mat(0x2a120a, 0.4);
+  const root = new THREE.Group(); scene.add(root);
+  const add = (geo, m) => { const o = new THREE.Mesh(geo, m); o.castShadow = true; root.add(o); return o; };
+  const P = {
+    pelvis: add(bodyGeo, pants), torso: add(bodyGeo, vest), shirtF: add(bodyGeo, shirt), neck: add(cylGeo, skin), head: add(sphGeo, skin), hair: add(sphGeo, hair),
+    eyeL: add(sphGeo, eye), eyeR: add(sphGeo, eye), ewL: add(sphGeo, white), ewR: add(sphGeo, white), hiL: add(sphGeo, white), hiR: add(sphGeo, white),
+    bang: add(sphGeo, hair),
+    uaL: add(cylGeo, shirt), uaR: add(cylGeo, shirt), faL: add(cylGeo, shirt), faR: add(cylGeo, shirt),
+    shL: add(sphGeo, shirt), shR: add(sphGeo, shirt), elL: add(sphGeo, shirt), elR: add(sphGeo, shirt), hdL: add(sphGeo, skin), hdR: add(sphGeo, skin),
+    thL: add(cylGeo, pants), thR: add(cylGeo, pants), shinL: add(cylGeo, pants), shinR: add(cylGeo, pants), knL: add(sphGeo, pants), knR: add(sphGeo, pants),
+    ftL: add(shoeGeo, shoe), ftR: add(shoeGeo, shoe),
+    cue: add(cylGeo, cueM), cueBt: add(cylGeo, cueB)
+  };
+  const label = labelSprite(''); root.add(label);
+  return {seat, root, P, mats, label, labelText:'', x: seat ? 0.4 : -0.4, z: seat ? -(KZ + 0.25) : KZ + 0.25, h: seat ? Math.PI/2 : -Math.PI/2,
+          path: [], phase: 0, walk: 0, stance: 0, opacity: 1, net: null, goalKey: '', ownStanceAt: 0, JS: newJoints(),
+          seat: -1, sit: 0, SJ: newJoints()};                              // seat: the sofa seat it wants, sit: 0 standing … 1 seated
+}
+// --- tiny geometry helpers
+function placeLimb(m, a, b, r){ _ld.subVectors(b, a); const L = _ld.length() || 1e-6; m.position.addVectors(a, b).multiplyScalar(0.5); m.scale.set(r, L, r); m.quaternion.setFromUnitVectors(UP, _ld.divideScalar(L)); }
+function placeBall(m, p, r){ m.position.copy(p); m.scale.setScalar(r); }
+function placeBox(m, c, xAxis, yAxis, sx, sy, sz){
+  _by.copy(yAxis).normalize(); _bz.crossVectors(xAxis, _by).normalize(); _bx.crossVectors(_by, _bz);
+  _m4.makeBasis(_bx, _by, _bz); m.quaternion.setFromRotationMatrix(_m4); m.position.copy(c); m.scale.set(sx, sy, sz);
+}
+function ik2(A, T, l1, l2, pole, outMid, outEnd){
+  const d = _v1.subVectors(T, A), dist0 = d.length() || 1e-6;
+  const dist = Math.min(Math.max(dist0, Math.abs(l1-l2) + 1e-3), l1 + l2 - 1e-4);
+  d.divideScalar(dist0);
+  const a = (l1*l1 - l2*l2 + dist*dist)/(2*dist), h = Math.sqrt(Math.max(0, l1*l1 - a*a));
+  _v2.copy(pole).addScaledVector(d, -pole.dot(d)); if (_v2.lengthSq() < 1e-8) _v2.set(0,1,0); _v2.normalize();
+  outMid.copy(A).addScaledVector(d, a).addScaledVector(_v2, h);
+  outEnd.copy(A).addScaledVector(d, dist);
+}
+// --- keep-out rectangle and walking paths around the table
+function segHitsRect(ax, az, bx, bz, X0, Z0){
+  let t0 = 0, t1 = 1; const dx = bx-ax, dz = bz-az, X = (X0 || KX) - 1e-3, Z = (Z0 || KZ) - 1e-3;
+  const clip = (p, q) => { if (p === 0) return q >= 0; const r = q/p; if (p < 0){ if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };
+  if (!clip(-dx, ax+X) || !clip(dx, X-ax) || !clip(-dz, az+Z) || !clip(dz, Z-az)) return false;
+  return t1 - t0 > 1e-4;
+}
+// The whole hall is walkable: inside the walls, around the main table, the four other tables and the sofas.
+const WALK_X = ROOM_X - 0.35, WALK_Z = ROOM_Z - 0.35;
+const HALL_BOXES = [];                                           // [x0, x1, z0, z1], fixed furniture with a body's margin
+for (const [tx, tz] of [[-4.9, -2.6], [4.9, -2.6], [-4.9, 2.6], [4.9, 2.6]]){ const hx = OW/2 + 0.25, hz = OH/2 + 0.25; HALL_BOXES.push([tx - hx, tx + hx, tz - hz, tz + hz]); }
+for (const sx of [-1, 1]){ const x0 = ROOM_X - 0.45 - 0.31 - 0.2; HALL_BOXES.push(sx > 0 ? [x0, ROOM_X + 1, -1.92, 1.92] : [-ROOM_X - 1, -x0, -1.92, 1.92]); }   // sofas + side table
+for (const c of CHAIRS) HALL_BOXES.push([c.x - 0.42, c.x + 0.42, c.z - 0.42, c.z + 0.42]);      // folding chairs (any angle)
+const walkBoxes = () => [[-KX, KX, -KZ, KZ], ...HALL_BOXES];
+function segHitsBox(ax, az, bx, bz, b){
+  let t0 = 0, t1 = 1; const dx = bx-ax, dz = bz-az, e = 1e-3;
+  const clip = (p, q) => { if (p === 0) return q >= 0; const r = q/p; if (p < 0){ if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true; };
+  if (!clip(-dx, ax - b[0] - e) || !clip(dx, b[1] - e - ax) || !clip(-dz, az - b[2] - e) || !clip(dz, b[3] - e - az)) return false;
+  return t1 - t0 > 1e-4;
+}
+const inBox = (x, z, b) => x > b[0] && x < b[1] && z > b[2] && z < b[3];
+function pushOut(x, z){
+  for (let it = 0; it < 3; it++){
+    x = clamp(x, -WALK_X, WALK_X); z = clamp(z, -WALK_Z, WALK_Z);
+    let moved = false;
+    for (const b of walkBoxes()){
+      if (!inBox(x, z, b)) continue;
+      const d = [x - b[0], b[1] - x, z - b[2], b[3] - z], m = Math.min(...d);   // out through the nearest side
+      if (m === d[0]) x = b[0]; else if (m === d[1]) x = b[1]; else if (m === d[2]) z = b[2]; else z = b[3];
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  return [x, z];
+}
+// nearest point on the keep-out edge for a point inside it (no room clamp)
+function toEdge(x, z){
+  if (Math.abs(x) >= KX || Math.abs(z) >= KZ) return null;
+  const ex = KX - Math.abs(x), ez = KZ - Math.abs(z), c = 0.01;
+  return ex < ez ? [Math.sign(x || 1)*(KX + c), z] : [x, Math.sign(z || 1)*(KZ + c)];
+}
+// A stance spot can sit a few cm inside the keep-out band (leaning over the rail on a diagonal shot).
+// Route between the nearest outside points around the table, then step the last few cm in/out,
+// instead of falling back to a straight line through the table.
+function planPath(ax, az, bx, bz){
+  const s = toEdge(ax, az), e = toEdge(bx, bz);
+  if (s || e){
+    const [sx, sz] = s || [ax, az], [ex, ez] = e || [bx, bz];
+    const mid = planCore(sx, sz, ex, ez);
+    return (s ? [[sx, sz]] : []).concat(mid, e ? [[bx, bz]] : []);
+  }
+  return planCore(ax, az, bx, bz);
+}
+// shortest way around every box: a visibility graph over the boxes' corners
+function planCore(ax, az, bx, bz){
+  const boxes = walkBoxes(), blocked = (a, b) => boxes.some(q => segHitsBox(a[0], a[1], b[0], b[1], q));
+  if (!blocked([ax, az], [bx, bz])) return [[bx, bz]];
+  const c = 0.03, nodes = [[ax, az], [bx, bz]];
+  for (const q of boxes) for (const [x, z] of [[q[0]-c, q[2]-c], [q[1]+c, q[2]-c], [q[0]-c, q[3]+c], [q[1]+c, q[3]+c]])
+    if (Math.abs(x) <= WALK_X && Math.abs(z) <= WALK_Z && !boxes.some(o => inBox(x, z, o))) nodes.push([x, z]);
+  const n = nodes.length, dist = new Array(n).fill(1e9), prev = new Array(n).fill(-1), done = [];
+  dist[0] = 0;
+  for (let it=0; it<n; it++){
+    let u = -1; for (let i=0;i<n;i++) if (!done[i] && dist[i] < 1e9 && (u < 0 || dist[i] < dist[u])) u = i;
+    if (u < 0) break;
+    done[u] = true; if (u === 1) break;
+    for (let v=0; v<n; v++){ if (done[v] || blocked(nodes[u], nodes[v])) continue;
+      const w = dist[u] + Math.hypot(nodes[v][0]-nodes[u][0], nodes[v][1]-nodes[u][1]); if (w < dist[v]){ dist[v] = w; prev[v] = u; } }
+  }
+  if (prev[1] < 0) return [[bx, bz]];
+  const out = []; for (let v = 1; v > 0; v = prev[v]) out.unshift(nodes[v]);
+  return out;
+}
+// sofa seats: two per sofa. p: where the hips rest, f: the way the seat faces (into the room), a: the spot in front of it
+const SEATS = [];
+for (const sx of [-1, 1]) for (const z0 of [-0.9, 0.9]) for (const o of [-0.4, 0.4])
+  SEATS.push({px: sx*(ROOM_X - 0.47), pz: z0 + o, fx: -sx, fz: 0, py: 0.51, ax: sx*(ROOM_X - 0.45 - 0.31 - 0.45), az: z0 + o});
+for (const c of CHAIRS){ const fx = Math.cos(c.a), fz = Math.sin(c.a);                // the folding chairs: a higher, upright seat
+  SEATS.push({px: c.x + fx*0.03, pz: c.z + fz*0.03, fx, fz, py: 0.55, upright: true, ax: c.x + fx*0.62, az: c.z + fz*0.62}); }
+function sitPose(J, seat){
+  const fx = seat.fx, fz = seat.fz, rx = -fz, rz = fx;
+  J.fwd.set(fx, 0, fz); J.right.set(rx, 0, rz); J.toe.set(fx, 0, fz); J.kp.set(fx, 0, fz);
+  J.pelvis.set(seat.px, FLOOR + seat.py, seat.pz);
+  J.hipL.copy(J.pelvis).addScaledVector(J.right, -0.1); J.hipR.copy(J.pelvis).addScaledVector(J.right, 0.1);
+  J.chest.copy(J.pelvis).addScaledVector(UP, 0.44).addScaledVector(J.fwd, seat.upright ? -0.05 : -0.12);   // leaning back on the backrest
+  J.head.copy(J.chest).addScaledVector(UP, 0.1).addScaledVector(J.fwd, 0.02);
+  J.shL.copy(J.chest).addScaledVector(J.right, -0.19).addScaledVector(UP, -SH_DROP); J.shR.copy(J.chest).addScaledVector(J.right, 0.19).addScaledVector(UP, -SH_DROP);
+  J.hdL.copy(J.hipL).addScaledVector(J.fwd, 0.26).addScaledVector(UP, 0.05);        // hands resting on the thighs
+  J.hdR.copy(J.hipR).addScaledVector(J.fwd, 0.22).addScaledVector(UP, 0.12);
+  for (const [ft, hp] of [[J.ftL, J.hipL], [J.ftR, J.hipR]]) ft.set(hp.x + fx*0.5, FLOOR + 0.07, hp.z + fz*0.5);
+  J.anchor.set(seat.ax, FLOOR, seat.az);
+}
+function exitDist(px, pz, ux, uz){
+  const hx = OW/2, hz = OH/2;
+  const tx = ux > 1e-9 ? (hx-px)/ux : ux < -1e-9 ? (-hx-px)/ux : 1e9;
+  const tz = uz > 1e-9 ? (hz-pz)/uz : uz < -1e-9 ? (-hz-pz)/uz : 1e9;
+  return Math.max(0, Math.min(tx, tz));
+}
+// --- poses: each fills J with world-space joints
+function newJoints(){ const J = {}; for (const k of ['pelvis','chest','head','shL','shR','elL','elR','hdL','hdR','hipL','hipR','knL','knR','ftL','ftR','fwd','right','anchor','toe','kp']) J[k] = new THREE.Vector3(); return J; }
+const JW = newJoints(), JB = newJoints(), JT = newJoints(), JS2 = newJoints(), _pole = new THREE.Vector3();
+function walkPose(A, J){
+  const fx = Math.cos(A.h), fz = Math.sin(A.h), rx = -fz, rz = fx, w = A.walk, ph = A.phase;
+  J.fwd.set(fx, 0, fz); J.right.set(rx, 0, rz); J.toe.set(fx, 0, fz); J.kp.set(fx, 0, fz);
+  const stride = 0.26*w, lift = 0.08*w, bob = 0.025*w*Math.abs(Math.cos(ph));
+  const foot = (J1, side, s) => J1.set(A.x + fx*stride*Math.sin(s) + rx*0.11*side, FLOOR + 0.07 + lift*Math.max(0, Math.cos(s)), A.z + fz*stride*Math.sin(s) + rz*0.11*side);
+  foot(J.ftL, -1, ph); foot(J.ftR, 1, ph + Math.PI);
+  J.pelvis.set(A.x, FLOOR + 0.74 + bob, A.z);
+  J.hipL.copy(J.pelvis).addScaledVector(J.right, -0.1); J.hipR.copy(J.pelvis).addScaledVector(J.right, 0.1);
+  J.chest.copy(J.pelvis).addScaledVector(UP, 0.46).addScaledVector(J.fwd, 0.03*w);
+  J.head.copy(J.chest).addScaledVector(UP, 0.1);                          // no neck: the head sits right on the torso
+  J.shL.copy(J.chest).addScaledVector(J.right, -0.19).addScaledVector(UP, -SH_DROP); J.shR.copy(J.chest).addScaledVector(J.right, 0.19).addScaledVector(UP, -SH_DROP);
+  const sw = 0.2*w*Math.sin(ph);
+  J.hdL.copy(J.shL).addScaledVector(UP, -0.545).addScaledVector(J.fwd, -sw).addScaledVector(J.right, -0.05);
+  J.hdR.copy(J.shR).addScaledVector(UP, -0.525).addScaledVector(J.fwd, 0.13).addScaledVector(J.right, 0.02);   // right hand holds the cue upright
+}
+const _td = new THREE.Vector3(), _kn = new THREE.Vector3();
+const GRIP_MIN = 1.0, GRIP_MAX = 1.3, BRIDGE_MAX = 0.75;   // along the cue from its tip (m)
+function stancePose(A, J, bx, bz){
+  // cue axis from the posed stick: tip T, direction k; points along the cue are T − s·k
+  const S0 = stickPose, dx = S0.dx, dz = S0.dz, rx = -dz, rz = dx;
+  J.fwd.set(dx, 0, dz); J.right.set(rx, 0, rz); J.toe.set(dx, 0, dz); J.kp.set(dx, 0, dz);   // kp: the way the knees bend
+  const cue = (s, out) => out.set(S0.tx - S0.kx*s, S0.ty - S0.ky*s, S0.tz - S0.kz*s);
+  // e: how steep the cue is (0 = level, 1 = full 마세이). A raised cue means standing closer, more upright and a little
+  // further to the side, so the near-vertical cue rises in front of the body instead of through it.
+  const e = clamp((Math.asin(clamp(-S0.ky, 0, 1)) - 0.075)/(EL_MAX*Math.PI/180 - 0.075), 0, 1);
+  const ex = exitDist(bx, bz, -dx, -dz);                                   // ball → outer edge of the table behind it
+  const back = Math.max(ex + 0.18, 0.95 - 0.45*e), side = 0.22 + 0.14*e;
+  const surf = (x, z) => (Math.abs(x) < HW && Math.abs(z) < HH) ? 0 : 0.05;   // cloth, or cushion / rail top
+  const reach = ARM_U + ARM_F - 0.002, tdir = _td;
+  const TW = 0.87, tc = Math.cos(TW), ts = Math.sin(TW);
+  _ca.set(rx*tc - dx*ts, 0, rz*tc - dz*ts).normalize();                   // twisted shoulder axis (points to the right shoulder)
+  const setHips = () => { J.hipL.copy(J.pelvis).addScaledVector(J.right, -0.1); J.hipR.copy(J.pelvis).addScaledVector(J.right, 0.1); };
+  // torso from the pelvis toward a point above the cue, tipped up until no part of it is inside the table
+  const lean = (low, canBack, ux = -dx, uz = -dz, down = false) => {
+    cue(0.62 - 0.4*e, tdir).addScaledVector(UP, 0.24 + 0.18*e - 0.1*low).addScaledVector(J.right, -0.18 - 0.08*e);
+    tdir.sub(J.pelvis).normalize(); if (low > 0 && tdir.y < 0){ tdir.y = 0; tdir.normalize(); }
+    if (down){                                                              // kneeling on the table: bend right down over the cue,
+      const hz0 = Math.hypot(tdir.x, tdir.z) || 1, cx = J.pelvis.x + tdir.x/hz0*0.4, cz = J.pelvis.z + tdir.z/hz0*0.4;   // chest a hand above it
+      const sc = (bx - cx)*dx + (bz - cz)*dz, cy = S0.ty - S0.ky*Math.max(0, sc);
+      const yT = Math.max(surf(cx, cz) + 0.17, cy + 0.13 + 0.25*e), ny = clamp((yT - J.pelvis.y)/0.46, -0.8, 0.97), k3 = Math.sqrt(1 - ny*ny)/hz0;
+      tdir.set(tdir.x*k3, ny, tdir.z*k3);
+    }
+    J.chest.copy(J.pelvis).addScaledVector(tdir, 0.46);
+    const tipUp = (y) => {                                                  // rotate the torso up (same length) so the chest reaches height y
+      const need = clamp((y - J.pelvis.y)/0.46, tdir.y, 0.97), hz = Math.hypot(tdir.x, tdir.z) || 1, k2 = Math.sqrt(1 - need*need)/hz;
+      tdir.set(tdir.x*k2, need, tdir.z*k2); J.chest.copy(J.pelvis).addScaledVector(tdir, 0.46);
+    };
+    const sC = (bx - J.chest.x)*dx + (bz - J.chest.z)*dz, cueY = S0.ty - S0.ky*Math.max(0, sC), clr = 0.22 - 0.1*low;
+    if (!down && e < 0.5 && J.chest.y < cueY + clr) tipUp(cueY + clr);
+    for (let it = 0; it < 24; it++){
+      let worst = 0;
+      for (let t = 0; t <= 1.0001; t += 0.125){
+        const qx = J.pelvis.x + tdir.x*0.46*t, qz = J.pelvis.z + tdir.z*0.46*t, qy = J.pelvis.y + tdir.y*0.46*t;
+        if (Math.max(Math.abs(qx) - OW/2, Math.abs(qz) - OH/2) > 0.16) continue;   // clear of the table (with the torso's own width)
+        worst = Math.max(worst, surf(qx, qz) + 0.13 - qy);                  // torso half thickness + margin
+      }
+      if (worst <= 0.005) return true;
+      if (tdir.y < 0.9) tipUp(J.chest.y + worst*1.6);
+      else if (canBack){ J.pelvis.x += ux*0.05; J.pelvis.z += uz*0.05; setHips(); J.chest.copy(J.pelvis).addScaledVector(tdir, 0.46); }
+      else return false;
+    }
+    return false;
+  };
+  // head, shoulders and hands. The open stance turns the upper body ~50° toward the shot. Both hands always hold the
+  // cue: the grip sits behind the shoulder, the bridge a hand's length behind the ball, sliding back along the cue
+  // (long bridge) as far as it takes for the arm to get there.
+  const upper = () => {
+    J.head.copy(J.chest).addScaledVector(tdir, 0.02).addScaledVector(UP, 0.08).addScaledVector(J.right, 0.07*(1 - e));
+    J.shL.copy(J.chest).addScaledVector(_ca, -0.19).addScaledVector(tdir, -SH_DROP); J.shR.copy(J.chest).addScaledVector(_ca, 0.19).addScaledVector(tdir, -SH_DROP);
+    const sSh = (bx - J.shR.x)*dx + (bz - J.shR.z)*dz;
+    // the grip stays on the butt, a hand or two from its end (cue: white shaft to 0.83 m, dark butt 0.85–1.43 m from the tip)
+    const steep = e > 0.2, gMin = steep ? 0.35 : GRIP_MIN;
+    let sG = clamp(sSh + 0.3, gMin, GRIP_MAX);
+    if (steep) sG = Math.max(0.35, Math.min(sG, (J.shR.y + 0.12 - S0.ty)/-S0.ky));
+    cue(sG, J.hdR);
+    if (J.shR.distanceTo(J.hdR) > reach - 0.02){                           // out of reach: grip the cue right below the shoulder instead
+      const sP = (J.shR.x - S0.tx)*-S0.kx + (J.shR.y - S0.ty)*-S0.ky + (J.shR.z - S0.tz)*-S0.kz;
+      sG = clamp(sP + 0.08, gMin, GRIP_MAX); cue(sG, J.hdR);
+    }
+    // the bridge stays on the white shaft: a stroke that would need it on the dark butt is played from on the table
+    const sMax = Math.min(BRIDGE_MAX, Math.max(0.3, sG - 0.3));
+    for (let sB = 0.28 - 0.1*e; ; sB += 0.02){
+      cue(sB, J.hdL); J.hdL.y = Math.max(0.012, J.hdL.y - 0.025);
+      if (J.shL.distanceTo(J.hdL) <= reach || sB >= sMax) break;
+    }
+    return J.shL.distanceTo(J.hdL) <= reach && J.shR.distanceTo(J.hdR) <= reach;
+  };
+  // 1) from the floor: standing, or leaning over the rail on tiptoe. The hips never go higher than the legs reach.
+  const over = clamp((back - 0.96)/0.16, 0, 1);
+  const HIP_MAX = FLOOR + 0.07 + 0.66;
+  let pd = back + 0.05, py = Math.min(FLOOR + 0.68 + 0.1*e, HIP_MAX);
+  if (over > 0){ pd += (ex + 0.10 - pd)*over; py += (HIP_MAX - py)*over; }
+  J.ftR.set(bx - dx*(back+0.12) + rx*(0.06 - side + 0.22), FLOOR + 0.07, bz - dz*(back+0.12) + rz*(0.06 - side + 0.22));
+  J.ftL.set(bx - dx*(back-0.22) - rx*(0.32 + side - 0.22), FLOOR + 0.07, bz - dz*(back-0.22) - rz*(0.32 + side - 0.22));
+  if (over > 0){
+    _v3.set(bx - dx*(pd + 0.22) - rx*(side + 0.14), FLOOR + 0.07, bz - dz*(pd + 0.22) - rz*(side + 0.14)); J.ftL.lerp(_v3, over);
+    _v3.set(bx - dx*(pd + 0.32) - rx*(side - 0.06), FLOOR + 0.07, bz - dz*(pd + 0.32) - rz*(side - 0.06)); J.ftR.lerp(_v3, over);
+  }
+  J.pelvis.set(bx - dx*pd - rx*side, py, bz - dz*pd - rz*side); setHips();
+  const plant = () => {
+    for (const [ft, hp] of [[J.ftL, J.hipL], [J.ftR, J.hipR]]){            // feet stay planted: slide in under the hip if needed
+      const dy = hp.y - ft.y, hx = ft.x - hp.x, hz = ft.z - hp.z, h = Math.hypot(hx, hz), LEG = 0.69;
+      if (dy*dy + h*h > LEG*LEG && h > 1e-6){ const k = Math.sqrt(Math.max(0, LEG*LEG - dy*dy))/h; ft.x = hp.x + hx*k; ft.z = hp.z + hz*k; }
+    }
+  };
+  let ok = lean(over, true); plant(); ok = upper() && ok;
+  let ax = bx - dx*Math.max(pd, ex + 0.12) - rx*side, az = bz - dz*Math.max(pd, ex + 0.12) - rz*side;
+  // 1b) not from behind: step round to the side of the ball (left of the cue, like a 마세이 stance) and lean in from there
+  if (!ok){
+    for (const ph of [0.35, 0.7, 1.05, 1.4, 1.75, -0.35, -0.7, -1.05, -1.4, -1.75, 2.2, -2.2]){
+      const ux = -dx*Math.cos(ph) - rx*Math.sin(ph), uz = -dz*Math.cos(ph) - rz*Math.sin(ph), px = -uz, pz = ux;
+      const dist = exitDist(bx, bz, ux, uz) + 0.1, ov = clamp((dist - 0.9)/0.16, 0, 1);
+      J.pelvis.set(bx + ux*dist, Math.min(FLOOR + 0.68 + 0.1*e, HIP_MAX) + (HIP_MAX - Math.min(FLOOR + 0.68 + 0.1*e, HIP_MAX))*ov, bz + uz*dist); setHips();
+      J.ftL.set(J.pelvis.x + ux*0.2 + px*0.14, FLOOR + 0.07, J.pelvis.z + uz*0.2 + pz*0.14);
+      J.ftR.set(J.pelvis.x + ux*0.3 - px*0.08, FLOOR + 0.07, J.pelvis.z + uz*0.3 - pz*0.08);
+      J.kp.set(-ux, 0, -uz); ok = lean(ov, true, ux, uz); plant(); ok = upper() && ok;
+      if (ok){ ax = J.pelvis.x + ux*0.05; az = J.pelvis.z + uz*0.05; break; }
+    }
+  }
+  // 2) too far from the floor: climb onto the table and kneel on it (knees and feet resting on the cloth / rail, never
+  // in the air), as close to the edge as still lets both hands hold the cue
+  // (behind the ball first, then kneeling in from the side for a 마세이 by a rail)
+  if (!ok){
+    kneel: for (const ph of [0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0]){
+      const ux = -dx*Math.cos(ph) - rx*Math.sin(ph), uz = -dz*Math.cos(ph) - rz*Math.sin(ph), px = -uz, pz = ux;   // u: knees → feet, p: to the left
+      const ls = ph === 0 ? side : 0.1;
+      const kdMax = exitDist(bx, bz, ux, uz) - 0.36;                       // feet (32 cm behind the knees) still on the table
+      for (let kd = kdMax; kd >= 0.42; kd -= 0.04){
+        _kn.set(bx + ux*kd + px*ls, 0, bz + uz*kd + pz*ls);
+        const ky = surf(_kn.x, _kn.z) + 0.06;
+        J.pelvis.set(_kn.x - ux*0.12, ky + 0.3, _kn.z - uz*0.12);
+        J.hipL.copy(J.pelvis); J.hipL.x += px*0.1; J.hipL.z += pz*0.1;
+        J.hipR.copy(J.pelvis); J.hipR.x -= px*0.1; J.hipR.z -= pz*0.1;
+        for (const [ft, sd] of [[J.ftL, 1], [J.ftR, -1]]){
+          ft.set(_kn.x + px*0.1*sd + ux*0.32, 0, _kn.z + pz*0.1*sd + uz*0.32); ft.y = surf(ft.x, ft.z) + 0.07;
+        }
+        J.toe.set(ux, 0, uz); J.kp.set(-ux, 0, -uz);
+        ok = lean(1, false, ux, uz, true); ok = upper() && ok;
+        if (ok) break kneel;
+      }
+    }
+  }
+  // where the character "stands" for walking: never inside the table outline
+  J.anchor.set(ax, FLOOR, az);
+  J.right.copy(_ca);                                                                       // torso, hips box, feet and face follow the twist
+  return ok;
+}
+function solveLimbs(J){
+  _pole.copy(J.kp); ik2(J.hipL, J.ftL, 0.35, 0.35, _pole, J.knL, J.ftL); ik2(J.hipR, J.ftR, 0.35, 0.35, _pole, J.knR, J.ftR);
+  _pole.copy(J.fwd).multiplyScalar(-0.6).addScaledVector(UP, -0.4).addScaledVector(J.right, -0.5); ik2(J.shL, J.hdL, ARM_U, ARM_F, _pole, J.elL, J.hdL);
+  _pole.copy(J.fwd).multiplyScalar(-0.6).addScaledVector(UP, 0.6).addScaledVector(J.right, 0.4); ik2(J.shR, J.hdR, ARM_U, ARM_F, _pole, J.elR, J.hdR);
+}
+function drawAvatar(A, J, holdCue){
+  const P = A.P, tor = _tor.subVectors(J.chest, J.pelvis), tl = tor.length();
+  placeBox(P.pelvis, J.pelvis, J.right, tor, 0.32, 0.16, 0.2);
+  _mid.addVectors(J.pelvis, J.chest).multiplyScalar(0.5);
+  _mid.addScaledVector(tor, -0.025/tl);
+  placeBox(P.torso, _mid, J.right, tor, 0.36, tl - 0.01, 0.21);
+  _cm.crossVectors(J.right, tor).normalize();                                   // torso front normal (points backward → negate)
+  _ca.copy(_mid).addScaledVector(_cm, -0.006).addScaledVector(tor, 0.12/tl);
+  placeBox(P.shirtF, _ca, J.right, tor, 0.12, tl*0.55, 0.218);
+  P.neck.visible = false;                                                 // no neck
+  placeBall(P.head, J.head, HEAD_R);
+  const face = _face.copy(J.fwd);
+  const hr = HEAD_R;
+  P.hair.position.copy(J.head).addScaledVector(UP, hr*0.3).addScaledVector(face, -hr*0.16); P.hair.scale.set(hr*1.07, hr*0.9, hr*1.07);
+  P.bang.position.copy(J.head).addScaledVector(UP, hr*0.62).addScaledVector(face, hr*0.48); P.bang.scale.set(hr*0.78, hr*0.3, hr*0.5);
+  _ca.copy(face).cross(UP).normalize();                                   // sideways on the face
+  _cb.copy(face).cross(UP).normalize();                                   // the face's own sideways axis
+  for (const [w, e, h, sd] of [[P.ewL, P.eyeL, P.hiL, -1], [P.ewR, P.eyeR, P.hiR, 1]]){
+    w.position.copy(J.head).addScaledVector(face, hr*0.84).addScaledVector(_cb, hr*0.36*sd).addScaledVector(UP, hr*0.06); w.scale.set(hr*0.2, hr*0.24, hr*0.12);
+    e.position.copy(J.head).addScaledVector(face, hr*0.9).addScaledVector(_cb, hr*0.36*sd).addScaledVector(UP, hr*0.04); e.scale.set(hr*0.15, hr*0.19, hr*0.1);
+    h.position.copy(J.head).addScaledVector(face, hr*0.97).addScaledVector(_cb, hr*(0.36*sd + 0.05)).addScaledVector(UP, hr*0.12); h.scale.setScalar(hr*0.05);
+  }
+
+  placeLimb(P.uaL, J.shL, J.elL, 0.04); placeLimb(P.uaR, J.shR, J.elR, 0.04);
+  placeLimb(P.faL, J.elL, J.hdL, 0.033); placeLimb(P.faR, J.elR, J.hdR, 0.033);
+  placeBall(P.shL, J.shL, 0.048); placeBall(P.shR, J.shR, 0.048); placeBall(P.elL, J.elL, 0.036); placeBall(P.elR, J.elR, 0.036);
+  placeBall(P.hdL, J.hdL, 0.045); placeBall(P.hdR, J.hdR, 0.045);
+  placeLimb(P.thL, J.hipL, J.knL, 0.068); placeLimb(P.thR, J.hipR, J.knR, 0.068);
+  // shins run a little past the ankle into the shoe, so there's never a gap between leg and foot
+  for (const [m, k, f] of [[P.shinL, J.knL, J.ftL], [P.shinR, J.knR, J.ftR]]){ _an.subVectors(f, k).setLength(0.035).add(f); placeLimb(m, k, _an, 0.052); }
+  placeBall(P.knL, J.knL, 0.055); placeBall(P.knR, J.knR, 0.055);
+  // shoe: sole flat (parallel to the floor or the cloth), pointing along the toe direction (forward when standing,
+  // back along the shin when kneeling), heel under the ankle
+  _fz.copy(J.toe).setY(0); if (_fz.lengthSq() < 1e-6) _fz.copy(J.fwd); _fz.normalize(); _fx.crossVectors(UP, _fz);
+  for (const [m, f] of [[P.ftL, J.ftL], [P.ftR, J.ftR]]){ _ft.copy(f).addScaledVector(_fz, 0.06); _ft.y = f.y - 0.035; placeBox(m, _ft, _fx, UP, 0.1, 0.07, 0.27); }
+  P.cue.visible = P.cueBt.visible = holdCue;
+  if (holdCue){
+    // own cue stood upright in the right hand, butt on the floor
+    _ca.set(J.hdR.x + J.fwd.x*0.02, FLOOR + 0.01, J.hdR.z + J.fwd.z*0.02); _cb.set(_ca.x + J.right.x*0.06, _ca.y + 1.45, _ca.z + J.right.z*0.06);
+    _cm.lerpVectors(_ca, _cb, 0.42);
+    placeLimb(P.cueBt, _ca, _cm, 0.013); placeLimb(P.cue, _cm, _cb, 0.009);
+  }
+  A.label.position.copy(J.head).addScaledVector(UP, 0.26);
+}
+// switch the table (and ball) size: dimensions used by physics, the rack, the camera and the characters, then rebuild our table
+function setDims(size){
+  const Z = SIZES[size === 'big' ? 'big' : 'mid'];
+  tableSize = size === 'big' ? 'big' : 'mid'; W = Z.W; H = Z.H; HW = W/2; HH = H/2; R = Z.R;
+  OW = W+2*(CW+RW); OH = H+2*(CW+RW); KX = OW/2 + KM; KZ = OH/2 + KM;
+  aimPlane.constant = -R;
+  ballMeshes.forEach(m => m.scale.setScalar(R/0.03275));
+  while (tableGroup.children.length){ const c = tableGroup.children.pop(); if (c.geometry && c.geometry !== dGeo && c.geometry !== spotGeo) c.geometry.dispose(); }
+  caromTable(tableGroup, feltMat, cushionMat, true);
+}
+const avatars = [];
+let A_turnKey = '', A_turnAt = 0;
+let avKeys = {}, myAvMoveAt = 0, avPubAt = 0, avPubMark = '';
+function controlSeat(){
+  if (!S || mode === 'lobby') return -1;
+  if (mode === 'local') return S.players.length > 1 ? 1 - S.turn : -1;
+  return S.players.findIndex(p => p.pid === myPid);
+}
+function avatarWalkTo(A, x, z){ [x, z] = pushOut(x, z); A.path = planPath(A.x, A.z, x, z); }
+function avatarTap(e){
+  const seat = controlSeat(); const A = avatars[seat];
+  if (!A || aimTurn() || (S && seat === S.turn && strike)) return false;
+  setRay(e);
+  let hit = null;
+  if (ray.ray.intersectPlane(new THREE.Plane(UP, 0), _hit) && Math.abs(_hit.x) < OW/2 && Math.abs(_hit.z) < OH/2) hit = [_hit.x, _hit.z];
+  else if (ray.ray.intersectPlane(new THREE.Plane(UP, -FLOOR), _hit)) hit = [_hit.x, _hit.z];
+  if (!hit) return false;
+  A.seat = -1; A.ownStanceAt = 0; avatarWalkTo(A, hit[0], hit[1]); myAvMoveAt = performance.now();
+  return true;
+}
+function stepWalk(A, dt, speed){
+  if (!A.path.length){ A.walk = Math.max(0, A.walk - dt*4); return; }
+  const [tx, tz] = A.path[0], dx = tx - A.x, dz = tz - A.z, d = Math.hypot(dx, dz);
+  const step = speed*dt;
+  if (d <= step){ A.x = tx; A.z = tz; A.path.shift(); }
+  else { A.x += dx/d*step; A.z += dz/d*step; }
+  if (d > 1e-3){ let dh = Math.atan2(dz, dx) - A.h; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); A.h += dh*Math.min(1, dt*10); }
+  A.walk = Math.min(1, A.walk + dt*5); A.phase += dt*speed*7.5;
+}
+function updateAvatars(dt){
+  const show = !!S && mode !== 'lobby';
+  const n = show ? S.players.length : 0;
+  while (avatars.length < 2) avatars.push(makeAvatar(avatars.length));
+  // who is in the stance: the shooter while the cue is out, and for a moment after the stroke
+  const now = performance.now();
+  const rp = playing && playing.replay && playing.sh ? playing : null;           // replaying a shot: characters as they were then
+  const stickOut = cueOut && S && (rp || S.winner < 0);
+  const sTurn = rp ? rp.sh.c : S ? S.turn : 0;
+  if (S && turnKey() !== A_turnKey){ A_turnKey = turnKey(); A_turnAt = now; }
+  if (S && !turnReady() && now - A_turnAt > 10000 && S.winner < 0){ readyKey = forcedKey = turnKey(); renderHUD(); }   // never leave a shot waiting on the walk
+  let stanceSeat = -1;
+  if (stickOut){ stanceSeat = sTurn; avatars[sTurn].ownStanceAt = now; }
+  else if (S && avatars[sTurn] && now - avatars[sTurn].ownStanceAt < 700) stanceSeat = sTurn;
+  const ctl = controlSeat();
+  if (rp && !rp.placed && S){                                              // first replay frame: put everyone in place at once
+    rp.placed = true;
+    avatars.forEach((A, i) => {
+      A.path = []; A.goalKey = '';
+      if (i === sTurn){ stancePose(A, JT, rp.ball[0], rp.ball[1]); for (const k in JT) A.JS[k].copy(JT[k]); A.x = JT.anchor.x; A.z = JT.anchor.z; A.h = Math.atan2(JT.fwd.z, JT.fwd.x); A.stance = 1; A.seat = -1; A.sit = 0; }
+      else { const v = rp.av && rp.av[i]; if (v){ A.x = v.x; A.z = v.z; A.h = v.h; A.seat = v.seat; A.sit = v.seat >= 0 ? 1 : 0; } A.stance = 0; }
+    });
+  }
+  for (let i=0;i<2;i++){
+    const A = avatars[i];
+    A.root.visible = show && i < n;
+    if (!A.root.visible) continue;
+    const name = S.players[i] && S.players[i].name || '';
+    if (name !== A.labelText){ A.labelText = name; A.root.remove(A.label); A.label = labelSprite(name); A.root.add(A.label); }
+    // keyboard walking for the character you control
+    // you can walk off as soon as the stroke is done (only your own walk to the ball, before the shot, is automatic)
+    if (!rp && i === ctl && !aimTurn() && !(S && i === S.turn && strike)){
+      const kx = (avKeys.KeyD ? 1 : 0) - (avKeys.KeyA ? 1 : 0), kf = (avKeys.KeyW ? 1 : 0) - (avKeys.KeyS ? 1 : 0);
+      if (kx || kf){ A.seat = -1; A.ownStanceAt = 0; }                 // leave the stance right away
+      if ((kx || kf) && A.sit === 0){
+        const cy = Math.atan2(camLook.z - camPos.z, camLook.x - camPos.x), fx = Math.cos(cy), fz = Math.sin(cy), rx = -fz, rz = fx;
+        let mx = fx*kf + rx*kx, mz = fz*kf + rz*kx; const ml = Math.hypot(mx, mz); mx /= ml; mz /= ml;
+        let nx = A.x + mx*1.5*dt, nz = A.z + mz*1.5*dt; [nx, nz] = pushOut(nx, nz);
+        A.path = [[nx, nz]]; myAvMoveAt = now;
+      }
+    }
+    // your turn: get up from the sofa (the walk to the ball waits until you're on your feet)
+    if (!rp && S && i === S.turn && S.winner < 0) A.seat = -1;
+    // the shooter walks to the spot behind the cue ball, then bends into the stance
+    const inStance = i === stanceSeat;
+    if (inStance){
+      // the target stance goes into a scratch pose; A.JS (the pose being blended) only takes it once the body is there,
+      // so standing up to relocate never stretches limbs across the table toward the new spot
+      const c = rp ? rp.ball : S.balls[S.turn]; stancePose(A, JT, c[0], c[1]);
+      const bx = JT.anchor.x, bz = JT.anchor.z, far = Math.hypot(bx - A.x, bz - A.z);
+      const take = () => { for (const k in JT) A.JS[k].copy(JT[k]); A.x = bx; A.z = bz; A.path = []; A.h = Math.atan2(JT.fwd.z, JT.fwd.x); A.stance = Math.min(1, A.stance + dt*3); };
+      // re-aiming: keep the stance and slide along as long as the move doesn't cross the table itself
+      // (checked against the table minus a 15 cm lean-over band, so sliding along the rail never resets the pose)
+      // while you are aiming (your view, your body hidden) a click that swings the aim never sends the character walking:
+      // it simply settles into the new stance
+      const aimingHere = turnReady() && aimTurn();
+      if (A.stance > 0.02 && (aimingHere || (far < 0.8 && !segHitsRect(A.x, A.z, bx, bz, OW/2 - 0.15, OH/2 - 0.15)))) take();
+      else if (far > 0.04){ A.stance = Math.max(0, A.stance - dt*4); if (A.stance === 0){ const key = Math.round(bx*5)+','+Math.round(bz*5); if (key !== A.goalKey || !A.path.length){ A.goalKey = key; A.path = planPath(A.x, A.z, bx, bz); } } }
+      else take();
+    } else {
+      if (A.stance > 0){ A.stance = Math.max(0, A.stance - dt*2.5); if (A.stance === 0){ const p = pushOut(A.x, A.z); A.x = p[0]; A.z = p[1]; } }
+      // the other player's character follows their own position
+      if (!rp && i !== ctl && A.net && A.stance === 0){
+        if (!(S && i === S.turn && S.winner < 0)) A.seat = A.net.s;
+        const key = Math.round(A.net.x*20)+','+Math.round(A.net.z*20); if (key !== A.goalKey){ A.goalKey = key; avatarWalkTo(A, A.net.x, A.net.z); }
+      }
+      // sofa: walk to the front of the seat, turn round, sit down; standing up again before any walk
+      const st = A.seat >= 0 ? SEATS[A.seat] : null;
+      if (st && A.stance === 0){
+        const far = Math.hypot(st.ax - A.x, st.az - A.z);
+        if (A.sit === 0 && far > 0.04){ const key = 'seat'+A.seat; if (key !== A.goalKey || !A.path.length){ A.goalKey = key; A.path = planPath(A.x, A.z, st.ax, st.az); } }
+        else {
+          A.path = []; let dh = Math.atan2(st.fz, st.fx) - A.h; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); A.h += dh*Math.min(1, dt*10);
+          if (Math.abs(dh) < 0.3 || A.sit > 0){ sitPose(A.SJ, st); A.sit = Math.min(1, A.sit + dt*1.6); }
+        }
+      }
+    }
+    if (!rp && inStance && A.stance > 0.97 && !turnReady()){ readyKey = turnKey(); renderHUD(); }   // settled: hand over the cue and the controls
+    if (!rp && S && i === S.turn) shooterSettled = (inStance && A.stance > 0.9) || forcedKey === turnKey();
+    if (A.seat < 0 && A.sit > 0) A.sit = Math.max(0, A.sit - dt*2.2);   // standing up
+    if (A.sit > 0) A.path = [];                                            // getting up comes before walking anywhere
+    if (A.stance === 0 || !inStance) stepWalk(A, dt, inStance ? 2.1 : A.path.length > 2 ? 1.9 : 1.4);
+    walkPose(A, JW);
+    let J = JW;
+    if (A.stance > 0){                                                     // blend in (or back out of) the last stance pose
+      const t = A.stance*A.stance*(3 - 2*A.stance);
+      for (const k in JB) JB[k].lerpVectors(JW[k], A.JS[k], t);
+      JB.fwd.normalize(); JB.right.normalize();
+      J = JB;
+    }
+    if (A.sit > 0){                                                        // blend into (or out of) sitting on the sofa
+      const t = A.sit*A.sit*(3 - 2*A.sit);
+      for (const k in JS2) JS2[k].lerpVectors(J[k], A.SJ[k], t);
+      JS2.fwd.normalize(); JS2.right.normalize();
+      J = JS2;
+    }
+    solveLimbs(J);
+    drawAvatar(A, J, !(inStance && A.stance > 0.5));
+    (A.headPos || (A.headPos = new THREE.Vector3())).copy(J.head);
+    // fade a character the camera is inside of (your own body during the aim view)
+    const dCam = Math.min(camPos.distanceTo(J.head), camPos.distanceTo(J.chest), camPos.distanceTo(J.pelvis));
+    let op = clamp((dCam - 0.35)/0.65, 0, 1);
+    // while you aim and stroke you look over your own shoulder, so your own body is left out of the view
+    const aimingMe = inStance && !topView && (canAim() || (!!strike && isMyTurn()));
+    if (aimingMe || (firstPerson && !topView && i === fpSeat())) op = 0;
+    A.label.visible = !aimingMe;
+    A.root.visible = op > 0.02;
+    if (Math.abs(op - A.opacity) > 0.01){ A.opacity = op; A.mats.forEach(m => { m.opacity = op; m.depthWrite = op > 0.98; }); A.label.material.opacity = op; }
+  }
+  // tell the room where my character stands (only my own, at most ~8 times a second)
+  if (mode === 'online' && nr && ctl >= 0 && now - avPubAt > 120){
+    const A = avatars[ctl], mark = A.x.toFixed(2)+','+A.z.toFixed(2)+','+A.seat;
+    if (mark !== avPubMark){ avPubMark = mark; avPubAt = now; nr.presence({av:{x:+A.x.toFixed(3), z:+A.z.toFixed(3), s:A.seat}}).catch(()=>{}); }
+  }
+}
+function readNetAvatars(){
+  if (mode !== 'online' || !S) return;
+  S.players.forEach((pl, i) => {
+    if (pl.pid === myPid || !avatars[i]) return;
+    const p = peers.find(q => q.presence && q.presence.pid === pl.pid && !q.isMe), a = p && p.presence.av;
+    if (a && Number.isFinite(a.x) && Number.isFinite(a.z) && Math.abs(a.x) < ROOM_X && Math.abs(a.z) < ROOM_Z)
+      avatars[i].net = {x:a.x, z:a.z, s: Number.isInteger(a.s) && a.s >= 0 && a.s < SEATS.length ? a.s : -1};
+  });
+}
+
+const guideMat = new THREE.LineDashedMaterial({color:0xfff4d8, dashSize:0.022, gapSize:0.016, transparent:true, opacity:0.85});
+const objMat = new THREE.LineBasicMaterial({color:0xffd27a, transparent:true, opacity:0.85});
+const tanMat = new THREE.LineBasicMaterial({color:0xbcd6ff, transparent:true, opacity:0.6});
+function mkLine(mat){ const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6),3)); const l = new THREE.Line(g, mat); l.frustumCulled = false; l.visible = false; scene.add(l); return l; }
+const guideLine = mkLine(guideMat), objLine = mkLine(objMat), tanLine = mkLine(tanMat);
+function setLine(l, x1,z1,x2,z2){ const a = l.geometry.attributes.position.array; a[0]=x1; a[1]=R; a[2]=z1; a[3]=x2; a[4]=R; a[5]=z2; l.geometry.attributes.position.needsUpdate = true; l.geometry.computeBoundingSphere(); if (l.material.isLineDashedMaterial) l.computeLineDistances(); l.visible = true; }
+const ghost = new THREE.Mesh(new THREE.SphereGeometry(R,24,16), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.22, depthWrite:false}));
+ghost.visible = false; scene.add(ghost);
+const ghostRing = new THREE.Mesh(new THREE.RingGeometry(R*0.85, R*1.02, 36), new THREE.MeshBasicMaterial({color:0xfff4d8, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false}));
+ghostRing.rotation.x = -Math.PI/2; ghostRing.visible = false; scene.add(ghostRing);
+const turnRing = new THREE.Mesh(new THREE.RingGeometry(R*1.25, R*1.45, 40), new THREE.MeshBasicMaterial({color:0xd6b062, transparent:true, opacity:0.75, side:THREE.DoubleSide, depthWrite:false}));
+turnRing.rotation.x = -Math.PI/2; turnRing.visible = false; scene.add(turnRing);
+
+/* ================= Sound ================= */
+let actx = null, noiseBuf = null, muted = false, sfxBudget = 0;
+function audioInit(){
+  if (actx){ if (actx.state === 'suspended') actx.resume().catch(()=>{}); return; }
+  try {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate*0.25), actx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+    clackBuf = makeClack(actx);
+    // recorded impact: the loudest hit of a pool-break recording, cut out at load; the synthesized knock stays as the fallback
+    fetch('sounds/pool-break.mp3').then(r => r.arrayBuffer()).then(b => actx.decodeAudioData(b)).then(b => { clackBuf = cutImpact(actx, b) || clackBuf; }).catch(()=>{});
+  } catch(e){ actx = null; }
+}
+// Ball-on-ball "탁": a dull knock rather than a ringing click. A low 180 Hz thump gives the weight,
+// a 700 Hz body (with two quieter partials) dies out within ~10 ms, and a darkened noise burst
+// marks the contact. Nothing rings past ~30 ms, which is what keeps it from sounding metallic.
+let clackBuf = null, sfxMaster = null;
+function sfxOut(){ if (!sfxMaster){ sfxMaster = actx.createGain(); sfxMaster.connect(actx.destination); } return sfxMaster; }   // recordings tap this node
+const CLACK_LEN = 0.2, CLACK_FADE = 0.08;   // clip length and the fade at its tail (seconds)
+function cutImpact(ac, src){
+  const sr = src.sampleRate, n = src.length, ch = src.numberOfChannels, m = new Float32Array(n);
+  for (let c=0;c<ch;c++){ const d = src.getChannelData(c); for (let i=0;i<n;i++) m[i] += d[i]/ch; }
+  let pk = 0, pi = 0; for (let i=0;i<n;i++){ const a = Math.abs(m[i]); if (a > pk){ pk = a; pi = i; } }
+  if (pk < 0.01) return null;
+  let on = pi; while (on > 0 && pi-on < sr*0.01 && Math.abs(m[on-1]) > pk*0.1) on--;        // walk back to the onset of that hit
+  const start = Math.max(0, on - Math.floor(sr*0.002)), len = Math.min(n-start, Math.floor(sr*CLACK_LEN)), fadeAt = len - Math.floor(sr*CLACK_FADE);
+  const out = ac.createBuffer(1, len, sr), y = out.getChannelData(0);
+  for (let i=0;i<len;i++){
+    let g = 0.95/pk;
+    if (i < 48) g *= i/48;                                                                   // 1 ms fade-in, no click
+    if (i > fadeAt){ const k = 1 - (i-fadeAt)/(len-fadeAt); g *= k*k; }                     // smooth tail so it doesn't sound cut off
+    y[i] = m[start+i]*g;
+  }
+  return out;
+}
+function makeClack(ac){
+  const sr = ac.sampleRate, n = Math.floor(sr*0.07), buf = ac.createBuffer(1, n, sr), y = buf.getChannelData(0);
+  const modes = [[180, 0.45, 0.010], [700, 1.0, 0.009], [1150, 0.6, 0.006], [1900, 0.3, 0.003]];
+  let a1 = 0, a2 = 0, peak = 0;
+  for (let i=0;i<n;i++){
+    const t = i/sr;
+    let s = 0;
+    for (const [f, a, tau] of modes) s += a*Math.exp(-t/tau)*Math.sin(2*Math.PI*f*t);
+    a1 += 0.25*((Math.random()*2-1) - a1); a2 += 0.25*(a1 - a2);   // noise through two one-pole lowpasses: a dark contact burst
+    s += 1.75*a2*Math.exp(-t/0.003);
+    s *= Math.min(1, t/0.0003);                                    // 0.3 ms onset ≈ contact time
+    y[i] = s; peak = Math.max(peak, Math.abs(s));
+  }
+  for (let i=0;i<n;i++) y[i] *= 0.9/peak;
+  return buf;
+}
+function noise(t, dur, type, freq, q, vol){
+  const s = actx.createBufferSource(); s.buffer = noiseBuf;
+  const f = actx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+  const g = actx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  s.connect(f); f.connect(g); g.connect(sfxOut()); s.start(t); s.stop(t+dur+0.02);
+}
+function tone(t, dur, type, f1, f2, vol){
+  const o = actx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t+dur);
+  const g = actx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  o.connect(g); g.connect(sfxOut()); o.start(t); o.stop(t+dur+0.02);
+}
+function sfx(type, v){
+  if (!actx || muted || sfxBudget <= 0) return;
+  sfxBudget--;
+  const t = actx.currentTime;
+  if (type === 'ball' && clackBuf){
+    // harder hits are louder and brighter; soft kisses stay audible but dull. Slight pitch spread so repeats don't sound copied.
+    const h = clamp(v/2, 0, 1);
+    const s = actx.createBufferSource(); s.buffer = clackBuf; s.playbackRate.value = 0.95 + Math.random()*0.1;
+    const f = actx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2500 + 9500*h; f.Q.value = 0.5;
+    const g = actx.createGain(); g.gain.value = 0.25 + 0.75*h;
+    s.connect(f); f.connect(g); g.connect(sfxOut()); s.start(t);
+  }
+  else if (type === 'rail'){ const vol = clamp(v/3.5, 0.03, 0.5); noise(t, 0.09, 'lowpass', 380, 1, vol); }
+  else if (type === 'cue'){ const vol = clamp(v, 0.1, 0.9); noise(t, 0.03, 'bandpass', 1900, 1.2, vol); tone(t, 0.04, 'sine', 900, 500, vol*0.3); }
+  else if (type === 'score'){ tone(t, 0.12, 'sine', 880, 880, 0.12); tone(t+0.1, 0.18, 'sine', 1320, 1320, 0.1); }
+  else if (type === 'turn'){ tone(t, 0.1, 'sine', 660, 660, 0.08); tone(t+0.09, 0.14, 'sine', 990, 990, 0.07); }
+}
+
+/* ================= P2P room (PeerJS / WebRTC) =================
+   The first player to open a code claims the host id and relays everyone's
+   presence. If the host leaves, the others race to take the id over; each
+   client keeps its own copy of the game state in its presence, so the table
+   survives a host change. */
+// wall-clock ms with sub-ms resolution and no jumps (Date.now() ticks in whole or coarser steps)
+const wallNow = () => performance.timeOrigin + performance.now();
+const PEER_PREFIX = 'carom3d-v2-';
+const NET_ERR = ['network','server-error','socket-error','socket-closed','browser-incompatible','ssl-unavailable'];
+const PeerRoomApi = { join: code => new Promise((resolve, reject) => { PeerRoom(code, resolve, reject); }) };
+function PeerRoom(code, resolve, reject){
+  const HOST = PEER_PREFIX + code;
+  let peer = null, isHost = false, hostConn = null, closed = false, settled = false, isConnected = false;
+  let myId = null, mine = {}, clientList = [], bTimer = null, sTimer = null, openTimer = null, tries = 0;
+  // shared clock: the host's Date.now(). Clients keep the offset from the ping with the shortest round trip.
+  let clockOff = 0, clockSamples = [], pingTimer = null, appliedOff = 0, lastBase = null, lastOut = 0;
+  const soon = f => Promise.resolve().then(f);                             // batch same-tick updates without timers (a hidden tab throttles those)
+  const conns = new Map(), peerCbs = [], connCbs = [];
+  const opts = {debug:0};
+  const settle = (ok, err) => { if (settled) return; settled = true; clearTimeout(joinTimer); ok ? resolve(api) : reject(err); };
+  const joinTimer = setTimeout(() => { if (!settled){ cleanup(); settle(false, {code:'upstream_error'}); } }, 16000);
+  const setConn = v => { if (isConnected === v) return; isConnected = v; connCbs.forEach(f => { try { f(v); } catch(e){ console.error(e); } }); };
+  function list(){
+    if (isHost){
+      const arr = [{peer:myId, presence:mine, isMe:true, sameTab:true}];
+      conns.forEach((v,k) => { if (v.open) arr.push({peer:k, presence:v.presence || {}, isMe:false, sameTab:false}); });
+      return arr;
+    }
+    const arr = clientList.map(x => ({peer:x.peer, presence: x.peer === myId ? mine : (x.presence || {}), isMe: x.peer === myId, sameTab: x.peer === myId}));
+    if (!arr.some(x => x.isMe)) arr.push({peer:myId || 'me', presence:mine, isMe:true, sameTab:true});
+    return arr;
+  }
+  function notify(){ const peers = list(); peerCbs.forEach(f => { try { f({peers}); } catch(e){ console.error(e); } }); }
+  function hostBroadcast(){
+    if (bTimer) return;
+    bTimer = true;
+    soon(() => {
+      bTimer = null;
+      const msg = {t:'peers', list: list().map(x => ({peer:x.peer, presence:x.presence}))};
+      conns.forEach(v => { if (v.open){ try { v.conn.send(msg); } catch(e){} } });
+      notify();
+    });
+  }
+  function cleanupPeer(){
+    clearTimeout(openTimer); clearInterval(pingTimer); pingTimer = null;
+    if (peer){ const p = peer; peer = null; try { p.destroy(); } catch(e){} }
+    hostConn = null; conns.clear(); isHost = false;
+  }
+  function cleanup(){ closed = true; cleanupPeer(); bTimer = sTimer = null; }
+  function retry(){ if (closed) return; tries++; setTimeout(() => { if (!closed) claimHost(); }, 300 + Math.random()*1200*Math.min(tries, 4)); }
+  function fatal(){ setConn(false); if (!settled){ cleanup(); settle(false, {code:'upstream_error'}); } else retry(); }
+  function claimHost(){
+    if (closed) return;
+    cleanupPeer();
+    const p = new Peer(HOST, opts); peer = p;
+    p.on('open', id => { if (peer !== p) return; isHost = true; myId = id; tries = 0; clientList = []; clockOff = 0; clockSamples = []; setConn(true); settle(true); notify(); });
+    p.on('connection', conn => {
+      if (peer !== p || !isHost){ try { conn.close(); } catch(e){} return; }
+      const ent = {conn, presence:{}, open:false};
+      conns.set(conn.peer, ent);
+      conn.on('open', () => { ent.open = true; hostBroadcast(); });
+      conn.on('data', d => {
+        if (d && d.t === 'ping' && typeof d.c === 'number'){ try { conn.send({t:'pong', c:d.c, h:wallNow()}); } catch(e){} return; }
+        if (!d || d.t !== 'p' || !d.presence || typeof d.presence !== 'object') return;
+        try { if (JSON.stringify(d.presence).length > 8000) return; } catch(e){ return; }
+        ent.presence = d.presence; hostBroadcast();
+      });
+      const drop = () => { if (conns.get(conn.peer) === ent){ conns.delete(conn.peer); hostBroadcast(); } };
+      conn.on('close', drop); conn.on('error', drop);
+    });
+    p.on('error', err => { if (peer !== p) return; if (err.type === 'unavailable-id' && !isHost) joinAsClient(); else if (NET_ERR.includes(err.type)) fatal(); });
+    p.on('disconnected', () => { if (peer === p && !closed && isHost){ try { p.reconnect(); } catch(e){} } });
+  }
+  function joinAsClient(){
+    cleanupPeer();
+    const p = new Peer(opts); peer = p;
+    p.on('open', id => {
+      if (peer !== p) return;
+      myId = id;
+      const conn = p.connect(HOST, {reliable:true, serialization:'json'});
+      hostConn = conn;
+      openTimer = setTimeout(() => { if (hostConn === conn && !conn.open){ hostConn = null; retry(); } }, 8000);
+      conn.on('open', () => {
+        if (hostConn !== conn) return;
+        clearTimeout(openTimer); tries = 0; setConn(true);
+        try { conn.send({t:'p', presence:mine}); } catch(e){}
+        clockSamples = [];
+        const ping = () => { if (hostConn === conn && conn.open){ try { conn.send({t:'ping', c:wallNow()}); } catch(e){} } };
+        ping(); setTimeout(ping, 250); setTimeout(ping, 600); setTimeout(ping, 1200);
+        clearInterval(pingTimer); pingTimer = setInterval(ping, 4000);
+        settle(true); notify();
+      });
+      conn.on('data', d => {
+        if (d && d.t === 'pong' && typeof d.c === 'number' && typeof d.h === 'number'){
+          const now = wallNow(), rtt = now - d.c;
+          if (rtt >= 0 && rtt < 5000){
+            clockSamples.push({rtt, off: d.h + rtt/2 - now}); if (clockSamples.length > 12) clockSamples.shift();
+            clockOff = clockSamples.reduce((a, b) => b.rtt < a.rtt ? b : a).off;
+          }
+          return;
+        }
+        if (d && d.t === 'peers' && Array.isArray(d.list)){ clientList = d.list.filter(x => x && typeof x.peer === 'string'); notify(); }
+      });
+      const lost = () => { if (hostConn !== conn || closed) return; hostConn = null; clientList = []; setConn(false); notify(); retry(); };
+      conn.on('close', lost); conn.on('error', lost);
+    });
+    p.on('error', err => { if (peer !== p) return; if (err.type === 'peer-unavailable') retry(); else if (NET_ERR.includes(err.type)) fatal(); });
+  }
+  function sendMine(){
+    if (isHost){ hostBroadcast(); return; }
+    if (sTimer) return;
+    sTimer = true;
+    soon(() => { sTimer = null; if (hostConn && hostConn.open){ try { hostConn.send({t:'p', presence:mine}); } catch(e){} } notify(); });
+  }
+  const off = (arr, fn) => () => { const i = arr.indexOf(fn); if (i >= 0) arr.splice(i, 1); };
+  const api = {
+    presence(patch){ const m = Object.assign({}, mine); for (const k in patch){ if (patch[k] === null) delete m[k]; else m[k] = patch[k]; } mine = m; sendMine(); return Promise.resolve(); },
+    onPeers(fn){ peerCbs.push(fn); setTimeout(() => fn({peers:list()}), 0); return off(peerCbs, fn); },
+    onConnection(fn){ connCbs.push(fn); setTimeout(() => fn(isConnected), 0); return off(connCbs, fn); },
+    now(){                                                       // room clock: smooth, never runs backward, offset changes ease in
+      const base = wallNow(), dt = lastBase == null ? 0 : Math.max(0, base - lastBase); lastBase = base;
+      const gap = clockOff - appliedOff;
+      if (Math.abs(gap) > 400) appliedOff = clockOff;              // first sync or a new host: just take it
+      else appliedOff += clamp(gap, -0.05*dt, 0.05*dt);
+      const t = base + appliedOff; lastOut = Math.max(lastOut, t); return lastOut;
+    },
+    leave(){ cleanup(); return Promise.resolve(); }
+  };
+  claimHost();
+}
+
+/* ================= Quick-join (PeerJS seat beacons) =================
+   No server: a room that waits for a second player holds one of a few well-known "open seat" ids
+   and answers whoever connects with its code. Quick join asks every slot at once and picks a room.
+   A tab that dies can leave its id reserved on the PeerJS server for a while; that only takes one
+   slot out, the rest keep working (the old single shared lobby id could be blocked this way). */
+const SLOT_N = 8, SLOT_ID = k => PEER_PREFIX + 'seat-' + k, TAKEN_FOR = 8000;
+function SeatBeacon(info){
+  let peer = null, closed = false, slot = Math.floor(Math.random()*SLOT_N), tried = 0, takenUntil = 0;
+  function claim(){
+    if (closed) return;
+    const p = new Peer(SLOT_ID(slot), {debug:0}); peer = p;
+    p.on('open', () => { tried = 0; });
+    p.on('connection', c => {
+      c.on('open', () => { const r = info(); if (r){ try { c.send({t:'room', code:r.code, mode:r.mode, target:r.target, name:r.name, taken: Date.now() < takenUntil}); } catch(e){} } });
+      c.on('data', d => { if (d && d.t === 'take') takenUntil = Date.now() + TAKEN_FOR; });
+    });
+    p.on('error', err => {
+      if (peer !== p || closed) return;
+      try { p.destroy(); } catch(e){}
+      slot = (slot + 1) % SLOT_N; tried++;
+      setTimeout(claim, tried >= SLOT_N ? 3000 : 120);                          // every slot busy: try again a bit later
+      if (tried >= SLOT_N) tried = 0;
+    });
+    p.on('disconnected', () => { if (peer === p && !closed){ try { p.reconnect(); } catch(e){} } });
+  }
+  claim();
+  return { close(){ closed = true; if (peer){ try { peer.destroy(); } catch(e){} peer = null; } } };
+}
+function findOpenRoom(want){
+  return new Promise(resolve => {
+    let done = false, p = null;
+    const found = [], conns = [];
+    const finish = () => {
+      if (done) return; done = true;
+      const pick = found.filter(f => !f.r.taken).sort((x, y) => (y.r.mode === want) - (x.r.mode === want))[0] || null;
+      if (pick){ try { pick.c.send({t:'take'}); } catch(e){} }
+      setTimeout(() => { try { p && p.destroy(); } catch(e){} }, 400);
+      resolve(pick ? pick.r : null);
+    };
+    try { p = new Peer({debug:0}); } catch(e){ resolve(null); return; }
+    const giveUp = setTimeout(finish, 9000);
+    p.on('open', () => {
+      for (let k=0;k<SLOT_N;k++){
+        const c = p.connect(SLOT_ID(k), {reliable:true, serialization:'json'}); conns.push(c);
+        c.on('data', d => { if (d && d.t === 'room' && /^\d{4}$/.test(d.code)) found.push({c, r:{code:d.code, mode: d.mode === '3c' ? '3c' : '4', target: +d.target || 10, name: String(d.name || '').slice(0,12), taken: !!d.taken}}); });
+      }
+      setTimeout(() => { clearTimeout(giveUp); finish(); }, 2600);              // answers come back within a second or two
+    });
+    p.on('error', () => {});                                                     // unanswered slots raise peer-unavailable: expected
+  });
+}
+
+/* ================= Game state ================= */
+let mode = 'lobby';            // lobby | online | local
+let S = null;
+const roomApi = (typeof Peer === 'function') ? PeerRoomApi : null;
+let nr = null, code = '', peers = [], connected = false, joinAt = 0, lastClaim = -1, unsubs = [];
+const myPid = (() => { try { const v = sessionStorage.getItem('cr-pid'); if (v) return v; } catch(e){} const v = Math.random().toString(36).slice(2,12).padEnd(10,'x'); try { sessionStorage.setItem('cr-pid', v); } catch(e){} return v; })();
+let myName = '플레이어';
+let playing = null, strike = null, lastRk = -1, lastTurnKey = '', lastShot = null, oppSm = null;
+let shotLog = [];                // every shot of this game: {balls (before), sh, who, msg}, oldest first
+let aimA = 0, level = 50, spinX = 0, spinY = 0, elev = 0, fine = false, topView = false, guides = false;
+let ap = 0.28, ad = 0.85, oyaw = Math.PI*0.5+0.6, opitch = 0.72, odist = 2.6;
+// first-person: the camera rides your character's head; look around by dragging while you wait, look down the cue on your turn
+let firstPerson = false, fpYaw = 0, fpPitch = -0.15;
+try { firstPerson = localStorage.getItem('cr-fp') === '1'; } catch(e){}
+function toggleFirstPerson(){
+  firstPerson = !firstPerson; try { localStorage.setItem('cr-fp', firstPerson ? '1' : '0'); } catch(e){}
+  if (firstPerson && topView) topView = false;
+  const A = avatars[fpSeat()]; if (firstPerson && A){ fpYaw = Math.atan2(-A.z, -A.x); fpPitch = -0.3; }   // start out looking at the table
+  renderHUD();
+}
+let pubMark = '', aimPubAt = 0, aimPubMark = '', oppAim = null;
+let lobbyMode = '4', ngMode = '4', lobbySize = 'mid', ngSize = 'mid';
+try { if (localStorage.getItem('cr-size') === 'big') lobbySize = 'big'; } catch(e){}
+try { const v = parseInt(localStorage.getItem('cr-power'), 10); if (v >= 1 && v <= 100) level = v; } catch(e){}
+
+const nameIn = $('#nameIn');
+try { nameIn.value = localStorage.getItem('cr-name') || ''; } catch(e){}
+const codeIns = [0,1,2,3].map(i => $('#c'+i));
+const getCode = () => codeIns.map(i => i.value).join('');
+const setCode = c => codeIns.forEach((i,k) => { i.value = c[k] || ''; });
+if (/^#\d{4}$/.test(location.hash)) setCode(location.hash.slice(1));
+
+function toast(msg, ms){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms || 2600); }
+function readName(){ myName = (nameIn.value.trim() || '플레이어').slice(0,12); try { localStorage.setItem('cr-name', nameIn.value.trim()); } catch(e){} }
+
+function isMyTurn(){
+  if (!S) return false;
+  if (mode === 'local') return true;
+  if (mode === 'online') return !!S.players[S.turn] && S.players[S.turn].pid === myPid;
+  return false;
+}
+// aimTurn: it is your shot and the table is still. canAim additionally waits until your character has walked
+// to the cue ball and settled into the stance (latched for the rest of the turn so re-aiming never drops you out)
+const aimTurn = () => !!S && mode !== 'lobby' && !playing && !strike && S.winner < 0 && isMyTurn();
+let readyKey = '', forcedKey = '', cueOut = false, shooterSettled = false;   // shooterSettled: the shooter's character is bent over the cue right now
+const turnKey = () => S ? S.n + '|' + S.turn : '';
+const turnReady = () => !!S && readyKey === turnKey();
+const canAim = () => aimTurn() && turnReady();
+const amSeated = () => mode === 'local' || (!!S && S.players.some(p => p.pid === myPid));
+const cueIdx = () => S ? S.turn : 0;
+const cuePos = () => S.balls[cueIdx()];
+
+function placeMeshes(){
+  if (!S) return;
+  for (let i=0;i<NB;i++){ const m = ballMeshes[i], b = S.balls[i]; m.visible = !!b; if (b) m.position.set(b[0], R, b[1]); }
+}
+function publishState(){
+  if (mode !== 'online' || !nr || !S) return;
+  const mark = S.n+'|'+S.au;
+  if (mark === pubMark) return;
+  pubMark = mark; nr.presence({st:S}).catch(()=>{});
+}
+function applyState(st){
+  const wasMine = isMyTurn();
+  const sz = st.size === 'big' ? 'big' : 'mid'; if (sz !== tableSize) setDims(sz);
+  S = st; oppAim = null;
+  if (S.rk !== lastRk){ lastRk = S.rk; resetRotations(); lastShot = null; shotLog = []; }
+  placeMeshes();
+  const key = S.n+'|'+S.turn;
+  if (key !== lastTurnKey){
+    lastTurnKey = key;
+    if (isMyTurn()){
+      defaultAim(); setSpin(0,0);
+      if (mode === 'online' && !wasMine && S.players.length > 1 && S.winner < 0){ sfxBudget = 2; sfx('turn'); toast('내 차례예요'); }
+    }
+  }
+  publishState();
+  renderHUD();
+}
+// every aim change on your turn goes through here
+function setAim(a){ aimA = a; return true; }
+function defaultAim(){
+  const c = cuePos();
+  // opening shot: aim at the red on the foot spot (the far red in 4구); later shots start on the nearest red
+  const targets = S.n === S.rk ? [2] : S.mode === '4' ? [2,3] : [2];
+  let best = null, bd = 1e9;
+  for (const b of targets){ const p = S.balls[b]; if (!p) continue; const d = Math.hypot(p[0]-c[0], p[1]-c[1]); if (d < bd){ bd = d; best = p; } }
+  if (!best) return;
+  const want = Math.atan2(best[1]-c[1], best[0]-c[0]);
+  aimA = want;
+}
+
+/* ---------- shooting & playback ---------- */
+function shoot(){
+  if (!canAim()) return;
+  audioInit();
+  const hit = netNow() + STRIKE_MS;
+  const sh = {n:S.n+1, c:cueIdx(), dx:Math.cos(aimA), dz:Math.sin(aimA), p:level, sx:spinX, sy:spinY, el:elev, at:hit, b0:S.balls.map(b => b && b.slice())};
+  const res = simulate(S.balls, sh);
+  const ns = evaluate(S, res, mode === 'online' ? myPid : 'local');
+  if (mode === 'online' && nr){ pubMark = ns.n+'|'+ns.au; nr.presence({shot:sh, st:ns, aim:null}).catch(()=>{}); }
+  logShot(S, sh, ns);
+  strike = {t:0, hit, sh, then: () => startPlayback(res, ns, sh, false, hit)};
+}
+const REPLAY_WAIT = 2;                     // seconds a replay holds the starting position before the shot goes off
+const STRIKE_MS = 180;                     // back-swing + stroke before the cue meets the ball
+// the room's shared clock (the host's), so every screen runs a shot on the same frame at the same moment
+const netNow = () => (mode === 'online' && nr && nr.now) ? nr.now() : wallNow();
+function startPlayback(res, target, sh, replay, startAt){
+  if (!replay){ sfxBudget = 6; sfx('cue', 0.25+sh.p*0.007); }
+  // time runs on the wall clock (not on drawn frames), so a tab that was hidden catches up to where everyone else is
+  playing = {res, target, t0: startAt != null ? startAt : netNow(), t: replay ? -REPLAY_WAIT*60 : 0, off: replay ? -REPLAY_WAIT*60 : 0, ei:0, endT: res.frames.length-1, replay, cueP: sh.p, struck: !replay, scored: !replay && target.scores[sh.c] > S.scores[sh.c]};
+  if (replay) for (let i=0;i<NB;i++){ const b = res.frames[0]; ballMeshes[i].visible = !!res.on0[i]; ballMeshes[i].position.set(b[5*i], R, b[5*i+1]); }
+  renderHUD();
+}
+function logShot(before, sh, after){
+  const who = before.players[sh.c] ? before.players[sh.c].name : BALL_NAME[sh.c];
+  const av = avatars.map(A => A ? {x: A.x, z: A.z, h: A.h, seat: A.seat} : null);   // where the characters were (for the replay)
+  lastShot = {balls: before.balls.map(b => b && b.slice()), sh, who, msg: after && after.msg || '', no: shotLog.length + 1, av};
+  shotLog.push(lastShot); if (shotLog.length > 200) shotLog.shift();
+}
+function replayShot(h, onEnd){
+  if (!h || playing || strike || !S) return false;
+  audioInit();
+  startPlayback(simulate(h.balls, h.sh), S, h.sh, true);
+  playing.onEnd = onEnd; playing.label = h.no;
+  playing.sh = h.sh; playing.ball = h.balls[h.sh.c].slice(); playing.av = h.av || null; playing.placed = false;
+  replaySaved = avatars.map(A => { const J = newJoints(); for (const k in J) J[k].copy(A.JS[k]); return {x: A.x, z: A.z, h: A.h, seat: A.seat, sit: A.sit, stance: A.stance, path: A.path.slice(), JS: J}; });
+  const sx = h.sh.sx || 0, sy = h.sh.sy || 0;
+  $('#riDot').style.left = (50 + sx*50) + '%'; $('#riDot').style.top = (50 - sy*50) + '%';
+  $('#riBar').style.width = clamp(h.sh.p, 1, 100) + '%';
+  $('#riWho').textContent = h.who + ' · 세기 ' + h.sh.p;
+  const sd = Math.round(Math.hypot(sx, sy)*10)/10;
+  $('#riTxt').textContent = '당점 ' + (sd < 0.05 ? '중앙' : (sy > 0.05 ? '상단 ' : sy < -0.05 ? '하단 ' : '') + (sx > 0.05 ? '오른쪽 ' : sx < -0.05 ? '왼쪽 ' : '') + Math.round(sd*10)/10 + '팁') + (h.sh.el ? ' · 큐 ' + h.sh.el + '°' : '');
+  $('#replayInfo').hidden = false;
+  toast(`다시 보기 · ${h.no}번째 샷 (${h.who})`, 2000);
+  return true;
+}
+function replayLast(){ replayShot(lastShot); }
+// after a replay the characters go back to exactly where they were before it
+let replaySaved = null;
+function endReplay(){
+  $('#replayInfo').hidden = true;
+  if (!replaySaved) return;
+  replaySaved.forEach((v, i) => { const A = avatars[i]; if (!A) return; A.x = v.x; A.z = v.z; A.h = v.h; A.seat = v.seat; A.sit = v.sit; A.stance = v.stance; A.path = v.path; for (const k in v.JS) A.JS[k].copy(v.JS[k]); A.ownStanceAt = 0; A.goalKey = ''; });
+  replaySaved = null;
+}
+const _q = new THREE.Quaternion(), _ax = new THREE.Vector3();
+function stepPlayback(dt){
+  const P = playing, F = P.res.frames;
+  P.t = P.off + (netNow() - P.t0)*0.06;                    // in 60 Hz frames since the shot started (room clock)
+  if (!P.struck && P.t >= 0){ P.struck = true; sfxBudget = 6; sfx('cue', 0.25+P.cueP*0.007); }
+  const fi = clamp(Math.floor(P.t), 0, F.length-1), fr = P.t < 0 ? 0 : Math.min(1, P.t-fi);
+  sfxBudget = 6;
+  const ev = P.res.events;
+  while (P.ei < ev.length && ev[P.ei].f <= fi){ if (fi - ev[P.ei].f < 12) sfx(ev[P.ei].t, ev[P.ei].v); P.ei++; }   // skip sounds missed while hidden
+  const a = F[fi], b = F[Math.min(fi+1, F.length-1)];
+  for (let i=0;i<NB;i++){
+    const m = ballMeshes[i];
+    if (!P.res.on0[i]){ m.visible = false; continue; }
+    const o = 5*i;
+    m.position.set(a[o]+(b[o]-a[o])*fr, R, a[o+1]+(b[o+1]-a[o+1])*fr);
+    // spin the mesh by the simulated angular velocity (shows draw, follow and side spin)
+    const wxv = a[o+2], wyv = a[o+3], wzv = a[o+4], wl = Math.hypot(wxv, wyv, wzv);
+    if (wl > 1e-3){ _ax.set(wxv/wl, wyv/wl, wzv/wl); _q.setFromAxisAngle(_ax, wl*dt); m.quaternion.premultiply(_q); }
+  }
+  if (P.t >= P.endT){
+    playing = null;
+    if (P.replay) endReplay();
+    if (P.onEnd) setTimeout(P.onEnd, 600);
+    if (P.scored){ sfxBudget = 2; sfx('score'); }
+    applyState(P.target);
+    if (mode === 'online') reconcile();
+  }
+}
+
+/* ---------- multiplayer sync ---------- */
+function presentPids(){
+  const s = new Set();
+  if (mode === 'online') for (const p of peers){ const pid = p.presence && p.presence.pid; if (typeof pid === 'string') s.add(pid.slice(0,24)); }
+  s.add(myPid);
+  return s;
+}
+function reconcile(){
+  if (mode !== 'online' || strike || (playing && !playing.replay)) return;
+  let best = S, bestPeer = null;
+  for (const p of peers){
+    const st = sanitize(p.presence && p.presence.st);
+    if (!st) continue;
+    if (better(st, best)){ best = st; bestPeer = p; }
+    else if (bestPeer && st.n === best.n && st.au === best.au && p.presence.pid === st.au) bestPeer = p;
+  }
+  if (best !== S && bestPeer){
+    if (playing && playing.replay){ playing = null; endReplay(); }
+    const sh = sanitizeShot(bestPeer.presence.shot);
+    const fromS = !!(S && sh && best.n === S.n+1 && sh.c === S.turn);
+    const b0 = fromS ? S.balls : sh && sh.b0;
+    if (sh && sh.n === best.n && bestPeer.presence.pid === best.au && b0){
+      const res = simulate(b0, sh), at = sh.at != null ? sh.at : netNow(), now = netNow();
+      if (now < at + res.frames.length/0.06){                           // still rolling on the shooter's screen: join in at the same frame
+        if (fromS) logShot(S, sh, best);
+        else { const sz = best.size === 'big' ? 'big' : 'mid'; if (sz !== tableSize) setDims(sz); S = Object.assign({}, best, {n: best.n-1, balls: b0.map(b => b && b.slice())}); placeMeshes(); }
+        if (now < at) strike = {t:0, hit: at, sh, then: () => startPlayback(res, best, sh, false, at)};
+        else startPlayback(res, best, sh, false, at);
+      } else { if (fromS) logShot(S, sh, best); applyState(best); }
+    } else applyState(best);
+  }
+  oppAim = null;
+  if (S && !isMyTurn() && S.players[S.turn]){
+    const tp = S.players[S.turn].pid;
+    const peer = peers.find(p => p.presence && p.presence.pid === tp && !p.isMe);
+    const a = peer && peer.presence.aim;
+    if (a && a.n === S.n && Number.isFinite(a.dx) && Number.isFinite(a.dz) && Number.isFinite(a.p))
+      oppAim = {dx:a.dx, dz:a.dz, p:clamp(a.p,1,100), sx:clamp(+a.sx||0,-1,1), sy:clamp(+a.sy||0,-1,1), el:clamp(+a.el||0,0,EL_MAX)};
+  }
+  seatLogic();
+  readNetAvatars();
+}
+function seatLogic(){
+  if (mode !== 'online' || playing || strike || Date.now()-joinAt < 1800) return;
+  if (!S){
+    // someone is already in the room: wait for their table (a spectator must not open a new one) unless it never comes
+    if (peers.some(p => !p.isMe) && Date.now()-joinAt < 9000) return;
+    const st = newRack([{pid:myPid, name:myName}], 1, lobbyMode, +$('#lobbyTarget').value, 0, myPid, lobbySize);
+    st.msg = `${myName}님이 ${MODE_NAME[lobbyMode]} 테이블을 열었어요`;
+    applyState(st); return;
+  }
+  if (!S.players.some(p => p.pid === myPid) && S.players.length < 2 && lastClaim !== S.n){
+    lastClaim = S.n;
+    const st = newRack([...S.players, {pid:myPid, name:myName}], S.n+1, S.mode, S.target, 0, myPid, S.size);
+    st.msg = `${myName}님 착석 · 새 게임 시작`;
+    applyState(st);
+  }
+}
+function takeSeat(i){
+  if (!S || amSeated()) return;
+  const players = S.players.slice(); players[i] = {pid:myPid, name:myName};
+  applyState(Object.assign({}, S, {n:S.n+1, au:myPid, players, msg:`${myName}님이 빈 자리를 이어받았어요`}));
+}
+function newGame(gmode, target, size){
+  if (!S || !amSeated()) return;
+  const breaker = S.winner >= 0 && S.players.length > 1 ? 1-S.winner : 0;
+  const st = newRack(S.players.slice(), S.n+1, gmode || S.mode, target || S.target, breaker, mode === 'online' ? myPid : 'local', size || S.size);
+  st.msg = `새 게임 · ${MODE_NAME[st.mode]} ${st.target}점`;
+  applyState(st);
+}
+
+async function joinRoom(c){
+  if (!/^\d{4}$/.test(c)){ toast('방 코드 숫자 4자리를 공 안에 입력해 주세요'); codeIns[Math.max(0, codeIns.findIndex(x => !x.value))].focus(); return; }
+  if (!roomApi){ toast('멀티플레이 모듈을 불러오지 못했어요. 새로고침해 주세요', 3600); return; }
+  readName();
+  $('#joinBtn').disabled = true; $('#createBtn').disabled = true;
+  $('#netNote').textContent = '방에 연결하는 중…';
+  let room;
+  try { room = await roomApi.join(c); }
+  catch(e){
+    updateNetNote();
+    toast('방에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요', 3600);
+    return;
+  }
+  updateNetNote();
+  nr = room; mode = 'online'; code = c; S = null; peers = []; joinAt = Date.now(); lastClaim = -1; pubMark = ''; lastTurnKey = ''; topView = false; lastShot = null; shotLog = [];
+  unsubs.push(nr.onPeers(ch => { peers = ch.peers; reconcile(); renderHUD(); }));
+  unsubs.push(nr.onConnection(ok => { connected = ok; renderHUD(); }));
+  nr.presence({pid:myPid, name:myName, st:null, shot:null, aim:null}).catch(()=>{});
+  try { history.replaceState(null, '', '#'+c); } catch(e){}
+  enterGame();
+  setTimeout(() => { reconcile(); renderHUD(); }, 1900);
+}
+// a room with one seated player holds an open-seat beacon; it is dropped once the seat is taken or you leave
+let beacon = null;
+setInterval(() => {
+  const waiting = mode === 'online' && nr && S && S.players.length < 2 && amSeated();
+  if (waiting && !beacon) beacon = SeatBeacon(() => (mode === 'online' && S && S.players.length < 2) ? {code, mode:S.mode, target:S.target, name:myName} : null);
+  else if (!waiting && beacon){ beacon.close(); beacon = null; }
+}, 1000);
+
+async function quickJoin(){
+  if (!roomApi){ toast('멀티플레이 모듈을 불러오지 못했어요. 새로고침해 주세요', 3600); return; }
+  readName();
+  const btns = ['#quickBtn','#joinBtn','#createBtn'].map(s => $(s)); btns.forEach(b => b.disabled = true);
+  $('#netNote').textContent = '상대를 기다리는 방을 찾는 중…';
+  let room = null;
+  try { room = await findOpenRoom(lobbyMode); } catch(e){}
+  btns.forEach(b => b.disabled = false);
+  if (room){
+    setCode(room.code);
+    toast(`${room.name || '상대'}님의 ${MODE_NAME[room.mode]} 방에 들어가요`, 2400);
+    joinRoom(room.code);
+  } else {
+    const c = String(Math.floor(Math.random()*10000)).padStart(4,'0');
+    setCode(c);
+    toast('열린 방이 없어서 새 방을 만들었어요. 다음에 빠른 참가하는 사람이 이 방으로 들어와요', 4200);
+    joinRoom(c);
+  }
+}
+
+function startLocal(){
+  readName();
+  mode = 'local'; code = ''; lastShot = null; shotLog = [];
+  lastTurnKey = '';
+  const st = newRack([{pid:'L0', name:'플레이어 1'}, {pid:'L1', name:'플레이어 2'}], 1, lobbyMode, +$('#lobbyTarget').value, 0, 'local', lobbySize);
+  st.msg = '한 기기에서 번갈아 칩니다';
+  applyState(st);
+  enterGame();
+}
+function leave(){
+  unsubs.forEach(u => { try { u(); } catch(e){} }); unsubs = [];
+  if (nr) nr.leave().catch(()=>{});
+  nr = null; mode = 'lobby'; peers = []; playing = null; strike = null; oppAim = null; topView = false;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+  setCode('');                                                   // a fresh code for the next room (not the one just left)
+  $('#hud').hidden = true; $('#ngPanel').hidden = true; $('#helpPanel').hidden = true; $('#lobby').hidden = false;
+  lastRk = -1; applyState(newRack([], 1, lobbyMode, 10, 0, '', lobbySize));
+}
+function enterGame(){ $('#lobby').hidden = true; $('#hud').hidden = false; oyaw = Math.PI*0.5+0.5; renderHUD(); layoutDock(); }
+
+/* ================= HUD ================= */
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function renderHUD(){
+  if (mode === 'lobby') return;
+  const online = mode === 'online';
+  $('#roomCode').textContent = online ? code : '2인';
+  $('#copyBtn').hidden = !online;
+  $('#netDot').className = 'dot ' + (online ? (connected ? 'on' : 'off') : '');
+  $('#gameMode').textContent = S ? `${MODE_NAME[S.mode]} · ${SIZES[S.size || 'mid'].name} · ${S.target}점 · ${S.inning || 1}이닝` : '';
+  const present = presentPids();
+  for (const i of [0,1]){
+    const box = $('#seat'+i); box.textContent = '';
+    const p = S && S.players[i];
+    box.classList.toggle('turn', !!(S && p && S.turn === i && S.winner < 0));
+    box.appendChild(el('span', 'bd ' + (i === 0 ? 'w' : 'y')));
+    if (!p){
+      box.appendChild(el('span','nm','빈 자리'));
+      box.appendChild(el('span','sc',''));
+      box.appendChild(el('span','tag', online ? `코드 ${code}를 알려 주세요` : ''));
+      continue;
+    }
+    const offline = online && !present.has(p.pid);
+    box.appendChild(el('span','nm', p.name));
+    const sc = el('span','sc', String(S.scores[i])); sc.appendChild(el('small', null, '/'+S.target)); box.appendChild(sc);
+    let tag = BALL_NAME[i];
+    if (S.winner === i) tag = '승리';
+    else if (offline) tag = '오프라인';
+    else if (S.turn === i && S.winner < 0) tag = BALL_NAME[i] + ' · 샷 차례';
+    else if (online && p.pid === myPid) tag = BALL_NAME[i] + ' · 나';
+    box.appendChild(el('span','tag', tag));
+    if (offline && !amSeated()){ const b = el('button','mini take','이 자리 이어받기'); b.addEventListener('click', () => takeSeat(i)); box.appendChild(b); }
+  }
+  const sp = $('#spect');
+  if (online){
+    const seated = new Set(S ? S.players.map(p => p.pid) : []);
+    const watchers = [...present].filter(x => !seated.has(x)).length;
+    sp.hidden = false; sp.textContent = (connected ? '' : '재연결 중 · ') + `관전 ${watchers}명` + (amSeated() ? '' : ' · 나는 관전 중');
+  } else sp.hidden = true;
+
+  // status plate only appears when it matters: game over, or waiting for an opponent. Turn is already shown on the scoreboard.
+  const tm = $('#turnMsg'), hint = $('#hint'), lm = $('#lastMsg');
+  const over = !!(S && S.winner >= 0), waiting = !!(S && online && S.players.length < 2 && !playing && !strike);
+  $('#status').hidden = !(over || waiting);
+  $('#rematchBtn').hidden = !(over && amSeated());
+  lm.textContent = ''; hint.textContent = '';
+  tm.classList.toggle('mine', over);
+  if (over){ tm.textContent = `${S.players[S.winner] ? S.players[S.winner].name : '플레이어'} 승리`; lm.textContent = S.msg || ''; lm.classList.add('good'); }
+  else if (waiting){ tm.textContent = '상대를 기다리는 중'; hint.textContent = '그동안 연습할 수 있어요. 상대가 앉으면 새 게임이 시작됩니다.'; }
+  $('#viewBtn').textContent = topView ? '3D 시점 (T)' : '탑뷰 (T)';
+  $('#fpBtn').textContent = firstPerson ? '3인칭 (V)' : '1인칭 (V)';
+  $('#newBtn').hidden = !amSeated();
+  $('#replayBtn').disabled = !shotLog.length || !!playing || !!strike;
+  const can = canAim();
+  $('#dock').hidden = !can;                                  // 당점 · 세기 · 샷 controls only while it is your turn
+  $('#shotBtn').disabled = !can;
+  layoutDock();
+}
+const bars = $('#bars');
+function setLevel(v){
+  level = clamp(Math.round(v), 1, 100);
+  try { localStorage.setItem('cr-power', String(level)); } catch(e){}
+  $('#pwFill').style.width = level + '%';
+  bars.style.setProperty('--gw', bars.clientWidth + 'px');
+  $('#pwNum').textContent = String(level);
+  bars.setAttribute('aria-valuenow', String(level));
+}
+// 당점 below this can't be reached: the cue has to clear the rail behind a ball that sits near the cushion
+let syMin = -1;
+function railDrawLimit(){
+  if (!S || !aimTurn()) return -1;
+  const c = cuePos(), dx = Math.cos(aimA), dz = Math.sin(aimA);
+  const tx = -dx > 1e-9 ? (HW - c[0])/-dx : -dx < -1e-9 ? (-HW - c[0])/-dx : 1e9;
+  const tz = -dz > 1e-9 ? (HH - c[1])/-dz : -dz < -1e-9 ? (-HH - c[1])/-dz : 1e9;
+  const gap = Math.max(0, Math.min(tx, tz) - R);                      // from the back of the ball to the cushion nose behind it
+  const tilt = Math.max(0.12, elev*Math.PI/180);                      // a cue near the rail is held at least ~7° up
+  const clear = 0.057 - gap*Math.tan(tilt);                           // rail top (~5 cm) plus the cue's own thickness
+  const lim = (clear - R)/(R*TIP);
+  return lim <= -0.85 ? -1 : Math.min(0.3, lim);
+}
+function setSpin(x, y){
+  if (y < syMin) y = syMin;
+  const l = Math.hypot(x, y);
+  if (l > 0.85){ x *= 0.85/l; y *= 0.85/l; if (y < syMin){ y = syMin; x = Math.sign(x)*Math.sqrt(Math.max(0, 0.85*0.85 - y*y)); } }
+  spinX = Math.round(x*20)/20; spinY = Math.round(y*20)/20;
+  if (spinY < syMin - 1e-9) spinY = Math.ceil(syMin*20)/20;
+  $('#spinPt').style.left = (50 + spinX*50)+'%';
+  $('#spinPt').style.top = (50 - spinY*50)+'%';
+}
+function setElev(v){
+  elev = clamp(Math.round(v), 0, EL_MAX);
+  $('#elevVal').textContent = elev + '°';
+  $('#elevFill').style.height = (elev/EL_MAX*100) + '%';
+  $('#elev').classList.toggle('on', elev > 0);
+  $('#elev').setAttribute('aria-valuenow', String(elev));
+}
+// 두께: show the object ball the aim line meets behind the 당점 face, shifted by its lateral offset (0 = full hit, ±2R = miss)
+const spinObj = $('#spinObj'), OBJ_TONES = [['#ffffff','#ece6d6','#a8a090'], ['#fff3b8','#f2c428','#9e7a0a'], ['#ff8a8a','#c9222c','#6e0f14'], ['#ff8a8a','#c9222c','#6e0f14']];
+let objMark = '';
+function setThickness(hit, lat){
+  const mark = hit < 0 ? '' : hit + '|' + lat.toFixed(4);
+  if (mark === objMark) return;
+  objMark = mark;
+  spinObj.hidden = hit < 0;
+  if (hit < 0) return;
+  const t = OBJ_TONES[hit];
+  spinObj.style.setProperty('--oc1', t[0]); spinObj.style.setProperty('--oc2', t[1]); spinObj.style.setProperty('--oc3', t[2]);
+  spinObj.style.setProperty('--ox', `calc(var(--fd) * ${(lat/(2*R)).toFixed(4)})`);
+}
+function layoutDock(){
+  const g = $('#bars'); if (g.clientWidth) g.style.setProperty('--gw', g.clientWidth + 'px');
+  if (window.innerWidth <= 760){ const d = $('#dock'); $('#status').style.setProperty('--dockh', (d.offsetHeight + 16) + 'px'); }
+}
+
+/* ================= Input ================= */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), aimPlane = new THREE.Plane(new THREE.Vector3(0,1,0), -R), _hit = new THREE.Vector3();
+function setRay(e){ const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc, camera); }
+function tableHit(e){ setRay(e); return ray.ray.intersectPlane(aimPlane, _hit) ? {x:_hit.x, z:_hit.z} : null; }
+const pointers = new Map();
+let drag = null, pinch = null;
+canvas.addEventListener('pointerdown', e => {
+  audioInit();
+  closeMenu();
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (pointers.size === 2){ const [a,b] = [...pointers.values()]; pinch = {d:Math.hypot(a.x-b.x, a.y-b.y)}; drag = null; return; }
+  let kind = 'orbit';
+  if (canAim()) kind = topView ? 'topaim' : 'aim';
+  else if (topView) kind = 'none';
+  drag = {kind, x:e.clientX, y:e.clientY, sx:e.clientX, sy:e.clientY, moved:false};
+});
+canvas.addEventListener('pointermove', e => {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (pinch && pointers.size === 2){ const [a,b] = [...pointers.values()], d = Math.hypot(a.x-b.x, a.y-b.y), k = pinch.d/d; pinch.d = d; zoom(k); return; }
+  if (!drag) return;
+  const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
+  drag.x = e.clientX; drag.y = e.clientY;
+  if (Math.hypot(e.clientX-drag.sx, e.clientY-drag.sy) > 6) drag.moved = true;
+  const sens = (fine || e.shiftKey) ? 0.0009 : 0.0045;
+  if (drag.kind === 'topaim' && drag.moved){ const h = tableHit(e); if (h){ const c = cuePos(); if (Math.hypot(h.x-c[0],h.z-c[1]) > 0.02) setAim(Math.atan2(h.z-c[1], h.x-c[0])); } }
+  else if (drag.kind === 'aim'){ setAim(aimA + dx*sens); ap = clamp(ap + dy*0.004, 0.06, 1.25); }
+  else if (drag.kind === 'orbit' && fpActive()){ fpYaw += dx*0.005; fpPitch = clamp(fpPitch - dy*0.004, -1.2, 0.8); }
+  else if (drag.kind === 'orbit'){ oyaw += dx*0.006; opitch = clamp(opitch + dy*0.004, 0.12, 1.45); }
+});
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinch = null;
+  if (!drag) return;
+  // while aiming, a click on the table or a ball does nothing: the aim moves only by dragging
+  if (!drag.moved && (drag.kind === 'aim' || drag.kind === 'topaim')){}
+  else if (!drag.moved && (drag.kind === 'orbit' || drag.kind === 'none')) avatarTap(e);      // tap to walk your character there
+  drag = null;
+}
+canvas.addEventListener('pointerup', endPointer);
+// first person, while you wait: the view simply follows the mouse (no button held); near the left/right edge it keeps turning
+const fpMouse = {x:0.5, inside:false};
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect(); fpMouse.x = (e.clientX - r.left)/r.width; fpMouse.inside = true;
+  if (e.buttons || !fpActive() || canAim() || (strike && fpSeat() === S.turn)) return;
+  fpYaw += (e.movementX || 0)*0.0032; fpPitch = clamp(fpPitch - (e.movementY || 0)*0.0026, -1.2, 0.8);
+});
+canvas.addEventListener('mouseleave', () => { fpMouse.inside = false; });
+function fpEdgeTurn(dt){
+  if (!fpMouse.inside || drag || !fpActive() || canAim() || (strike && fpSeat() === S.turn)) return;
+  const E = 0.07;
+  if (fpMouse.x < E) fpYaw -= dt*1.5*(1 - fpMouse.x/E);
+  else if (fpMouse.x > 1 - E) fpYaw += dt*1.5*(1 - (1 - fpMouse.x)/E);
+}
+canvas.addEventListener('pointercancel', endPointer);
+// wider zoom range: aim view from a close-up of the cue ball to well behind the shooter; free view from table level to the whole hall
+function zoom(k){ if (topView || fpActive()) return; if (canAim()) ad = clamp(ad*k, 0.18, 3.6); else odist = clamp(odist*k, 0.5, 7); }
+canvas.addEventListener('wheel', e => { e.preventDefault(); zoom(Math.exp(e.deltaY*0.0012)); }, {passive:false});
+
+// 당점 picker
+const spinFace = $('#spinFace');
+let sdrag = false;
+const spinFrom = e => { const r = spinFace.getBoundingClientRect(); setSpin(((e.clientX-r.left)/r.width)*2-1, -(((e.clientY-r.top)/r.height)*2-1)); };
+spinFace.addEventListener('pointerdown', e => { if (!canAim()) return; sdrag = true; spinFace.setPointerCapture(e.pointerId); spinFrom(e); });
+spinFace.addEventListener('pointermove', e => { if (sdrag) spinFrom(e); });
+spinFace.addEventListener('pointerup', () => { sdrag = false; });
+spinFace.addEventListener('pointercancel', () => { sdrag = false; });
+spinFace.addEventListener('dblclick', () => setSpin(0,0));
+
+// 큐 각도 (세워치기): drag or tap the bar, double-tap to lay the cue flat again
+const elevEl = $('#elev'), elevTrk = elevEl.querySelector('.trk');
+let edrag = false;
+const elevFrom = e => { const r = elevTrk.getBoundingClientRect(); setElev((1 - clamp((e.clientY-r.top)/r.height, 0, 1))*EL_MAX); };
+elevEl.addEventListener('pointerdown', e => { if (!canAim()) return; edrag = true; elevEl.setPointerCapture(e.pointerId); elevFrom(e); });
+elevEl.addEventListener('pointermove', e => { if (edrag) elevFrom(e); });
+elevEl.addEventListener('pointerup', () => { edrag = false; });
+elevEl.addEventListener('pointercancel', () => { edrag = false; });
+elevEl.addEventListener('dblclick', () => setElev(0));
+
+// 세기: tap or slide across the bars
+let bdrag = false;
+const barFrom = e => { const r = bars.getBoundingClientRect(); setLevel(1 + clamp((e.clientX-r.left)/r.width, 0, 1)*99); };
+bars.addEventListener('pointerdown', e => { if (!canAim()) return; bdrag = true; bars.setPointerCapture(e.pointerId); barFrom(e); });
+bars.addEventListener('pointermove', e => { if (bdrag) barFrom(e); });
+bars.addEventListener('pointerup', () => { bdrag = false; });
+bars.addEventListener('pointercancel', () => { bdrag = false; });
+$('#shotBtn').addEventListener('click', shoot);
+
+// fine aim nudge (hold to repeat)
+function holdRepeat(btn, fn){
+  let t = null, iv = null;
+  const stop = () => { clearTimeout(t); clearInterval(iv); t = iv = null; };
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); if (!canAim()) return; fn(); t = setTimeout(() => { iv = setInterval(() => { if (canAim()) fn(); }, 35); }, 320); });
+  ['pointerup','pointerleave','pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
+}
+holdRepeat($('#nudgeL'), () => { setAim(aimA - (fine ? 0.0006 : 0.002)); });
+holdRepeat($('#nudgeR'), () => { setAim(aimA + (fine ? 0.0006 : 0.002)); });
+
+// E next to a sofa: sit down (or get up again). Not on your own turn: then you're walking to the ball.
+function sitToggle(){
+  const seat = controlSeat(), A = avatars[seat];
+  if (!A || !A.root.visible) return;
+  if (A.seat >= 0){ A.seat = -1; return; }
+  if (S && seat === S.turn && S.winner < 0){ toast('내 차례에는 앉을 수 없어요'); return; }
+  const other = avatars[1 - seat], taken = other ? other.seat : -1;
+  let best = -1, bd = 1.6;
+  SEATS.forEach((st, k) => { const d = Math.hypot(st.ax - A.x, st.az - A.z); if (k !== taken && d < bd){ bd = d; best = k; } });
+  if (best < 0){ toast('소파 가까이에서 E를 누르면 앉을 수 있어요'); return; }
+  A.seat = best; myAvMoveAt = performance.now();
+}
+// WASD walks your character while it is not your turn (held keys, read every frame)
+window.addEventListener('keydown', e => { if (!(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) && /^Key[WASD]$/.test(e.code)) avKeys[e.code] = true; });
+window.addEventListener('keyup', e => { delete avKeys[e.code]; });
+window.addEventListener('blur', () => { avKeys = {}; });
+window.addEventListener('keydown', e => {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+  if (mode === 'lobby') return;
+  const step = e.shiftKey ? 0.0006 : fine ? 0.0015 : 0.008;
+  const can = canAim();
+  if (e.code === 'ArrowLeft' && can){ setAim(aimA - step); e.preventDefault(); }
+  else if (e.code === 'ArrowRight' && can){ setAim(aimA + step); e.preventDefault(); }
+  else if (e.code === 'ArrowUp'){ ap = clamp(ap+0.03, 0.06, 1.25); e.preventDefault(); }
+  else if (e.code === 'ArrowDown'){ ap = clamp(ap-0.03, 0.06, 1.25); e.preventDefault(); }
+  else if (can && e.code === 'KeyW') setSpin(spinX, spinY+0.1);
+  else if (can && e.code === 'KeyS') setSpin(spinX, spinY-0.1);
+  else if (can && e.code === 'KeyA') setSpin(spinX-0.1, spinY);
+  else if (can && e.code === 'KeyD') setSpin(spinX+0.1, spinY);
+  else if (can && e.code === 'KeyC') setSpin(0, 0);
+  else if (can && e.code === 'KeyE') setElev(elev + 5);
+  else if (e.code === 'KeyE' && !e.repeat) sitToggle();
+  else if (can && e.code === 'KeyQ') setElev(elev - 5);
+  else if (can && /^Digit[0-9]$/.test(e.code)){ const d = +e.code.slice(5); setLevel(d === 0 ? 100 : d*10); }
+  else if (can && (e.key === '+' || e.key === '=')) setLevel(level + (e.shiftKey ? 1 : 5));
+  else if (can && (e.key === '-' || e.key === '_')) setLevel(level - (e.shiftKey ? 1 : 5));
+  else if (e.code === 'Space'){ e.preventDefault(); if (!e.repeat) shoot(); }
+  else if (e.code === 'KeyT'){ topView = !topView; renderHUD(); }
+  else if (e.code === 'KeyV'){ toggleFirstPerson(); }
+  else if (e.code === 'KeyR'){ replayLast(); }
+  else if (e.code === 'Escape'){ $('#helpPanel').hidden = true; $('#ngPanel').hidden = true; $('#replayPanel').hidden = true; closeMenu(); }
+});
+
+// lobby controls
+codeIns.forEach((inp, i) => {
+  inp.addEventListener('input', () => {
+    const v = inp.value.replace(/\D/g,'');
+    if (v.length > 1){ setCode((getCode().slice(0,i) + v).slice(0,4)); codeIns[Math.min(3, i+v.length)].focus(); return; }
+    inp.value = v;
+    if (v && i < 3) codeIns[i+1].focus();
+  });
+  inp.addEventListener('keydown', e => {
+    // a digit always replaces this box's digit and moves on (typing into a filled box used to shuffle the code)
+    if (/^\d$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey){ e.preventDefault(); inp.value = e.key; if (i < 3) codeIns[i+1].focus(); return; }
+    if (e.key === 'Backspace' && !inp.value && i > 0){ codeIns[i-1].focus(); codeIns[i-1].value = ''; e.preventDefault(); }
+    else if (e.key === 'Enter') joinRoom(getCode());
+    else if (e.key === 'ArrowLeft' && i > 0) codeIns[i-1].focus();
+    else if (e.key === 'ArrowRight' && i < 3) codeIns[i+1].focus();
+  });
+  inp.addEventListener('paste', e => {
+    const t = (e.clipboardData && e.clipboardData.getData('text') || '').replace(/\D/g,'').slice(0,4);
+    if (t){ e.preventDefault(); setCode(t); codeIns[Math.min(3,t.length)].focus(); }
+  });
+  inp.addEventListener('focus', () => inp.select());
+});
+function bindSeg(id, onPick){
+  const wrap = $(id);
+  wrap.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    wrap.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    onPick(b.dataset.mode);
+  }));
+}
+function selectSeg(id, m){ $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.mode === m))); }
+bindSeg('#lobbyMode', m => { lobbyMode = m; if (mode === 'lobby'){ lastRk = -1; applyState(newRack([], 1, m, 10, 0, '', lobbySize)); } });
+bindSeg('#ngMode', m => { ngMode = m; });
+bindSeg('#lobbySize', z => { lobbySize = z; try { localStorage.setItem('cr-size', z); } catch(e){} if (mode === 'lobby'){ lastRk = -1; applyState(newRack([], 1, lobbyMode, 10, 0, '', z)); } });
+bindSeg('#ngSize', z => { ngSize = z; });
+$('#joinBtn').addEventListener('click', () => { audioInit(); joinRoom(getCode()); });
+$('#quickBtn').addEventListener('click', () => { audioInit(); quickJoin(); });
+$('#createBtn').addEventListener('click', () => { audioInit(); const c = String(Math.floor(Math.random()*10000)).padStart(4,'0'); setCode(c); joinRoom(c); });
+$('#localBtn').addEventListener('click', () => { audioInit(); startLocal(); });
+$('#copyBtn').addEventListener('click', () => {
+  const b = $('#copyBtn'), link = location.origin + location.pathname + '#' + code;
+  try { navigator.clipboard.writeText(link).then(() => { b.textContent = '복사됨'; setTimeout(() => b.textContent = '링크 복사', 1500); }, () => toast(link, 5000)); }
+  catch(e){ toast(link, 5000); }
+});
+function closeMenu(){ $('#tools').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded','false'); }
+$('#menuBtn').addEventListener('click', () => { const t = $('#tools'); t.classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', String(t.classList.contains('open'))); });
+$('#tools').addEventListener('click', e => { if (e.target.closest('button')) closeMenu(); });
+$('#replayBtn').addEventListener('click', openReplays);
+$('#replayClose').addEventListener('click', () => { $('#replayPanel').hidden = true; });
+$('#recStop').addEventListener('click', () => stopRecording());
+// replay list: newest first, each shot can be watched again or saved as a video
+function openReplays(){
+  const ul = $('#replayList'); ul.textContent = '';
+  shotLog.slice().reverse().forEach(h => {
+    const li = el('li'), who = el('span', 'who', h.who);
+    who.appendChild(el('small', null, h.msg || ''));
+    const play = el('button', 'mini', '보기'), rec = el('button', 'mini', '영상 저장');
+    play.addEventListener('click', () => { $('#replayPanel').hidden = true; replayShot(h); });
+    rec.addEventListener('click', () => { $('#replayPanel').hidden = true; recordShot(h); });
+    li.append(el('span', 'no', String(h.no)), who, play, rec); ul.appendChild(li);
+  });
+  $('#replayPanel').hidden = false;
+}
+// video: capture this tab (HUD included) with the browser's screen-share picker; where that is not available,
+// fall back to the 3D canvas plus the game's sound. Recording stops on its own when the replay ends.
+let rec = null;
+function pickMime(){ for (const m of ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; return ''; }
+async function recordShot(h){
+  if (rec || playing || strike || !window.MediaRecorder){ if (!window.MediaRecorder) toast('이 브라우저는 영상 저장을 지원하지 않아요', 3000); return; }
+  audioInit();
+  let stream = null, tab = false;
+  try {
+    if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia){
+      stream = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:60, displaySurface:'browser'}, audio:true, preferCurrentTab:true, selfBrowserSurface:'include', surfaceSwitching:'exclude'});
+      tab = true;
+    }
+  } catch(e){ stream = null; }
+  if (!stream){
+    stream = canvas.captureStream(60);
+    try { const d = actx.createMediaStreamDestination(); sfxOut().connect(d); d.stream.getAudioTracks().forEach(t => stream.addTrack(t)); stream._audioTap = d; } catch(e){}
+  }
+  const mime = pickMime(), chunks = [];
+  let mr; try { mr = new MediaRecorder(stream, mime ? {mimeType: mime, videoBitsPerSecond: 8e6} : undefined); } catch(e){ toast('영상 녹화를 시작하지 못했어요', 3000); stream.getTracks().forEach(t => t.stop()); return; }
+  mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  mr.onstop = () => {
+    stream.getTracks().forEach(t => t.stop());
+    if (stream._audioTap){ try { sfxOut().disconnect(stream._audioTap); } catch(e){} }
+    $('#recBadge').hidden = true;
+    const type = (mr.mimeType || mime || 'video/webm').split(';')[0], ext = type.includes('mp4') ? 'mp4' : 'webm';
+    const url = URL.createObjectURL(new Blob(chunks, {type}));
+    const a = document.createElement('a'); a.href = url; a.download = `carom-replay-${h.no}.${ext}`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    toast(tab ? '영상을 저장했어요' : '영상을 저장했어요 (3D 화면만 녹화됐어요)', 3000);
+    rec = null;
+  };
+  stream.getVideoTracks().forEach(t => t.addEventListener('ended', () => stopRecording()));   // user stopped sharing
+  rec = mr; $('#recBadge').hidden = false; closeMenu();
+  mr.start(250);
+  setTimeout(() => { if (rec === mr && !replayShot(h, () => stopRecording())) stopRecording(); }, 400);
+}
+function stopRecording(){ if (rec && rec.state !== 'inactive'){ try { rec.stop(); } catch(e){} } }
+$('#viewBtn').addEventListener('click', () => { topView = !topView; renderHUD(); });
+$('#fpBtn').addEventListener('click', toggleFirstPerson);
+$('#soundBtn').addEventListener('click', () => { muted = !muted; $('#soundBtn').textContent = muted ? '소리 켜기' : '소리 끄기'; });
+$('#helpBtn').addEventListener('click', () => { $('#helpPanel').hidden = false; });
+$('#helpClose').addEventListener('click', () => { $('#helpPanel').hidden = true; });
+function openNewGame(){
+  if (!S) return;
+  ngMode = S.mode; selectSeg('#ngMode', S.mode); ngSize = S.size || 'mid'; selectSeg('#ngSize', ngSize);
+  const sel = $('#ngTarget'); if (![...sel.options].some(o => +o.value === S.target)) sel.add(new Option(String(S.target))); sel.value = String(S.target);
+  $('#ngPanel').hidden = false;
+}
+$('#newBtn').addEventListener('click', openNewGame);
+$('#rematchBtn').addEventListener('click', () => newGame());
+$('#ngCancel').addEventListener('click', () => { $('#ngPanel').hidden = true; });
+$('#ngStart').addEventListener('click', () => { $('#ngPanel').hidden = true; newGame(ngMode, +$('#ngTarget').value, ngSize); });
+$('#leaveBtn').addEventListener('click', leave);
+document.querySelectorAll('#hud button').forEach(b => b.addEventListener('click', () => b.blur()));
+
+function updateNetNote(){
+  const n = $('#netNote');
+  n.textContent = roomApi ? '친구에게 이 주소와 방 코드를 알려 주세요 · 서로 직접(P2P) 연결됩니다' : '멀티플레이 모듈을 불러오지 못했어요. 새로고침해 주세요. 한 기기 2인은 가능합니다.';
+  $('#joinBtn').disabled = !roomApi; $('#createBtn').disabled = !roomApi; $('#quickBtn').disabled = !roomApi;
+}
+
+/* ================= Camera & frame loop ================= */
+const camPos = new THREE.Vector3(0,2,3), camLook = new THREE.Vector3(), camUp = new THREE.Vector3(0,1,0);
+const gPos = new THREE.Vector3(), gLook = new THREE.Vector3(), gUp = new THREE.Vector3();
+let wasAimCam = false;
+function resize(){ const w = stage.clientWidth || window.innerWidth, h = stage.clientHeight || window.innerHeight; renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix(); layoutDock(); }
+window.addEventListener('resize', resize);
+resize();
+function fpSeat(){ if (!S || mode === 'lobby') return -1; return mode === 'local' ? S.turn : controlSeat(); }
+function fpActive(){ const i = fpSeat(); return firstPerson && !topView && i >= 0 && !!avatars[i] && !!avatars[i].headPos; }
+// the shooter's character while it walks over to the ball on your own turn (none in the top view)
+function walkCamAvatar(){
+  if (!S || mode === 'lobby' || topView || !aimTurn() || turnReady()) return null;
+  const A = avatars[S.turn];
+  return A && A.stance < 0.5 && (A.path.length || A.sit > 0) ? A : null;
+}
+// the way that character is heading: toward its next waypoint (smoothed), not where its body happens to face mid-turn
+let walkYaw = null;
+function walkHeading(A, dt){
+  const want = A.path.length ? Math.atan2(A.path[0][1] - A.z, A.path[0][0] - A.x) : A.h;
+  if (walkYaw === null) walkYaw = want;
+  const d = Math.atan2(Math.sin(want - walkYaw), Math.cos(want - walkYaw)); walkYaw += d*Math.min(1, dt*5);
+  return walkYaw;
+}
+function cameraGoal(dt){
+  const aimCam = canAim() && !topView;
+  const WA = walkCamAvatar(); if (!WA) walkYaw = null;
+  if (fpActive()){
+    const A = avatars[fpSeat()], h = A.headPos;
+    if (WA === A){ fpYaw = walkHeading(A, dt); fpPitch = -0.2; }          // first person on your walk to the ball: eyes front
+    if (canAim() || (strike && fpSeat() === S.turn)){                    // your own stroke only (the other player's isn't your view)
+      // eyes over the cue: look past the cue ball along the shot
+      const c = cuePos(), dx = Math.cos(aimA), dz = Math.sin(aimA);
+      fpYaw = aimA; fpPitch = -0.3;
+      gPos.set(h.x + dx*0.05, h.y + 0.02, h.z + dz*0.05); gLook.set(c[0] + dx*0.35, 0, c[1] + dz*0.35);
+    } else {
+      gPos.set(h.x + Math.cos(fpYaw)*0.06, h.y + 0.02, h.z + Math.sin(fpYaw)*0.06);
+      gLook.set(gPos.x + Math.cos(fpYaw)*Math.cos(fpPitch), gPos.y + Math.sin(fpPitch), gPos.z + Math.sin(fpYaw)*Math.cos(fpPitch));
+    }
+    gUp.set(0,1,0); wasAimCam = false; return;
+  }
+  if (topView){
+    const t = Math.tan(camera.fov*Math.PI/360), ex = OW/2+0.06, ez = OH/2+0.06, asp = camera.aspect, land = asp >= 1;
+    const h = 1.3*Math.max(land ? ez/t : ex/t, land ? ex/(t*asp) : ez/(t*asp));
+    gPos.set(0, h, 0); gLook.set(0,0,0);
+    if (land) gUp.set(0,0,-1); else gUp.set(1,0,0);
+  } else if (WA){
+    // your turn, walking to the ball: look ahead the way you're going, from just behind your shoulders
+    const yw = walkHeading(WA, dt), fx = Math.cos(yw), fz = Math.sin(yw), sx = -fz*0.3, sz = fx*0.3;   // over the right shoulder
+    gPos.set(clamp(WA.x - fx*1.1 + sx, -ROOM_X + 0.2, ROOM_X - 0.2), FLOOR + 1.65, clamp(WA.z - fz*1.1 + sz, -ROOM_Z + 0.2, ROOM_Z - 0.2));
+    gLook.set(WA.x + fx*2.6, FLOOR + 0.55, WA.z + fz*2.6); gUp.set(0,1,0);
+  } else if (aimCam){
+    const c = cuePos(), dx = Math.cos(aimA), dz = Math.sin(aimA);
+    gPos.set(c[0]-dx*ad*Math.cos(ap), R+ad*Math.sin(ap), c[1]-dz*ad*Math.cos(ap));
+    gLook.set(c[0]+dx*0.3, 0, c[1]+dz*0.3); gUp.set(0,1,0);
+  } else {
+    if (wasAimCam) oyaw = Math.atan2(-Math.sin(aimA), -Math.cos(aimA));
+    if (mode === 'lobby' && !reduceMotion) oyaw += dt*0.07;
+    gPos.set(Math.cos(oyaw)*Math.cos(opitch)*odist, Math.sin(opitch)*odist, Math.sin(oyaw)*Math.cos(opitch)*odist);
+    gLook.set(0,-0.05,0); gUp.set(0,1,0);
+  }
+  wasAimCam = aimCam;
+}
+function aimTrace(cx, cz, dx, dz, skip){
+  let tmin = Infinity, hit = -1;
+  for (let b=0;b<NB;b++){
+    if (b === skip) continue;
+    const p = S.balls[b]; if (!p) continue;
+    const ox = p[0]-cx, oz = p[1]-cz, t = ox*dx+oz*dz;
+    if (t <= 0) continue;
+    const d2 = ox*ox+oz*oz-t*t, r2 = 4*R*R;
+    if (d2 > r2) continue;
+    const th = t-Math.sqrt(r2-d2);
+    if (th > 0 && th < tmin){ tmin = th; hit = b; }
+  }
+  const tx = dx > 0 ? (HW-R-cx)/dx : dx < 0 ? (-HW+R-cx)/dx : Infinity;
+  const tz = dz > 0 ? (HH-R-cz)/dz : dz < 0 ? (-HH+R-cz)/dz : Infinity;
+  const tw = Math.min(tx, tz);
+  let wall = null;
+  if (tw < tmin){ tmin = tw; hit = -1; wall = tx < tz ? 'x' : 'z'; }
+  return {t:tmin, hit, wall, x:cx+dx*tmin, z:cz+dz*tmin};
+}
+function poseStick(cx, cz, dx, dz, pull, sx, sy, el){
+  // cue axis k = d·cosθ − up·sinθ; the tip sits at the 당점 (a right, b up square to the cue) backed off along k
+  const th = Math.max(0.075, (el || 0)*Math.PI/180), ct = Math.cos(th), st = Math.sin(th);
+  const off = R+0.006+pull, lx = -dz, lz = dx, a = sx*R*TIP, b = sy*R*TIP;
+  stick.position.set(cx + lx*a + dx*st*b - dx*ct*off, R + ct*b + st*off, cz + lz*a + dz*st*b - dz*ct*off);
+  stick.rotation.set(0, -Math.atan2(dz, dx), -th);
+  stick.visible = true;
+  Object.assign(stickPose, {tx:stick.position.x, ty:stick.position.y, tz:stick.position.z, kx:dx*ct, ky:-st, kz:dz*ct, dx, dz});
+}
+const pullOf = lv => 0.03 + lv*0.002;
+function updateAimVisuals(){
+  guideLine.visible = objLine.visible = tanLine.visible = ghost.visible = ghostRing.visible = turnRing.visible = false;
+  stick.visible = false; cueOut = false;
+  if (!canAim() || strike) setThickness(-1);
+  if (!S || mode === 'lobby') return;
+  if (strike){
+    // back-swing then strike
+    const k = strike.sh, c = cuePos(), full = pullOf(k.p), t = Math.max(0, strike.t);
+    const pull = t < 0.12 ? full*(0.5+0.5*t/0.12) : full*(1-Math.min(1, (t-0.12)/0.06));
+    poseStick(c[0], c[1], k.dx, k.dz, pull, k.sx, k.sy, k.el); cueOut = true;
+    return;
+  }
+  if (playing && playing.replay && playing.sh && playing.t < 40){
+    const k = playing.sh, b = playing.ball, full = pullOf(k.p), st = playing.t/60 + STRIKE_MS/1000;   // seconds into the stroke
+    const pull = st <= 0 ? full*0.5 : st < 0.12 ? full*(0.5+0.5*st/0.12) : full*(1-Math.min(1, (st-0.12)/0.06));
+    poseStick(b[0], b[1], k.dx, k.dz, pull, k.sx, k.sy, k.el); cueOut = true;
+    return;
+  }
+  if (playing) return;
+  if (S.winner < 0){ const c = cuePos(); turnRing.position.set(c[0], 0.0012, c[1]); turnRing.visible = true; }
+  if (aimTurn()){
+    // keep the 당점 above what the rail allows, and shade the unreachable part of the ball
+    const lim = railDrawLimit();
+    if (Math.abs(lim - syMin) > 0.004){
+      syMin = lim; const ng = $('#spinNogo');
+      ng.hidden = lim <= -0.99; ng.style.top = (50 - lim*50) + '%';
+      if (spinY < syMin) setSpin(spinX, syMin);
+    }
+    const c = cuePos(), dx = Math.cos(aimA), dz = Math.sin(aimA);
+    const tr = aimTrace(c[0], c[1], dx, dz, cueIdx());
+    if (tr.hit >= 0 && turnReady()){ const o = S.balls[tr.hit]; setThickness(tr.hit, (o[0]-c[0])*-dz + (o[1]-c[1])*dx); }
+    else setThickness(-1);
+    if (guides && turnReady()){
+      setLine(guideLine, c[0], c[1], tr.x, tr.z);
+      if (tr.hit >= 0){
+        ghost.position.set(tr.x, R, tr.z); ghost.visible = true;
+        const o = S.balls[tr.hit], nx0 = o[0]-tr.x, nz0 = o[1]-tr.z, nl = Math.hypot(nx0,nz0) || 1, nx = nx0/nl, nz = nz0/nl;
+        const dot = dx*nx+dz*nz;
+        setLine(objLine, o[0], o[1], o[0]+nx*(0.12+0.35*dot), o[1]+nz*(0.12+0.35*dot));
+        const tx = dx-dot*nx, tz = dz-dot*nz, tl = Math.hypot(tx,tz);
+        if (tl > 0.02) setLine(tanLine, tr.x, tr.z, tr.x+tx/tl*0.3*tl, tr.z+tz/tl*0.3*tl);
+      } else {
+        ghostRing.position.set(tr.x, 0.001, tr.z); ghostRing.visible = true;
+        const rx = tr.wall === 'x' ? -dx : dx, rz = tr.wall === 'z' ? -dz : dz;
+        const t2 = aimTrace(tr.x, tr.z, rx, rz, cueIdx());
+        const L = Math.min(t2.t, 0.5);
+        setLine(tanLine, tr.x, tr.z, tr.x+rx*L, tr.z+rz*L);
+      }
+    }
+    poseStick(c[0], c[1], dx, dz, pullOf(level)*0.5, spinX, spinY, elev);
+    cueOut = true; stick.visible = turnReady() && shooterSettled;          // the cue only shows while the character holds it in the stance
+    if (mode === 'online' && nr){
+      const now = performance.now();
+      const mark = [S.n, aimA.toFixed(4), level, spinX, spinY, elev].join('|');
+      if (mark !== aimPubMark && now-aimPubAt > 33){ aimPubMark = mark; aimPubAt = now; nr.presence({aim:{n:S.n, dx, dz, p:level, sx:spinX, sy:spinY, el:elev}}).catch(()=>{}); }
+    }
+  } else if (oppAim){
+    const c = cuePos(), now = performance.now(), ta = Math.atan2(oppAim.dz, oppAim.dx);
+    // glide between the ~30 Hz aim updates so the other player's cue swings as smoothly as on their own screen
+    if (!oppSm || oppSm.n !== S.n){ oppSm = {n: S.n, a: ta, at: now}; }
+    const da = Math.atan2(Math.sin(ta - oppSm.a), Math.cos(ta - oppSm.a)), kk = 1 - Math.exp(-Math.min(0.1, (now - oppSm.at)/1000)*25);
+    oppSm.a += da*kk; oppSm.at = now;
+    poseStick(c[0], c[1], Math.cos(oppSm.a), Math.sin(oppSm.a), pullOf(oppAim.p)*0.5, oppAim.sx, oppAim.sy, oppAim.el);
+    cueOut = true; stick.visible = turnReady() && shooterSettled;
+  }
+}
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now;
+  if (strike){ strike.t = (netNow() - strike.hit + STRIKE_MS)/1000; if (strike.t >= STRIKE_MS/1000){ const s = strike; strike = null; s.then(); } }
+  if (playing) stepPlayback(dt);
+  updateAimVisuals();
+  fpEdgeTurn(dt);
+  cameraGoal(dt);
+  const k = 1-Math.exp(-dt*(fpActive() ? 18 : canAim() && drag ? 16 : walkCamAvatar() ? 9 : 6));
+  camPos.lerp(gPos, k); camLook.lerp(gLook, k); camUp.lerp(gUp, k).normalize();
+  camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(camLook);
+  updateAvatars(dt);
+  // the lamp hangs between a high camera (top view / steep orbit) and the table, so drop it from view up there
+  const lampOn = camPos.y < shade.position.y - 0.05;
+  if (shade.visible !== lampOn){ lampParts.forEach(m => { m.visible = lampOn; }); hallCeil.forEach(m => { m.visible = lampOn; }); }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+setInterval(() => { if (mode === 'online'){ reconcile(); renderHUD(); } }, 1500);
+
+/* ================= Boot ================= */
+selectSeg('#lobbySize', lobbySize);
+applyState(newRack([], 1, lobbyMode, 10, 0, '', lobbySize));
+setSpin(0,0); setLevel(level); setElev(0);
+camPos.set(Math.cos(oyaw)*Math.cos(opitch)*odist, Math.sin(opitch)*odist, Math.sin(oyaw)*Math.cos(opitch)*odist);
+updateNetNote();
+if (/^\d{4}$/.test(getCode())) nameIn.focus();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
