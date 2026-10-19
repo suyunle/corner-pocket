@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="4자리 방 코드로 친구와 실시간으로 겨루는 3D 캐롬 당구 (4구 · 3구)">
-<title>캐롬 3D</title>
+<title>당구장</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600&display=swap">
@@ -17,6 +17,9 @@
   --fg:#f1e8d8;
   --muted:#b6a78f;
   --brass:#d6b062;
+  /* billiard-hall cursor: a swallow — slim lopsided arrowhead, forked tail, a cut-out in the middle; ivory (brass over anything clickable) */
+  --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23fffaf0'/%3E%3Cstop offset='1' stop-color='%23d9cfba'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='rgba(0,0,0,.38)' transform='translate(1.1 1.5)'/%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='url(%23g)' stroke='%231a110b' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M4.6 4.6 L17.6 12.4' stroke='%23ffffff' stroke-width='1' stroke-linecap='round' opacity='.75'/%3E%3C/svg%3E") 3 3, auto;
+  --cur-hot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f6dc9a'/%3E%3Cstop offset='1' stop-color='%23c39446'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='rgba(0,0,0,.38)' transform='translate(1.1 1.5)'/%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='url(%23g)' stroke='%231a110b' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M4.6 4.6 L17.6 12.4' stroke='%23fff6dc' stroke-width='1' stroke-linecap='round' opacity='.75'/%3E%3C/svg%3E") 3 3, pointer;
   --brass-deep:#9a7533;
   --alert:#e8705a;
   --ok:#86c9a0;
@@ -33,14 +36,14 @@ body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(-
 [hidden]{display:none!important}
 #app{position:relative;height:100%;overflow:hidden}
 #stage{position:absolute;inset:0}
-#stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-#stage canvas:active{cursor:grabbing}
+html,body{cursor:var(--cur)}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:var(--cur)}
 button,select{font-family:var(--body)}
 :focus-visible{outline:2px solid var(--brass);outline-offset:3px}
 
-.btn{font:600 15px/1.2 var(--body);padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:pointer;transition:background .15s,border-color .15s}
+.btn{font:600 15px/1.2 var(--body);padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:var(--cur-hot);transition:background .15s,border-color .15s}
 .btn:hover{border-color:var(--brass)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:disabled{opacity:.4;cursor:var(--cur)}
 .btn.primary{background:linear-gradient(#e2bf72,var(--brass-deep));color:#1b1209;border-color:transparent}
 .btn.primary:hover:not(:disabled){filter:brightness(1.06)}
 .btn.small{font-size:14px;padding:9px 13px;background:var(--plate);backdrop-filter:blur(6px)}
@@ -48,7 +51,11 @@ button,select{font-family:var(--body)}
 .plate{background:var(--plate);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(6px)}
 
 .seg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-.seg button{font:600 14px/1.2 var(--body);padding:10px 6px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;display:grid;gap:2px;justify-items:center}
+.seg.seven{grid-template-columns:repeat(6,1fr) 2.1fr;gap:5px}
+.seg.seven button{padding:9px 2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.field.tcustom{margin-top:6px;padding:9px 12px;font-variant-numeric:tabular-nums}
+select.field option{background:#1d1611;color:var(--fg)}   /* any native list left: dark, readable */
+.seg button{font:600 14px/1.2 var(--body);padding:10px 6px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);cursor:var(--cur-hot);display:grid;gap:2px;justify-items:center}
 .seg button small{font-weight:400;font-size:11px;color:var(--muted)}
 .seg button[aria-pressed="true"]{border-color:var(--brass);color:var(--fg);background:rgba(214,176,98,.12)}
 .optrow{display:flex;align-items:center;gap:10px;justify-content:space-between}
@@ -56,28 +63,70 @@ button,select{font-family:var(--body)}
 select.field{width:auto;padding:8px 10px}
 
 /* ---------- Lobby ---------- */
-#lobby{position:absolute;inset:0;display:grid;place-items:center;padding-block:24px;padding-left:16px;padding-right:16px;background:radial-gradient(ellipse at 50% 55%,rgba(16,12,10,.2),rgba(16,12,10,.88) 75%);overflow-y:auto}
-.card{width:min(430px,100%);background:linear-gradient(180deg,rgba(33,25,20,.94),rgba(22,16,13,.96));border:1px solid var(--line);border-radius:18px;padding:26px 24px 20px;display:grid;gap:11px;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,232,180,.08)}
-.eyebrow{font-size:12px;letter-spacing:.18em;color:var(--brass);font-weight:600}
-.card h1{font-family:var(--display);font-weight:400;font-size:48px;line-height:1;margin:0;letter-spacing:.01em}
-.card h1 span{color:var(--brass)}
-.sub{margin:0 0 4px;color:var(--muted);font-size:14px;line-height:1.55}
-.card label{font-size:12px;color:var(--muted);letter-spacing:.06em;margin-top:3px}
 .field{width:100%;font:16px var(--body);color:var(--fg);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .field::placeholder{color:#7d705f}
+/* ---------- title screen: the hall in the background, menu on the left, match settings on the right ---------- */
+#lobby{position:absolute;inset:0;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;z-index:5}
+.lb-shade{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(8,6,4,.58),rgba(8,6,4,.9) 100%),
+             linear-gradient(0deg,rgba(8,6,4,.85) 0%,rgba(8,6,4,0) 26%)}   /* even shade behind the centred group, darker toward the edges */
+.lb-main{position:relative}
+.lb-main{flex:1;display:grid;grid-template-columns:minmax(300px,400px) minmax(280px,330px);justify-content:center;align-items:center;gap:56px;width:100%;margin:0 auto;padding:28px 40px;box-sizing:border-box}   /* menu and settings as one centred group */
+.brand-title{font-family:var(--display);font-weight:400;font-size:clamp(58px,6.6vw,96px);line-height:.92;margin:0;letter-spacing:.005em;
+  background:linear-gradient(180deg,#fff7e6 0%,#efd79f 46%,#b98d44 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 22px rgba(0,0,0,.65))}
+.brand::after{content:'';display:block;width:140px;height:1px;margin-top:22px;background:linear-gradient(90deg,var(--brass),rgba(214,176,98,0))}
+.menu{display:grid;gap:2px;margin-top:26px}
+.mi{display:block;width:100%;padding:13px 18px 13px 18px;border:0;border-radius:3px;background:transparent;
+  color:var(--fg);text-align:left;cursor:var(--cur-hot);position:relative;font:inherit;transition:background .2s,transform .2s,color .2s}
+.mi::before{content:'';position:absolute;left:0;top:11px;bottom:11px;width:2px;background:var(--brass);transform:scaleY(0);transition:transform .2s}
+.mi-t{font-family:var(--display);font-size:27px;line-height:1.05;letter-spacing:.02em}
+.mi:hover:not(:disabled),.mi:focus-visible,.mi[aria-expanded="true"]{background:linear-gradient(90deg,rgba(214,176,98,.15),rgba(214,176,98,0) 88%);transform:translateX(5px);outline:none}
+.mi:hover:not(:disabled)::before,.mi:focus-visible::before,.mi[aria-expanded="true"]::before{transform:scaleY(1)}
+.mi.primary{background:linear-gradient(90deg,rgba(214,176,98,.2),rgba(214,176,98,.03) 90%);box-shadow:inset 0 0 0 1px rgba(214,176,98,.28)}
+.mi.primary::before{transform:scaleY(1)}
+.mi.primary .mi-t{color:#f4d690}
+.mi:disabled{opacity:.42;cursor:var(--cur)}
+.codebox{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 18px 16px 18px}
+.codebox .code{padding:0;gap:10px;justify-content:flex-start}
+.codebox .ballin{width:50px;height:50px;font-size:22px}
+.codebox .btn{padding:12px 22px}
+.net:empty{display:none}
+.net{margin:22px 0 0 18px;font-size:12px;line-height:1.5;color:var(--muted)}
+.lb-panel{align-self:center;display:grid;gap:9px;padding:22px 22px 20px;border-radius:4px;border:1px solid rgba(226,198,140,.16);
+  background:linear-gradient(180deg,rgba(26,19,15,.74),rgba(13,10,8,.84));backdrop-filter:blur(12px);box-shadow:0 28px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,232,180,.06)}
+.pn-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:13px;margin-bottom:3px;border-bottom:1px solid rgba(226,198,140,.13);
+  font:600 11px/1 var(--body);letter-spacing:.32em;color:var(--brass)}
+.lb-panel label{font-size:11.5px;color:var(--muted);letter-spacing:.08em;margin-top:5px}
+.lb-panel .seg button{border-radius:4px}
+.lb-panel .field{border-radius:4px}
+.lb-left > *,.lb-panel{animation:lbIn .8s cubic-bezier(.2,.7,.2,1) both}
+.lb-left > :nth-child(2){animation-delay:.08s} .lb-left > :nth-child(3){animation-delay:.16s} .lb-panel{animation-delay:.22s}
+@keyframes lbIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.lb-left > *,.lb-panel{animation:none}.mi{transition:none}}
+@media (max-width:1100px) and (min-width:761px){
+  .lb-main{grid-template-columns:minmax(280px,380px) minmax(250px,300px);gap:32px;padding:24px 28px}
+}
+@media (max-width:760px){
+  .lb-shade{background:linear-gradient(180deg,rgba(8,6,4,.78),rgba(8,6,4,.9) 40%,rgba(8,6,4,.96))}
+  .lb-main{grid-template-columns:1fr;gap:22px;padding:18px 16px 24px;align-items:start}
+  .brand-title{font-size:56px}
+  .menu{margin-top:18px}
+  .mi{padding:11px 12px}
+  .mi-t{font-size:23px}
+  .mi:hover:not(:disabled),.mi:focus-visible,.mi[aria-expanded="true"]{transform:none}
+  .codebox{padding:8px 4px 12px 10px;gap:12px}
+  .codebox .ballin{width:46px;height:46px}
+  .net{margin-left:10px}
+  .lb-panel{align-self:stretch}
+}
 .code{display:flex;justify-content:center;gap:14px;padding:4px 0}
 .ballin{width:62px;height:62px;border-radius:50%;border:none;text-align:center;font-family:var(--display);font-size:27px;color:#151210;caret-color:#151210;padding:0;
   background:radial-gradient(circle at 33% 27%,rgba(255,255,255,.6),rgba(255,255,255,0) 24%),radial-gradient(circle at 42% 36%,var(--c),var(--cd));
   box-shadow:0 8px 16px rgba(0,0,0,.55),inset -5px -7px 12px rgba(0,0,0,.3)}
 .ballin:focus-visible{outline:3px solid var(--brass);outline-offset:4px}
 .b1{--c:#fbf8ef;--cd:#b9b2a1}.b2{--c:#f6cf3c;--cd:#a57c0c}.b3{--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}.b4{--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}
-#quickBtn{display:grid;gap:2px;justify-items:center;font-size:17px;padding:13px 16px}
-#quickBtn .qsub{font:400 11.5px var(--body);opacity:.8}
 .row{display:flex;gap:10px}
 .row .btn{flex:1}
-.net{margin:2px 0 0;font-size:12.5px;color:var(--muted);line-height:1.5;text-align:center}
-.rules{font-size:12.5px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:10px;margin-top:2px;display:grid;gap:3px}
-.rules b{color:var(--fg);font-weight:600}
 
 /* ---------- HUD ---------- */
 #hud{position:absolute;inset:0;pointer-events:none}
@@ -86,30 +135,14 @@ select.field{width:auto;padding:8px 10px}
 #hud > *{pointer-events:auto}
 .topbar{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none}
 .topbar > *{pointer-events:auto}
-.roomchip{display:grid;gap:2px;padding:6px 10px;border-radius:10px}
-.roomchip .r1{display:flex;align-items:center;gap:8px}
-.roomchip .lbl{font-size:12px;color:var(--muted)}
-.roomchip b{font-family:var(--display);font-weight:400;font-size:18px;letter-spacing:.14em;color:var(--brass);font-variant-numeric:tabular-nums}
-.roomchip .gm{font-size:11px;color:var(--muted)}
 .dot{width:9px;height:9px;border-radius:50%;background:#6b5f50}
 .dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .dot.off{background:var(--alert)}
-.mini{font:600 12px var(--body);padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
-.board{display:flex;align-items:stretch;gap:10px}
-.seat{min-width:160px;padding:6px 10px;border-radius:10px;display:grid;grid-template-columns:auto 1fr auto;gap:0 8px;align-items:center;transition:border-color .2s,box-shadow .2s}
-.seat.turn{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass),0 0 18px rgba(214,176,98,.25)}
-.seat .bd{width:18px;height:18px;border-radius:50%;grid-row:span 2;box-shadow:inset -2px -3px 4px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.4)}
-.seat .bd.w{background:radial-gradient(circle at 35% 30%,#fff,var(--white-ball) 45%,#a9a291)}
-.seat .bd.y{background:radial-gradient(circle at 35% 30%,#fff3b8,var(--yellow-ball) 45%,#9e7a0a)}
-.seat .nm{font-weight:600;font-size:13px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px}
-.seat .tag{font-size:10.5px;line-height:1.25;color:var(--muted);letter-spacing:.03em;white-space:nowrap}
-.seat.turn .tag{color:var(--brass)}
-.seat .sc{grid-row:span 2;font-family:var(--display);font-size:26px;line-height:1;font-variant-numeric:tabular-nums;text-align:right}
-.seat .sc small{font-size:11px;color:var(--muted);font-family:var(--body);margin-left:2px}
-.seat .take{grid-column:1 / -1;margin-top:4px}
-.vs{align-self:center;font-family:var(--display);color:var(--brass);font-size:12px;letter-spacing:.08em}
+.mini{font:600 12px var(--body);padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:var(--cur-hot)}
+  background:linear-gradient(180deg,transparent 8px,#c2a362 8px,#6e5430 10px,transparent 10px)}
+/* every bead is coloured (cream / red in fives, like a club board); the scored ones are slid left, a gap, then the rest */
 .spect{padding:9px 12px;font-size:13px;color:var(--muted);white-space:nowrap}
-#menuBtn{font-size:18px;line-height:1;padding:10px 14px}
+#menuBtn{font-size:18px;line-height:1;padding:10px 14px;margin-left:auto}   /* always the top-right corner */
 
 .status{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;width:max-content;max-width:min(620px,calc(100% - 560px));padding:11px 20px 12px;text-align:center;display:grid;gap:4px;justify-items:center}
 .lastmsg{font-size:14px;color:var(--muted);line-height:1.45}
@@ -118,7 +151,17 @@ select.field{width:auto;padding:8px 10px}
 .turnmsg.mine{color:var(--brass)}
 .hint{font-size:12.5px;color:var(--muted);line-height:1.5}
 .status .btn{margin-top:6px}
-.tools{position:absolute;right:16px;top:72px;display:none;flex-direction:column;gap:6px;align-items:stretch;width:160px;z-index:5}
+.tools{position:absolute;right:16px;top:72px;display:none;flex-direction:column;gap:1px;width:232px;padding:8px;z-index:6;box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.tm{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--fg);font:600 14px/1.2 var(--body);text-align:left;cursor:var(--cur-hot);transition:background .15s}
+.tm:hover:not(:disabled),.tm:focus-visible{background:rgba(214,176,98,.12);outline:none}
+.tm:disabled{opacity:.38;cursor:var(--cur)}
+.tm kbd{min-width:22px;padding:3px 6px;border:1px solid rgba(226,198,140,.28);border-radius:4px;background:rgba(255,255,255,.04);font:600 11px/1 var(--body);color:var(--muted);text-align:center}
+.tm.out{color:#e39a88}
+.tm-sep{height:1px;margin:6px 6px;background:var(--line)}
+.tm-room{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:8px 12px 6px}
+.tm-room .lbl{font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.tm-room b{grid-row:2;font-family:var(--display);font-weight:400;font-size:26px;line-height:1;letter-spacing:.2em;color:var(--brass);font-variant-numeric:tabular-nums}
+.tm-room .mini{grid-column:2;grid-row:1 / span 2}
 .tools.open{display:flex}
 
 /* control dock */
@@ -134,8 +177,8 @@ select.field{width:auto;padding:8px 10px}
 .face .ax{position:absolute;background:rgba(60,45,30,.18);pointer-events:none}
 .face .ax.v{left:50%;top:8%;bottom:8%;width:1px}
 .face .ax.h{top:50%;left:8%;right:8%;height:1px}
-.face .nogo{position:absolute;left:0;right:0;bottom:0;top:100%;border-radius:0 0 999px 999px;border-top:2px dashed rgba(150,40,30,.7);pointer-events:none;
-  background:repeating-linear-gradient(135deg,rgba(70,30,20,.38) 0 6px,rgba(70,30,20,.22) 6px 12px)}
+.face .nogo{position:absolute;left:0;right:0;bottom:0;top:100%;border-radius:0 0 999px 999px;pointer-events:none;
+  background:rgba(0,0,0,.42);border-top:2px solid rgba(255,244,226,.9);box-shadow:0 -1px 0 rgba(0,0,0,.45)}   /* 당점 the cue can't reach (ball by the rail): shaded, with a clear edge line */
 .face .pt{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff7a7a,var(--red-ball));box-shadow:0 0 0 3px rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.4);left:50%;top:50%;pointer-events:none}
 /* 큐 각도 (세워치기): vertical slider at the right of the 당점 ball, up = steeper cue */
 .elev{position:absolute;right:10px;top:12px;bottom:12px;width:30px;z-index:2;display:grid;grid-template-rows:auto 1fr;justify-items:center;gap:4px;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -146,12 +189,12 @@ select.field{width:auto;padding:8px 10px}
 .pw{display:grid}
 /* 세기: one continuous 1–100 gauge, tap or drag anywhere to set it */
 .gauge{position:relative;height:52px;border-radius:12px;overflow:hidden;cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none;background:rgba(255,255,255,.07);border:1px solid var(--line)}
-.gauge .fill{position:absolute;left:0;top:0;bottom:0;width:50%;background:linear-gradient(90deg,#7d8f5a,var(--brass) 45%,#e0864f 80%,#c23a2a);background-size:var(--gw,216px) 100%;pointer-events:none}
-.gauge .fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:#fff6dc;box-shadow:0 0 8px rgba(255,240,200,.8)}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;width:50%;background:rgba(214,176,98,.22);pointer-events:none}
+.gauge .fill::after{content:'';position:absolute;right:-2px;top:8px;bottom:8px;width:4px;border-radius:2px;background:var(--brass);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 .gauge .tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.14);pointer-events:none}
-.gauge .num{position:absolute;inset:0;display:grid;place-items:center;font:400 26px/1 var(--display);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);font-variant-numeric:tabular-nums;pointer-events:none}
+.gauge .num{position:absolute;inset:0;display:grid;place-items:center;font:400 24px/1 var(--display);color:var(--fg);text-shadow:0 1px 3px rgba(0,0,0,.7);font-variant-numeric:tabular-nums;pointer-events:none}
 .shotrow{display:grid;grid-template-columns:52px 1fr 52px;gap:8px}
-.shotrow .nudge{font:600 20px var(--body);border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:pointer;touch-action:none}
+.shotrow .nudge{font:600 20px var(--body);border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:var(--cur-hot);touch-action:none}
 #shotBtn{font-family:var(--display);font-size:24px;font-weight:400;padding:14px 10px;border-radius:12px}
 #shotBtn small{display:block;font:400 11px var(--body);opacity:.75;margin-top:2px}
 
@@ -159,7 +202,6 @@ select.field{width:auto;padding:8px 10px}
 #ngPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
 #replayPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:18px 20px;display:grid;gap:10px;background:rgba(27,20,16,.97);z-index:6}
 #replayPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
-#replayPanel .rpnote{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5}
 #replayList{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:50vh;overflow:auto}
 #replayList li{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
 #replayList .no{font-family:var(--display);color:var(--brass);min-width:28px}
@@ -174,8 +216,10 @@ select.field{width:auto;padding:8px 10px}
 #replayInfo .rib i{position:absolute;width:11px;height:11px;border-radius:50%;background:#d23b2f;transform:translate(-50%,-50%);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 #replayInfo .rit{display:grid;gap:5px;min-width:150px}
 #replayInfo .rit b{font-weight:600}
-#replayInfo .rip{height:7px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
-#replayInfo .rip i{display:block;height:100%;background:linear-gradient(90deg,#7fb36a,#e0b44a,#d23b2f)}
+/* same look as the 세기 bar: quiet track, faint brass fill, brass handle at the power */
+#replayInfo .rip{position:relative;height:12px;border-radius:4px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
+#replayInfo .rip i{position:absolute;left:0;top:0;bottom:0;display:block;border-radius:3px 0 0 3px;background:rgba(214,176,98,.22)}
+#replayInfo .rip i::after{content:'';position:absolute;right:-2px;top:1px;bottom:1px;width:3px;border-radius:2px;background:var(--brass);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 #replayInfo small{color:var(--muted)}
 #recBadge .recdot{width:10px;height:10px;border-radius:50%;background:var(--alert);box-shadow:0 0 8px var(--alert)}
 #helpPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:18px 20px;display:grid;gap:10px;background:rgba(27,20,16,.97);font-size:14px;line-height:1.6}
@@ -187,19 +231,11 @@ select.field{width:auto;padding:8px 10px}
 #toast.show{opacity:1}
 
 @media (max-width:1100px) and (min-width:761px){
-  .seat{min-width:150px}
   .status{max-width:calc(100% - 480px)}
 }
 @media (max-width:760px){
   .topbar{flex-wrap:wrap;gap:6px;top:8px}
-  .board{order:3;flex:1 1 100%;gap:6px}
-  .seat{min-width:0;flex:1;padding:5px 8px;gap:0 6px}
-  .seat .nm{font-size:12px;max-width:80px}
-  .seat .sc{font-size:22px}
-  .seat .bd{width:16px;height:16px}
   .vs{font-size:11px}
-  .roomchip{padding:7px 10px}
-  .roomchip b{font-size:19px}
   .spect{display:none}
   #menuBtn{margin-left:auto}
   .tools{top:64px}
@@ -214,7 +250,6 @@ select.field{width:auto;padding:8px 10px}
   .turnmsg{font-size:18px}
   .lastmsg{font-size:12.5px}
   .hint{display:none}
-  .card h1{font-size:40px}
   .ballin{width:54px;height:54px;font-size:24px}
   #toast{top:150px}
 }
@@ -227,15 +262,7 @@ select.field{width:auto;padding:8px 10px}
 
   <div id="hud" hidden>
     <div class="topbar">
-      <div class="roomchip plate">
-        <div class="r1"><span class="dot" id="netDot"></span><span class="lbl">방</span><b id="roomCode">----</b><button id="copyBtn" class="mini">링크 복사</button></div>
-        <div class="gm" id="gameMode"></div>
-      </div>
-      <div class="board">
-        <div class="seat plate" id="seat0"></div>
-        <div class="vs">VS</div>
-        <div class="seat plate" id="seat1"></div>
-      </div>
+      <button id="takeSeat" class="btn small" hidden>빈 자리 이어받기</button>
       <div class="spect plate" id="spect"></div>
       <button id="menuBtn" class="btn small" aria-expanded="false" aria-label="메뉴">☰</button>
     </div>
@@ -247,14 +274,17 @@ select.field{width:auto;padding:8px 10px}
       <button id="rematchBtn" class="btn primary" hidden>다시 하기</button>
     </div>
 
-    <div class="tools" id="tools">
-      <button id="replayBtn" class="btn small" disabled>다시 보기 · 영상</button>
-      <button id="viewBtn" class="btn small">탑뷰 (T)</button>
-      <button id="fpBtn" class="btn small">1인칭 (V)</button>
-      <button id="soundBtn" class="btn small">소리 끄기</button>
-      <button id="helpBtn" class="btn small">조작법</button>
-      <button id="newBtn" class="btn small">새 게임</button>
-      <button id="leaveBtn" class="btn small">나가기</button>
+    <div class="tools plate" id="tools" role="menu">
+      <div class="tm-room" id="tmRoom"><span class="lbl">방 코드</span><b id="tmCode">----</b><button id="tmCopy" class="mini">링크 복사</button></div>
+      <div class="tm-sep" id="tmRoomSep"></div>
+      <button id="replayBtn" class="tm" role="menuitem" disabled><span>다시 보기 · 영상</span><kbd>R</kbd></button>
+      <button id="viewBtn" class="tm" role="menuitem"><span>탑뷰</span><kbd>T</kbd></button>
+      <button id="fpBtn" class="tm" role="menuitem"><span>1인칭</span><kbd>V</kbd></button>
+      <button id="soundBtn" class="tm" role="menuitem"><span>소리 끄기</span></button>
+      <button id="helpBtn" class="tm" role="menuitem"><span>조작법</span></button>
+      <div class="tm-sep"></div>
+      <button id="newBtn" class="tm" role="menuitem"><span>새 게임</span></button>
+      <button id="leaveBtn" class="tm out" role="menuitem"><span>나가기</span></button>
     </div>
 
     <div class="dock plate" id="dock">
@@ -279,7 +309,7 @@ select.field{width:auto;padding:8px 10px}
       </div>
       <div class="shotrow ctl">
         <button class="nudge" id="nudgeL" aria-label="조준 왼쪽으로 조금">◀</button>
-        <button class="btn primary" id="shotBtn">샷<small>Space</small></button>
+        <button class="btn primary" id="shotBtn">샷</button>
         <button class="nudge" id="nudgeR" aria-label="조준 오른쪽으로 조금">▶</button>
       </div>
     </div>
@@ -287,21 +317,21 @@ select.field{width:auto;padding:8px 10px}
     <div id="ngPanel" class="plate" hidden>
       <h2>새 게임</h2>
       <div class="seg" id="ngMode">
-        <button data-mode="4" aria-pressed="true">4구<small>빨간 공 2개</small></button>
-        <button data-mode="3c" aria-pressed="false">3구<small>쓰리쿠션</small></button>
+        <button data-mode="4" aria-pressed="true">4구</button>
+        <button data-mode="3c" aria-pressed="false">3구</button>
       </div>
       <div class="seg" id="ngSize">
-        <button data-mode="mid" aria-pressed="true">중대<small>2448×1224 · 공 65.5mm</small></button>
-        <button data-mode="big" aria-pressed="false">대대<small>2844×1422 · 공 61.5mm</small></button>
+        <button data-mode="mid" aria-pressed="true">중대</button>
+        <button data-mode="big" aria-pressed="false">대대</button>
       </div>
-      <div class="optrow"><label for="ngTarget">목표 점수</label>
-        <select id="ngTarget" class="field"><option>3</option><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option></select></div>
+      <div class="seg seven" id="ngTargetSeg" aria-label="목표 점수"><button data-mode="3" aria-pressed="false">3</button><button data-mode="5" aria-pressed="false">5</button><button data-mode="8" aria-pressed="false">8</button><button data-mode="10" aria-pressed="true">10</button><button data-mode="15" aria-pressed="false">15</button><button data-mode="20" aria-pressed="false">20</button><button data-mode="custom" aria-pressed="false" class="cus">직접 입력</button></div>
+      <input type="number" id="ngTargetCustom" class="field tcustom" min="1" max="99" step="1" inputmode="numeric" placeholder="1~99점" aria-label="목표 점수 직접 입력" hidden>
+      <input type="hidden" id="ngTarget" value="10">
       <div class="row"><button id="ngCancel" class="btn">취소</button><button id="ngStart" class="btn primary">시작</button></div>
     </div>
 
     <div id="replayPanel" class="plate" hidden>
       <h2>다시 보기</h2>
-      <p class="rpnote">이번 게임의 모든 샷이에요. 영상 저장은 화면 공유 창에서 <b>이 탭</b>을 고르면 점수판까지 전체 화면을 녹화해요.</p>
       <ol id="replayList"></ol>
       <button id="replayClose" class="btn">닫기</button>
     </div>
@@ -312,60 +342,63 @@ select.field{width:auto;padding:8px 10px}
     <div id="helpPanel" class="plate" hidden>
       <h2>조작법</h2>
       <dl>
-        <dt>조준</dt><dd>화면을 좌우로 끌기, 공이나 쿠션을 클릭하면 그쪽으로 조준. ◀ ▶ 버튼이나 ← → 키로 미세 조정 (Shift는 더 미세하게)</dd>
-        <dt>시점</dt><dd>화면을 위아래로 끌면 높이, 휠이나 두 손가락으로 확대·축소. T 키는 탑뷰</dd>
-        <dt>당점</dt><dd>공 그림에서 점을 누르거나 끌기 (두 번 누르면 중앙). 위는 밀어치기, 아래는 끌어치기, 좌우는 회전. W A S D 키, C는 중앙. 뒤에 겹쳐 보이는 공이 맞힐 공의 두께</dd>
-        <dt>세워치기</dt><dd>당점 공 오른쪽 막대로 큐 각도 0~75°. 큐를 세우고 당점을 좌우로 주면 공이 그쪽으로 휘어요 (마세이). E 키는 올리기, Q 키는 내리기, 막대를 두 번 누르면 0°</dd>
-        <dt>벽 쪽 공</dt><dd>수구가 쿠션 가까이 있으면 큐가 레일을 넘어가야 해서 아래 당점(끌어치기)을 칠 수 없어요. 칠 수 없는 부분은 당점 그림에 빗금으로 보여요. 큐를 세우면 조금 더 낮게 칠 수 있어요</dd>
-        <dt>세기</dt><dd>1~100. 막대 아무 곳이나 누르거나 끌기. 숫자 키 1~9는 10~90, 0은 100, + − 키로 5씩</dd>
-        <dt>샷</dt><dd>샷 버튼이나 Space</dd>
-        <dt>1인칭</dt><dd>V 키나 메뉴의 1인칭 버튼. 기다릴 때는 마우스를 움직이면 시선이 따라가고 (화면 끝에 대면 계속 돌아요, 휴대폰은 끌기), 내 차례에는 큐 위에서 수구를 내려다봐요</dd>
-        <dt>캐릭터</dt><dd>내 차례가 아닐 때 바닥이나 테이블을 누르면 그쪽으로 걸어가요. W A S D 키로도 움직여요. 내 차례가 되면 수구 뒤로 가서 큐 자세를 잡아요</dd>
-        <dt>다시 보기</dt><dd>R 키는 마지막 샷. 메뉴의 다시 보기에서 이번 게임의 모든 샷을 골라 보거나 영상으로 저장해요</dd>
+        <dt>조준</dt><dd>화면 좌우로 끌기 · ← → (Shift 미세)</dd>
+        <dt>두께</dt><dd>Q · E</dd>
+        <dt>당점</dt><dd>공 그림 끌기 · W A S D · C 중앙</dd>
+        <dt>큐 각도</dt><dd>오른쪽 막대 · Z · X</dd>
+        <dt>세기</dt><dd>막대 끌기 · 마우스 휠 · 숫자 1–0</dd>
+        <dt>샷</dt><dd>Space</dd>
+        <dt>시점</dt><dd>위아래 끌기 · 휠 확대 · T 탑뷰 · V 1인칭</dd>
+        <dt>이동</dt><dd>바닥 클릭 · W A S D · E 앉기</dd>
+        <dt>다시 보기</dt><dd>R</dd>
       </dl>
       <button id="helpClose" class="btn primary">닫기</button>
     </div>
   </div>
 
   <div id="lobby">
-    <div class="card">
-      <div class="eyebrow">3D 캐롬 당구 · 멀티플레이</div>
-      <h1>캐롬 <span>3D</span></h1>
-      <p class="sub">구멍 없는 당구대에서 4구와 3구(쓰리쿠션)를 칩니다. 같은 방 코드 네 자리를 넣은 사람끼리 한 테이블에 앉아요.</p>
-      <label for="nameIn">닉네임</label>
-      <input id="nameIn" class="field" maxlength="12" placeholder="예: 큐대장" autocomplete="off">
-      <label for="c0">방 코드</label>
-      <div class="code">
-        <input id="c0" class="ballin b1" inputmode="numeric" maxlength="1" aria-label="방 코드 첫째 자리" autocomplete="off">
-        <input id="c1" class="ballin b2" inputmode="numeric" maxlength="1" aria-label="방 코드 둘째 자리" autocomplete="off">
-        <input id="c2" class="ballin b3" inputmode="numeric" maxlength="1" aria-label="방 코드 셋째 자리" autocomplete="off">
-        <input id="c3" class="ballin b4" inputmode="numeric" maxlength="1" aria-label="방 코드 넷째 자리" autocomplete="off">
-      </div>
-      <label>게임 종류 <span style="letter-spacing:0">(새 테이블을 열 때 적용)</span></label>
-      <div class="seg" id="lobbyMode">
-        <button data-mode="4" aria-pressed="true">4구<small>빨간 공 2개</small></button>
-        <button data-mode="3c" aria-pressed="false">3구<small>쓰리쿠션</small></button>
-      </div>
-      <label>테이블 <span style="letter-spacing:0">(새 테이블을 열 때 적용)</span></label>
-      <div class="seg" id="lobbySize">
-        <button data-mode="mid" aria-pressed="true">중대<small>2448×1224 · 공 65.5mm</small></button>
-        <button data-mode="big" aria-pressed="false">대대<small>2844×1422 · 공 61.5mm</small></button>
-      </div>
-      <div class="optrow"><label for="lobbyTarget">목표 점수</label>
-        <select id="lobbyTarget" class="field"><option>3</option><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option></select></div>
-      <button id="quickBtn" class="btn primary">빠른 참가<small class="qsub">상대를 기다리는 방에 바로 들어가요</small></button>
-      <button id="joinBtn" class="btn">코드로 입장하기</button>
-      <div class="row">
-        <button id="createBtn" class="btn">새 방 만들기</button>
-        <button id="localBtn" class="btn">한 기기 2인</button>
-      </div>
-      <p class="net" id="netNote">친구에게 이 주소와 방 코드를 알려 주세요</p>
-      <div class="rules">
-        <div><b>4구</b> 내 공으로 빨간 공 두 개를 모두 맞히면 1점. 상대 공을 맞히거나 아무것도 못 맞히면 파울 −1점.</div>
-        <div><b>3구</b> 쓰리쿠션. 빨간 공과 상대 공을 모두 맞히되, 두 번째 공을 맞히기 전에 쿠션을 3번 이상 맞혀야 1점.</div>
-        <div>득점하면 계속 치고, 못 하면 차례가 넘어가요. 흰 공은 1번 선수, 노란 공은 2번 선수 공입니다.</div>
-      </div>
-    </div>
+    <div class="lb-shade" aria-hidden="true"></div>
+    <main class="lb-main">
+      <section class="lb-left">
+        <div class="brand">
+          <h1 class="brand-title">당구장</h1>
+        </div>
+        <nav class="menu" id="lbMenu" aria-label="메인 메뉴">
+          <button id="quickBtn" class="mi primary"><span class="mi-t">빠른 참가</span></button>
+          <button id="createBtn" class="mi"><span class="mi-t">방 만들기</span></button>
+          <button id="codeToggle" class="mi" aria-expanded="false" aria-controls="codeBox"><span class="mi-t">코드로 입장</span></button>
+          <div class="codebox" id="codeBox" hidden>
+            <div class="code">
+              <input id="c0" class="ballin b1" inputmode="numeric" maxlength="1" aria-label="방 코드 첫째 자리" autocomplete="off">
+              <input id="c1" class="ballin b2" inputmode="numeric" maxlength="1" aria-label="방 코드 둘째 자리" autocomplete="off">
+              <input id="c2" class="ballin b3" inputmode="numeric" maxlength="1" aria-label="방 코드 셋째 자리" autocomplete="off">
+              <input id="c3" class="ballin b4" inputmode="numeric" maxlength="1" aria-label="방 코드 넷째 자리" autocomplete="off">
+            </div>
+            <button id="joinBtn" class="btn primary">입장</button>
+          </div>
+        </nav>
+        <p class="net" id="netNote"></p>
+      </section>
+      <aside class="lb-panel" aria-label="매치 설정">
+        <div class="pn-h">매치 설정</div>
+        <label for="nameIn">닉네임</label>
+        <input id="nameIn" class="field" maxlength="12" placeholder="예: 큐대장" autocomplete="off">
+        <label>게임 종류</label>
+        <div class="seg" id="lobbyMode">
+          <button data-mode="4" aria-pressed="true">4구</button>
+          <button data-mode="3c" aria-pressed="false">3구</button>
+        </div>
+        <label>테이블</label>
+        <div class="seg" id="lobbySize">
+          <button data-mode="mid" aria-pressed="true">중대</button>
+          <button data-mode="big" aria-pressed="false">대대</button>
+        </div>
+        <label>목표 점수</label>
+        <div class="seg seven" id="lobbyTargetSeg"><button data-mode="3" aria-pressed="false">3</button><button data-mode="5" aria-pressed="false">5</button><button data-mode="8" aria-pressed="false">8</button><button data-mode="10" aria-pressed="true">10</button><button data-mode="15" aria-pressed="false">15</button><button data-mode="20" aria-pressed="false">20</button><button data-mode="custom" aria-pressed="false" class="cus">직접 입력</button></div>
+        <input type="number" id="lobbyTargetCustom" class="field tcustom" min="1" max="99" step="1" inputmode="numeric" placeholder="1~99점" aria-label="목표 점수 직접 입력" hidden>
+        <input type="hidden" id="lobbyTarget" value="10">
+      </aside>
+    </main>
   </div>
 
   <div id="toast" class="plate" role="status" aria-live="polite"></div>
@@ -562,6 +595,15 @@ function evaluate(prev, res, au){
   const st = Object.assign({}, prev, {n:prev.n+1, au, players:P.slice(), scores:prev.scores.slice(), balls:res.final.map(b => b ? [b[0],b[1]] : null), winner:-1, msg:''});
   let point = 0, foul = '';
   const cushTxt = `쿠션 ${res.cushAtSecond >= 0 ? res.cushAtSecond : res.cushions}개`;
+  // 4구 쿠션: once all the points are made, the game has to be finished with a three-cushion — any two other balls,
+  // 3+ cushions before the second, as in 3구 — and, as in 3구, nothing is taken off for a miss or a foul meanwhile
+  if (prev.mode === '4' && prev.scores[me] >= prev.target){
+    if (hit.length >= 2 && res.cushAtSecond >= 3){ st.winner = me; st.msg = `${nm(me)} 승리! 쓰리쿠션 마무리 (${cushTxt})`; return st; }
+    st.turn = op;
+    if (two && op === 0) st.inning = (prev.inning || 1) + 1;
+    st.msg = '쿠션 실패: ' + (!hit.length ? '아무 공도 못 맞힘' : hit.length < 2 ? `${BALL_NAME[hit[0]]}만 맞힘` : `두 공은 맞혔지만 ${cushTxt}`) + (two ? ` · ${nm(op)} 차례` : ' · 다시 쳐 보세요');
+    return st;
+  }
   if (prev.mode === '4'){
     if (!hit.length){ foul = '아무 공도 맞히지 못함'; point = -1; }
     else if (hit.includes(opBall)){ foul = '상대 공을 맞힘'; point = -1; }
@@ -572,6 +614,7 @@ function evaluate(prev, res, au){
   }
   st.scores[me] = Math.max(0, st.scores[me]+point);
   if (point > 0){
+    if (prev.mode === '4' && st.scores[me] >= prev.target){ st.scores[me] = prev.target; st.turn = me; st.msg = `${nm(me)} ${prev.target}점 달성 · 이제 쿠션 (쓰리쿠션으로 마무리)`; return st; }
     if (st.scores[me] >= prev.target){ st.winner = me; st.msg = `${nm(me)} 승리! ${st.scores[me]}점 달성`; return st; }
     st.msg = `득점! ${prev.mode === '3c' ? '쓰리쿠션 성공 (' + cushTxt + ')' : prev.mode === '4' ? '빨간 공 두 개' : '두 공 모두'} · ${nm(me)} ${st.scores[me]}점 · 계속`;
     st.turn = me;
@@ -717,6 +760,14 @@ const ROOM_X = 7, ROOM_Z = 5.5, CEIL = 2.2, FLR = -0.8;
 // two folding chairs beside our table, one off each long side, turned to face it (clear of the shooter's stance)
 // x, z: centre; a: which way the seat faces (radians, 0 = +x), toward a point on the table
 const CHAIRS = [[1.0, -2.55, 0.35], [-1.2, 2.55, -0.4]].map(([x, z, tx]) => ({x, z, a: Math.atan2(0 - z, tx - x)}));
+const SB_SIZE = {width:1.16, depth:0.76}; // cabinet and trestle footprint, also used by walking collisions
+// Back feet clear the wall trim; the cabinet and the sofas either side of it face into the hall.
+const SB_POS = {x:0, z:ROOM_Z-SB_SIZE.depth/2-0.08, a:-Math.PI/2};   // centred on the table, sofas mirrored either side
+const SHORT_SOFA_WIDTH = 1.6;   // same size as the sofas on the side walls
+const SB_SOFAS = [-1,1].map(side => ({
+  x:SB_POS.x+side*(SB_SIZE.width/2+0.32+SHORT_SOFA_WIDTH/2+0.1),
+  z:ROOM_Z-0.44, width:SHORT_SOFA_WIDTH
+}));
 const plankTex = canvasTex(512, 512, (g, w, h) => {
   const rows = 8, rh = h/rows;
   for (let r=0;r<rows;r++){
@@ -795,7 +846,7 @@ const hallBox = (w, h, d, mat, x, y, z, ry) => { const m = new THREE.Mesh(new TH
     g.fillStyle = '#120c09'; g.fillRect(0, 0, w, h);
     g.strokeStyle = '#d6b062'; g.lineWidth = 8; g.strokeRect(14, 14, w-28, h-28);
     g.font = '400 118px "Black Han Sans", "Malgun Gothic", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.shadowColor = 'rgba(255,190,90,.85)'; g.shadowBlur = 26; g.fillStyle = '#f2d18b'; g.fillText('캐롬 당구클럽', w/2, h/2 + 6);
+    g.shadowColor = 'rgba(255,190,90,.85)'; g.shadowBlur = 26; g.fillStyle = '#f2d18b'; g.fillText('당구장', w/2, h/2 + 6);
   });
   const signM = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({map:sign})); signM.position.set(0.6, 1.55, -ROOM_Z + 0.03); hall.add(signM);
   const board = canvasTex(512, 320, (g, w, h) => {
@@ -814,17 +865,19 @@ const hallBox = (w, h, d, mat, x, y, z, ry) => { const m = new THREE.Mesh(new TH
 
   // sofas with side tables along the side walls, and warm sconces between them
   const sofaMat = new THREE.MeshStandardMaterial({color:0x5a1f1c, roughness:0.75}), legMat = new THREE.MeshStandardMaterial({color:0x140c08}), sofaGeo = roundedBox(0.3, 6);
-  const sofa = (x, z, ry) => {
+  const sofa = (x, z, ry, width=1.6) => {
     const s = new THREE.Group(); s.position.set(x, FLR, z); s.rotation.y = ry; hall.add(s);
     const sb = (w, h, d, m, px, py, pz) => { const o = new THREE.Mesh(sofaGeo, m); o.scale.set(w, h, d); o.position.set(px, py, pz); s.add(o); };
-    sb(1.6, 0.22, 0.62, sofaMat, 0, 0.32, 0); sb(1.6, 0.5, 0.18, sofaMat, 0, 0.62, -0.24); sb(0.16, 0.36, 0.62, sofaMat, -0.82, 0.48, 0); sb(0.16, 0.36, 0.62, sofaMat, 0.82, 0.48, 0);
-    sb(1.5, 0.1, 0.5, legMat, 0, 0.16, 0);
+    sb(width, 0.22, 0.62, sofaMat, 0, 0.32, 0); sb(width, 0.5, 0.18, sofaMat, 0, 0.62, -0.24); sb(0.16, 0.36, 0.62, sofaMat, -width/2-0.02, 0.48, 0); sb(0.16, 0.36, 0.62, sofaMat, width/2+0.02, 0.48, 0);
+    sb(width-0.1, 0.1, 0.5, legMat, 0, 0.16, 0);
+    return s;
   };
   const sideTable = (x, z) => { hallBox(0.45, 0.04, 0.45, panelMat, x, FLR + 0.55, z); hallBox(0.06, 0.53, 0.06, trimMat, x, FLR + 0.27, z);
     const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.1, 12), new THREE.MeshStandardMaterial({color:0xf1e8d8, roughness:0.4})); cup.position.set(x + 0.08, FLR + 0.62, z); hall.add(cup); };
   for (const sx of [-1, 1]){
     sofa(sx*(ROOM_X - 0.45), -0.9, -sx*Math.PI/2); sofa(sx*(ROOM_X - 0.45), 0.9, -sx*Math.PI/2); sideTable(sx*(ROOM_X - 0.45), 0);
   }
+  SB_SOFAS.forEach((p,i) => { sofa(p.x,p.z,Math.PI,p.width).name=`scoreboard-sofa-${i}`; });
   // folding chairs: thin steel legs crossed in an X, a slatted seat and a curved backrest
   const steel = new THREE.MeshStandardMaterial({color:0x8d8a86, metalness:0.75, roughness:0.35}), seatM = new THREE.MeshStandardMaterial({color:0x2b2523, roughness:0.6});
   for (const c of CHAIRS){
@@ -888,6 +941,8 @@ for (let i=0;i<NB;i++){
   const m = new THREE.Mesh(ballGeo, new THREE.MeshPhysicalMaterial({map:ballTex(i), roughness:0.12, metalness:0, clearcoat:1, clearcoatRoughness:0.05, envMapIntensity:0.9}));
   m.castShadow = true; m.position.y = R; scene.add(m); ballMeshes.push(m);
 }
+// replays run on their own set of balls, so a replay can never move or hide the live game's balls
+const replayMeshes = ballMeshes.map(m => { const r = m.clone(); r.visible = false; scene.add(r); return r; });
 function resetRotations(){ ballMeshes.forEach(m => { m.quaternion.identity(); m.rotation.set(Math.random()*6, Math.random()*6, Math.random()*6); }); }
 
 const stick = new THREE.Group();
@@ -901,6 +956,131 @@ const stick = new THREE.Group();
   }
 })();
 stick.visible = false; scene.add(stick);
+/* ---------- club scoreboard: three wires; pull the handicap left, return one bead per point ---------- */
+const SB = (() => {
+  const g = new THREE.Group(); g.position.set(SB_POS.x, FLR, SB_POS.z); g.rotation.y = Math.PI/2 - SB_POS.a; hall.add(g);   // local +z faces the table
+  g.name = 'club-abacus';
+  // Use the hall's actual furniture finishes so the cabinet belongs beside the tables.
+  const timber = woodMat.clone(); timber.roughness=0.64; timber.clearcoat=0.12; timber.clearcoatRoughness=0.55;
+  const inset = darkWoodMat.clone(); inset.roughness=0.82;
+  const edge = darkWoodMat.clone(); edge.roughness=0.64;
+  const metal = brassMat.clone(); metal.color.setHex(0x806640); metal.roughness=0.62;
+  const wireM = new THREE.MeshStandardMaterial({color:0xc8bda6, metalness:0.75, roughness:0.3});
+  const [white,yellow,red] = BALL_HEX.slice(0,3).map(color => new THREE.MeshPhysicalMaterial({color, roughness:0.38, clearcoat:0.3, clearcoatRoughness:0.3, envMapIntensity:0.55}));
+  const rubber = new THREE.MeshStandardMaterial({color:0x1c1712, roughness:0.95});
+  const orange = new THREE.MeshPhysicalMaterial({color:'#ec7420', roughness:0.38, clearcoat:0.3, clearcoatRoughness:0.3, envMapIntensity:0.55});   // club-board orange beads
+  const bevelGeo = roundedBox(0.06, 3);
+  const box = (w,h,d,m,x,y,z) => { const o = new THREE.Mesh(bevelGeo,m); o.scale.set(w,h,d); o.position.set(x,y,z); o.castShadow = true; o.receiveShadow = true; g.add(o); return o; };
+  const beam = (a,b,w,d) => {
+    const v = new THREE.Vector3().subVectors(b,a), o = box(w,v.length(),d,timber,0,0,0);
+    o.position.copy(a).add(b).multiplyScalar(0.5); o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize());
+  };
+  // beads stop short of the right post (its inner face is at FW/2-0.1125), so the last one is never cut into the wood
+  const FW = SB_SIZE.width, DX = -0.35, BT = 0.0165, WX0 = DX+0.035, WX1 = FW/2-0.1125-0.006-BT/2;
+  // Continuous 9 cm posts, broad sled feet, mortised stretcher and fore/aft knee braces.
+  for (const sx of [-1,1]){
+    const x = sx*(FW/2-0.065);
+    box(0.095,1.55,0.13,timber,x,0.845,-0.015);
+    box(0.17,0.085,SB_SIZE.depth,timber,x,0.0675,0);
+    box(0.13,0.13,0.18,edge,x,0.17,-0.015);
+    for (const sz of [-1,1]){
+      box(0.14,0.025,0.13,rubber,x,0.0125,sz*0.27);
+      beam(new THREE.Vector3(x,0.13,sz*0.29),new THREE.Vector3(x,0.57,sz*0.045),0.052,0.065);
+    }
+    box(0.105,0.032,0.14,metal,x,0.235,-0.015);
+  }
+  box(FW-0.12,0.115,0.105,timber,0,0.32,-0.015);
+  box(FW-0.12,0.1,0.13,edge,0,0.76,-0.015);
+  box(FW-0.12,0.72,0.045,inset,0,1.2,-0.075);
+  box(FW,0.105,0.18,timber,0,0.825,0);
+  box(FW,0.16,0.18,timber,0,1.565,0);
+  box(FW,0.038,0.2,edge,0,1.66,0);
+  box(FW-0.1,0.012,0.012,metal,0,1.486,0.093);
+  box(FW-0.1,0.012,0.012,metal,0,0.887,0.093);
+  box(0.036,0.59,0.13,timber,DX,1.186,0.008);
+  const screwGeo = new THREE.SphereGeometry(0.007,10,6);
+  for (const x of [-FW/2+0.065,FW/2-0.065]) for (const y of [0.825,1.565,0.32]){
+    const screw = new THREE.Mesh(screwGeo,metal); screw.scale.z=0.4; screw.position.set(x,y,y===0.32?0.04:0.093); g.add(screw);
+  }
+  // A restrained, concealed wash in the same warm tone as the room sconces.
+  // No glowing front strip or separate floor light competing with the table lamps.
+  const lamp = new THREE.SpotLight(0xffd9a0,0.42,1.6,1.05,0.8,1.3);
+  lamp.position.set(0,1.69,0.43); lamp.target.position.set(0,1.08,0); g.add(lamp, lamp.target);
+  const contact = canvasTex(128,128,(c,w,h) => {
+    const grad=c.createRadialGradient(w/2,h/2,5,w/2,h/2,w/2); grad.addColorStop(0,'rgba(12,6,2,.5)'); grad.addColorStop(1,'rgba(12,6,2,0)'); c.fillStyle=grad; c.fillRect(0,0,w,h);
+  });
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(FW+0.35,SB_SIZE.depth+0.3),new THREE.MeshBasicMaterial({map:contact,transparent:true,depthWrite:false}));
+  shadow.rotation.x=-Math.PI/2; shadow.position.y=0.006; g.add(shadow);
+  // Lenticular beads have tapered shoulders and a narrow collar, like a real club abacus.
+  // tall, thin cylinders like a club board's beads: 11 cm across, 1.5 cm thick, flat faces and a small chamfer.
+  // Corner points are doubled so each face keeps its own normal: crisp edges, and a 1.5 mm dark gap between beads.
+  const profile = [[0.004,-0.0075],[0.053,-0.0075],[0.053,-0.0075],[0.055,-0.0057],[0.055,-0.0057],[0.055,0.0057],[0.055,0.0057],[0.053,0.0075],[0.053,0.0075],[0.004,0.0075]];
+  const beadGeo = new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),32); beadGeo.rotateZ(Math.PI/2);
+  let N=30, pitch=BT, displayedRack=null, displayedTarget=null, holdUntil=0, chime=false;   // chime: a bead is going back (a point)
+  const dummy=new THREE.Object3D();
+  const rows = Array.from({length:3},(_,i) => {
+    const y = 1.366-i*0.18, player = i<2?i:-1;
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.0024,0.0024,FW-0.13,8),wireM);
+    wire.rotation.z=Math.PI/2; wire.position.set(0,y,0.037); g.add(wire);
+    const batches=[white,orange].map(mat => {                       // two colours only: white and orange
+      const mesh=new THREE.InstancedMesh(beadGeo,mat,50); mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.frustumCulled=false; g.add(mesh); return mesh;
+    });
+    const mc = player === 1 ? '#ec7420' : BALL_HEX[0];              // left-section marker in the same white / orange as the beads
+    const markMat=new THREE.MeshStandardMaterial({color:mc,roughness:0.38,emissive:mc,emissiveIntensity:0.05});
+    const mark=new THREE.Mesh(beadGeo,markMat); mark.position.set(-0.427,y,0.037); mark.visible=player>=0; g.add(mark);
+    return {y,player,idx:i,batches,mark,remaining:0,pid:null,xs:Array.from({length:N},(_,j)=>WX1-(N-j-0.5)*pitch)};
+  });
+  function place(r){
+    const counts=[0,0];
+    dummy.scale.set(pitch/BT,1,1);                                 // only ever narrower for a very large custom target
+    // fives of one colour; wire 1 starts white, wire 2 orange, wire 3 white
+    r.xs.forEach((x,j)=>{ const color=((j/5|0)+r.idx)%2; dummy.position.set(x,r.y,0.037); dummy.updateMatrix(); r.batches[color].setMatrixAt(counts[color]++,dummy.matrix); });
+    r.batches.forEach((m,i)=>{m.count=counts[i];m.instanceMatrix.needsUpdate=true;});
+  }
+  rows.forEach(place);
+  const beadX = (r,j) => j<r.remaining ? WX0+(j+0.5)*pitch : WX1-(N-j-0.5)*pitch;
+  return {
+    group: g,
+    update(){                                                            // after any state change: points and whose turn
+      const reset = S && (S.rk!==displayedRack || S.target!==displayedTarget);
+      const nextN=Math.max(30,Math.min(99,S?S.target:10));
+      if(nextN!==N){
+        N=nextN; pitch=Math.min(BT,(WX1-WX0-0.08)/N);
+        rows.forEach(r=>{r.xs=Array.from({length:N},(_,j)=>WX1-(N-j-0.5)*pitch);place(r);});
+      }
+      let moved = false;                                                 // a point made or a foul: beads are about to move
+      rows.forEach(r => {
+        const i=r.player;
+        const p = S && i>=0 && S.players[i];
+        const before = r.remaining;
+        // Stored scores remain earned points. A 4-ball foul restores one bead,
+        // capped at the opening handicap even if an incoming score is negative.
+        // as many beads pulled as points still to make (the 4구 쿠션 finish has no bead of its own)
+        r.remaining = p ? clamp(S.target-S.scores[i],0,Math.min(S.target,N)) : 0;
+        const pid=p?p.pid:null;
+        if(reset || pid!==r.pid){r.xs=r.xs.map((_,j)=>beadX(r,j));place(r);}
+        else if (p && r.remaining !== before){ moved = true; if (r.remaining < before) chime = true; }
+        r.pid=pid;
+        r.mark.material.emissiveIntensity = S && p && S.turn === i && S.winner < 0 ? 0.3 : 0.04;
+      });
+      displayedRack=S?S.rk:null; displayedTarget=S?S.target:null;
+      if (moved){ boardLook(3.6); holdUntil = performance.now() + 1100; }   // swing over first; the beads move once the view is there
+    },
+    tick(dt){                                                            // earned points remove beads; fouls restore them
+      if (performance.now() < holdUntil && boardView) return;           // wait for the camera to arrive (unless the view was dismissed)
+      if (chime){ chime = false; sfxBudget = 2; sfx('score'); }          // success sound just as the bead slides back
+      const k = reduceMotion ? 1 : 1-Math.exp(-dt*9);
+      for (const r of rows){
+        let changed=false;
+        r.xs.forEach((x,j)=>{
+          const tx=beadX(r,j);
+          if (x!==tx){ r.xs[j]=Math.abs(tx-x)<0.0001?tx:x+(tx-x)*k; changed=true; }
+        });
+        if (changed) place(r);
+      }
+    }
+  };
+})();
 // the other tables in the hall get the same balls (white, yellow, red) and, on every other table, the same cue left on the cloth
 (function dressHallTables(){
   hallTables.forEach((T, ti) => {
@@ -940,7 +1120,15 @@ function roundedBox(r, seg){
   }
   g.computeVertexNormals(); return g;
 }
-const bodyGeo = roundedBox(0.34, 8), shoeGeo = roundedBox(0.42, 6);
+const bodyGeo = roundedBox(0.34, 8), shoeGeo = roundedBox(0.42, 6), hipGeo = roundedBox(0.46, 10);
+// torso: a lathe profile (waist → ribs → chest → rounded shoulders), elliptical once scaled to width × depth
+const torsoGeo = (() => {
+  const pr = [[0,-0.5],[0.36,-0.49],[0.43,-0.42],[0.41,-0.24],[0.42,-0.04],[0.46,0.16],[0.49,0.3],[0.46,0.4],[0.36,0.47],[0.18,0.5],[0,0.5]];
+  const g = new THREE.LatheGeometry(pr.map(([r, y]) => new THREE.Vector2(r, y)), 28); g.computeVertexNormals(); return g;
+})();
+// limbs taper toward the far joint (thigh → knee, shin → ankle, upper arm → elbow, forearm → wrist)
+const taper = (k) => new THREE.CylinderGeometry(k, 1, 1, 18);
+const thighGeo = taper(0.74), shinGeo = taper(0.66), uarmGeo = taper(0.84), farmGeo = taper(0.76);
 const HEAD_R = 0.125;                                                  // a slightly big head reads as cute
 const SHIRT = [0xe9e2d2, 0xe8b923];
 function labelSprite(text){
@@ -961,12 +1149,14 @@ function makeAvatar(seat){
   const root = new THREE.Group(); scene.add(root);
   const add = (geo, m) => { const o = new THREE.Mesh(geo, m); o.castShadow = true; root.add(o); return o; };
   const P = {
-    pelvis: add(bodyGeo, pants), torso: add(bodyGeo, vest), shirtF: add(bodyGeo, shirt), neck: add(cylGeo, skin), head: add(sphGeo, skin), hair: add(sphGeo, hair),
+    pelvis: add(hipGeo, pants), torso: add(torsoGeo, vest), shirtF: add(torsoGeo, shirt), neck: add(cylGeo, skin), head: add(sphGeo, skin), hair: add(sphGeo, hair),
     eyeL: add(sphGeo, eye), eyeR: add(sphGeo, eye), ewL: add(sphGeo, white), ewR: add(sphGeo, white), hiL: add(sphGeo, white), hiR: add(sphGeo, white),
     bang: add(sphGeo, hair),
-    uaL: add(cylGeo, shirt), uaR: add(cylGeo, shirt), faL: add(cylGeo, shirt), faR: add(cylGeo, shirt),
+    uaL: add(uarmGeo, shirt), uaR: add(uarmGeo, shirt), faL: add(farmGeo, skin), faR: add(farmGeo, skin),
+    hpL: add(sphGeo, pants), hpR: add(sphGeo, pants), earL: add(sphGeo, skin), earR: add(sphGeo, skin), nose: add(sphGeo, skin),
+    wrL: add(sphGeo, shirt), wrR: add(sphGeo, shirt),
     shL: add(sphGeo, shirt), shR: add(sphGeo, shirt), elL: add(sphGeo, shirt), elR: add(sphGeo, shirt), hdL: add(sphGeo, skin), hdR: add(sphGeo, skin),
-    thL: add(cylGeo, pants), thR: add(cylGeo, pants), shinL: add(cylGeo, pants), shinR: add(cylGeo, pants), knL: add(sphGeo, pants), knR: add(sphGeo, pants),
+    thL: add(thighGeo, pants), thR: add(thighGeo, pants), shinL: add(shinGeo, pants), shinR: add(shinGeo, pants), knL: add(sphGeo, pants), knR: add(sphGeo, pants),
     ftL: add(shoeGeo, shoe), ftR: add(shoeGeo, shoe),
     cue: add(cylGeo, cueM), cueBt: add(cylGeo, cueB)
   };
@@ -1004,6 +1194,9 @@ const HALL_BOXES = [];                                           // [x0, x1, z0,
 for (const [tx, tz] of [[-4.9, -2.6], [4.9, -2.6], [-4.9, 2.6], [4.9, 2.6]]){ const hx = OW/2 + 0.25, hz = OH/2 + 0.25; HALL_BOXES.push([tx - hx, tx + hx, tz - hz, tz + hz]); }
 for (const sx of [-1, 1]){ const x0 = ROOM_X - 0.45 - 0.31 - 0.2; HALL_BOXES.push(sx > 0 ? [x0, ROOM_X + 1, -1.92, 1.92] : [-ROOM_X - 1, -x0, -1.92, 1.92]); }   // sofas + side table
 for (const c of CHAIRS) HALL_BOXES.push([c.x - 0.42, c.x + 0.42, c.z - 0.42, c.z + 0.42]);      // folding chairs (any angle)
+for (const p of SB_SOFAS){ const hx=p.width/2+0.1+0.2, hz=0.33+0.2; HALL_BOXES.push([p.x-hx,p.x+hx,p.z-hz,p.z+hz]); }
+{ const t = Math.PI/2 - SB_POS.a, hx = Math.abs(Math.cos(t))*SB_SIZE.width/2 + Math.abs(Math.sin(t))*SB_SIZE.depth/2 + 0.15, hz = Math.abs(Math.sin(t))*SB_SIZE.width/2 + Math.abs(Math.cos(t))*SB_SIZE.depth/2 + 0.15;
+  HALL_BOXES.push([SB_POS.x - hx, SB_POS.x + hx, SB_POS.z - hz, SB_POS.z + hz]); }                 // the scoreboard stand
 const walkBoxes = () => [[-KX, KX, -KZ, KZ], ...HALL_BOXES];
 function segHitsBox(ax, az, bx, bz, b){
   let t0 = 0, t1 = 1; const dx = bx-ax, dz = bz-az, e = 1e-3;
@@ -1246,35 +1439,40 @@ function solveLimbs(J){
 }
 function drawAvatar(A, J, holdCue){
   const P = A.P, tor = _tor.subVectors(J.chest, J.pelvis), tl = tor.length();
-  placeBox(P.pelvis, J.pelvis, J.right, tor, 0.32, 0.16, 0.2);
+  placeBox(P.pelvis, J.pelvis, J.right, tor, 0.33, 0.19, 0.22);
   _mid.addVectors(J.pelvis, J.chest).multiplyScalar(0.5);
   _mid.addScaledVector(tor, -0.025/tl);
-  placeBox(P.torso, _mid, J.right, tor, 0.36, tl - 0.01, 0.21);
+  placeBox(P.torso, _mid, J.right, tor, 0.38, tl + 0.03, 0.23);
   _cm.crossVectors(J.right, tor).normalize();                                   // torso front normal (points backward → negate)
   _ca.copy(_mid).addScaledVector(_cm, -0.006).addScaledVector(tor, 0.12/tl);
-  placeBox(P.shirtF, _ca, J.right, tor, 0.12, tl*0.55, 0.218);
+  placeBox(P.shirtF, _ca, J.right, tor, 0.13, tl*0.55, 0.236);   // shirt showing down the open vest
   P.neck.visible = false;                                                 // no neck
-  placeBall(P.head, J.head, HEAD_R);
+  placeBall(P.head, J.head, HEAD_R); P.head.scale.y = HEAD_R*1.07;    // a touch taller than wide, like a real head
   const face = _face.copy(J.fwd);
   const hr = HEAD_R;
   P.hair.position.copy(J.head).addScaledVector(UP, hr*0.3).addScaledVector(face, -hr*0.16); P.hair.scale.set(hr*1.07, hr*0.9, hr*1.07);
   P.bang.position.copy(J.head).addScaledVector(UP, hr*0.62).addScaledVector(face, hr*0.48); P.bang.scale.set(hr*0.78, hr*0.3, hr*0.5);
   _ca.copy(face).cross(UP).normalize();                                   // sideways on the face
   _cb.copy(face).cross(UP).normalize();                                   // the face's own sideways axis
+  for (const [m, sd] of [[P.earL, -1], [P.earR, 1]]){ m.position.copy(J.head).addScaledVector(_cb, hr*0.98*sd).addScaledVector(face, -hr*0.05).addScaledVector(UP, -hr*0.02); m.scale.set(hr*0.16, hr*0.26, hr*0.2); }
+  P.nose.position.copy(J.head).addScaledVector(face, hr*0.98).addScaledVector(UP, -hr*0.2); P.nose.scale.set(hr*0.13, hr*0.16, hr*0.14);
   for (const [w, e, h, sd] of [[P.ewL, P.eyeL, P.hiL, -1], [P.ewR, P.eyeR, P.hiR, 1]]){
     w.position.copy(J.head).addScaledVector(face, hr*0.84).addScaledVector(_cb, hr*0.36*sd).addScaledVector(UP, hr*0.06); w.scale.set(hr*0.2, hr*0.24, hr*0.12);
     e.position.copy(J.head).addScaledVector(face, hr*0.9).addScaledVector(_cb, hr*0.36*sd).addScaledVector(UP, hr*0.04); e.scale.set(hr*0.15, hr*0.19, hr*0.1);
     h.position.copy(J.head).addScaledVector(face, hr*0.97).addScaledVector(_cb, hr*(0.36*sd + 0.05)).addScaledVector(UP, hr*0.12); h.scale.setScalar(hr*0.05);
   }
 
-  placeLimb(P.uaL, J.shL, J.elL, 0.04); placeLimb(P.uaR, J.shR, J.elR, 0.04);
-  placeLimb(P.faL, J.elL, J.hdL, 0.033); placeLimb(P.faR, J.elR, J.hdR, 0.033);
-  placeBall(P.shL, J.shL, 0.048); placeBall(P.shR, J.shR, 0.048); placeBall(P.elL, J.elL, 0.036); placeBall(P.elR, J.elR, 0.036);
-  placeBall(P.hdL, J.hdL, 0.045); placeBall(P.hdR, J.hdR, 0.045);
-  placeLimb(P.thL, J.hipL, J.knL, 0.068); placeLimb(P.thR, J.hipR, J.knR, 0.068);
+  placeLimb(P.uaL, J.shL, J.elL, 0.045); placeLimb(P.uaR, J.shR, J.elR, 0.045);
+  placeLimb(P.faL, J.elL, J.hdL, 0.036); placeLimb(P.faR, J.elR, J.hdR, 0.036);
+  placeBall(P.shL, J.shL, 0.056); placeBall(P.shR, J.shR, 0.056); placeBall(P.elL, J.elL, 0.038); placeBall(P.elR, J.elR, 0.038);
+  // rolled-up sleeve cuff at the elbow, skin forearm; the hand a little flatter than a ball
+  placeBall(P.wrL, J.elL, 0.041); placeBall(P.wrR, J.elR, 0.041);
+  placeBall(P.hdL, J.hdL, 0.04); P.hdL.scale.y = 0.046; placeBall(P.hdR, J.hdR, 0.04); P.hdR.scale.y = 0.046;
+  placeBall(P.hpL, J.hipL, 0.072); placeBall(P.hpR, J.hipR, 0.072);       // round hips: no seam where the thigh meets the pelvis
+  placeLimb(P.thL, J.hipL, J.knL, 0.072); placeLimb(P.thR, J.hipR, J.knR, 0.072);
   // shins run a little past the ankle into the shoe, so there's never a gap between leg and foot
-  for (const [m, k, f] of [[P.shinL, J.knL, J.ftL], [P.shinR, J.knR, J.ftR]]){ _an.subVectors(f, k).setLength(0.035).add(f); placeLimb(m, k, _an, 0.052); }
-  placeBall(P.knL, J.knL, 0.055); placeBall(P.knR, J.knR, 0.055);
+  for (const [m, k, f] of [[P.shinL, J.knL, J.ftL], [P.shinR, J.knR, J.ftR]]){ _an.subVectors(f, k).setLength(0.035).add(f); placeLimb(m, k, _an, 0.055); }
+  placeBall(P.knL, J.knL, 0.054); placeBall(P.knR, J.knR, 0.054);
   // shoe: sole flat (parallel to the floor or the cloth), pointing along the toe direction (forward when standing,
   // back along the shin when kneeling), heel under the ankle
   _fz.copy(J.toe).setY(0); if (_fz.lengthSq() < 1e-6) _fz.copy(J.fwd); _fz.normalize(); _fx.crossVectors(UP, _fz);
@@ -1294,7 +1492,7 @@ function setDims(size){
   tableSize = size === 'big' ? 'big' : 'mid'; W = Z.W; H = Z.H; HW = W/2; HH = H/2; R = Z.R;
   OW = W+2*(CW+RW); OH = H+2*(CW+RW); KX = OW/2 + KM; KZ = OH/2 + KM;
   aimPlane.constant = -R;
-  ballMeshes.forEach(m => m.scale.setScalar(R/0.03275));
+  ballMeshes.concat(replayMeshes).forEach(m => m.scale.setScalar(R/0.03275));
   while (tableGroup.children.length){ const c = tableGroup.children.pop(); if (c.geometry && c.geometry !== dGeo && c.geometry !== spotGeo) c.geometry.dispose(); }
   caromTable(tableGroup, feltMat, cushionMat, true);
 }
@@ -1439,7 +1637,7 @@ function updateAvatars(dt){
   // tell the room where my character stands (only my own, at most ~8 times a second)
   if (mode === 'online' && nr && ctl >= 0 && now - avPubAt > 120){
     const A = avatars[ctl], mark = A.x.toFixed(2)+','+A.z.toFixed(2)+','+A.seat;
-    if (mark !== avPubMark){ avPubMark = mark; avPubAt = now; nr.presence({av:{x:+A.x.toFixed(3), z:+A.z.toFixed(3), s:A.seat}}).catch(()=>{}); }
+    if (mark !== avPubMark || now - avPubAt > 2000){ avPubMark = mark; avPubAt = now; nr.presence({av:{x:+A.x.toFixed(3), z:+A.z.toFixed(3), s:A.seat}}).catch(()=>{}); }
   }
 }
 function readNetAvatars(){
@@ -1540,7 +1738,6 @@ function sfx(type, v){
     s.connect(f); f.connect(g); g.connect(sfxOut()); s.start(t);
   }
   else if (type === 'rail'){ const vol = clamp(v/3.5, 0.03, 0.5); noise(t, 0.09, 'lowpass', 380, 1, vol); }
-  else if (type === 'cue'){ const vol = clamp(v, 0.1, 0.9); noise(t, 0.03, 'bandpass', 1900, 1.2, vol); tone(t, 0.04, 'sine', 900, 500, vol*0.3); }
   else if (type === 'score'){ tone(t, 0.12, 'sine', 880, 880, 0.12); tone(t+0.1, 0.18, 'sine', 1320, 1320, 0.1); }
   else if (type === 'turn'){ tone(t, 0.1, 'sine', 660, 660, 0.08); tone(t+0.09, 0.14, 'sine', 990, 990, 0.07); }
 }
@@ -1552,7 +1749,8 @@ function sfx(type, v){
    survives a host change. */
 // wall-clock ms with sub-ms resolution and no jumps (Date.now() ticks in whole or coarser steps)
 const wallNow = () => performance.timeOrigin + performance.now();
-const PEER_PREFIX = 'carom3d-v2-';
+// a copy running on this computer (local testing) gets its own rooms and open-seat list, never mixed with the real site's players
+const PEER_PREFIX = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ? 'carom3d-dev-' : 'carom3d-v2-';
 const NET_ERR = ['network','server-error','socket-error','socket-closed','browser-incompatible','ssl-unavailable'];
 const PeerRoomApi = { join: code => new Promise((resolve, reject) => { PeerRoom(code, resolve, reject); }) };
 function PeerRoom(code, resolve, reject){
@@ -1782,7 +1980,8 @@ const cuePos = () => S.balls[cueIdx()];
 
 function placeMeshes(){
   if (!S) return;
-  for (let i=0;i<NB;i++){ const m = ballMeshes[i], b = S.balls[i]; m.visible = !!b; if (b) m.position.set(b[0], R, b[1]); }
+  const rep = !!(playing && playing.replay);                    // the live balls stay out of sight while a replay runs
+  for (let i=0;i<NB;i++){ const m = ballMeshes[i], b = S.balls[i]; m.visible = !!b && !rep; if (b) m.position.set(b[0], R, b[1]); }
 }
 function publishState(){
   if (mode !== 'online' || !nr || !S) return;
@@ -1799,8 +1998,9 @@ function applyState(st){
   const key = S.n+'|'+S.turn;
   if (key !== lastTurnKey){
     lastTurnKey = key;
+    setSpin(0,0); setElev(0);                                    // every turn starts from a still table and a neutral cue: no 당점 or raised cue left over
     if (isMyTurn()){
-      defaultAim(); setSpin(0,0);
+      defaultAim();
       if (mode === 'online' && !wasMine && S.players.length > 1 && S.winner < 0){ sfxBudget = 2; sfx('turn'); toast('내 차례예요'); }
     }
   }
@@ -1809,15 +2009,15 @@ function applyState(st){
 }
 // every aim change on your turn goes through here
 function setAim(a){ aimA = a; return true; }
-function defaultAim(){
+function defaultAim(){ const a = defaultAimAngle(); if (a != null) aimA = a; }
+function defaultAimAngle(){
   const c = cuePos();
   // opening shot: aim at the red on the foot spot (the far red in 4구); later shots start on the nearest red
   const targets = S.n === S.rk ? [2] : S.mode === '4' ? [2,3] : [2];
   let best = null, bd = 1e9;
   for (const b of targets){ const p = S.balls[b]; if (!p) continue; const d = Math.hypot(p[0]-c[0], p[1]-c[1]); if (d < bd){ bd = d; best = p; } }
-  if (!best) return;
-  const want = Math.atan2(best[1]-c[1], best[0]-c[0]);
-  aimA = want;
+  if (!best) return null;
+  return Math.atan2(best[1]-c[1], best[0]-c[0]);
 }
 
 /* ---------- shooting & playback ---------- */
@@ -1837,10 +2037,14 @@ const STRIKE_MS = 180;                     // back-swing + stroke before the cue
 // the room's shared clock (the host's), so every screen runs a shot on the same frame at the same moment
 const netNow = () => (mode === 'online' && nr && nr.now) ? nr.now() : wallNow();
 function startPlayback(res, target, sh, replay, startAt){
-  if (!replay){ sfxBudget = 6; sfx('cue', 0.25+sh.p*0.007); }
   // time runs on the wall clock (not on drawn frames), so a tab that was hidden catches up to where everyone else is
   playing = {res, target, t0: startAt != null ? startAt : netNow(), t: replay ? -REPLAY_WAIT*60 : 0, off: replay ? -REPLAY_WAIT*60 : 0, ei:0, endT: res.frames.length-1, replay, cueP: sh.p, struck: !replay, scored: !replay && target.scores[sh.c] > S.scores[sh.c]};
-  if (replay) for (let i=0;i<NB;i++){ const b = res.frames[0]; ballMeshes[i].visible = !!res.on0[i]; ballMeshes[i].position.set(b[5*i], R, b[5*i+1]); }
+  playing.meshes = replay ? replayMeshes : ballMeshes;
+  if (replay) for (let i=0;i<NB;i++){
+    const b = res.frames[0], m = replayMeshes[i];
+    ballMeshes[i].visible = false; m.quaternion.copy(ballMeshes[i].quaternion);
+    m.visible = !!res.on0[i]; m.position.set(b[5*i], R, b[5*i+1]);
+  }
   renderHUD();
 }
 function logShot(before, sh, after){
@@ -1871,6 +2075,7 @@ function replayLast(){ replayShot(lastShot); }
 let replaySaved = null;
 function endReplay(){
   $('#replayInfo').hidden = true;
+  replayMeshes.forEach(m => { m.visible = false; }); placeMeshes();
   if (!replaySaved) return;
   replaySaved.forEach((v, i) => { const A = avatars[i]; if (!A) return; A.x = v.x; A.z = v.z; A.h = v.h; A.seat = v.seat; A.sit = v.sit; A.stance = v.stance; A.path = v.path; for (const k in v.JS) A.JS[k].copy(v.JS[k]); A.ownStanceAt = 0; A.goalKey = ''; });
   replaySaved = null;
@@ -1879,27 +2084,26 @@ const _q = new THREE.Quaternion(), _ax = new THREE.Vector3();
 function stepPlayback(dt){
   const P = playing, F = P.res.frames;
   P.t = P.off + (netNow() - P.t0)*0.06;                    // in 60 Hz frames since the shot started (room clock)
-  if (!P.struck && P.t >= 0){ P.struck = true; sfxBudget = 6; sfx('cue', 0.25+P.cueP*0.007); }
+  if (!P.struck && P.t >= 0) P.struck = true;                          // no sound for the cue tip itself (only balls and rails)
   const fi = clamp(Math.floor(P.t), 0, F.length-1), fr = P.t < 0 ? 0 : Math.min(1, P.t-fi);
   sfxBudget = 6;
   const ev = P.res.events;
   while (P.ei < ev.length && ev[P.ei].f <= fi){ if (fi - ev[P.ei].f < 12) sfx(ev[P.ei].t, ev[P.ei].v); P.ei++; }   // skip sounds missed while hidden
   const a = F[fi], b = F[Math.min(fi+1, F.length-1)];
   for (let i=0;i<NB;i++){
-    const m = ballMeshes[i];
+    const m = P.meshes[i];
     if (!P.res.on0[i]){ m.visible = false; continue; }
     const o = 5*i;
     m.position.set(a[o]+(b[o]-a[o])*fr, R, a[o+1]+(b[o+1]-a[o+1])*fr);
     // spin the mesh by the simulated angular velocity (shows draw, follow and side spin)
     const wxv = a[o+2], wyv = a[o+3], wzv = a[o+4], wl = Math.hypot(wxv, wyv, wzv);
-    if (wl > 1e-3){ _ax.set(wxv/wl, wyv/wl, wzv/wl); _q.setFromAxisAngle(_ax, wl*dt); m.quaternion.premultiply(_q); }
+    if (P.t >= 0 && wl > 1e-3){ _ax.set(wxv/wl, wyv/wl, wzv/wl); _q.setFromAxisAngle(_ax, wl*dt); m.quaternion.premultiply(_q); }   // still until the cue meets the ball (a replay waits on frame 0, which already holds the strike spin)
   }
   if (P.t >= P.endT){
     playing = null;
-    if (P.replay) endReplay();
     if (P.onEnd) setTimeout(P.onEnd, 600);
-    if (P.scored){ sfxBudget = 2; sfx('score'); }
-    applyState(P.target);
+    if (P.replay){ endReplay(); renderHUD(); }                  // the live game was never touched: just show its balls again
+    else applyState(P.target);                                          // the success chime plays on the scoreboard as the bead goes back
     if (mode === 'online') reconcile();
   }
 }
@@ -1942,6 +2146,7 @@ function reconcile(){
     const a = peer && peer.presence.aim;
     if (a && a.n === S.n && Number.isFinite(a.dx) && Number.isFinite(a.dz) && Number.isFinite(a.p))
       oppAim = {dx:a.dx, dz:a.dz, p:clamp(a.p,1,100), sx:clamp(+a.sx||0,-1,1), sy:clamp(+a.sy||0,-1,1), el:clamp(+a.el||0,0,EL_MAX)};
+    else if (S.winner < 0){ const d = defaultAimAngle(); if (d != null) oppAim = {dx:Math.cos(d), dz:Math.sin(d), p:50, sx:0, sy:0, el:0, guess:true}; }
   }
   seatLogic();
   readNetAvatars();
@@ -1976,7 +2181,7 @@ function newGame(gmode, target, size){
 }
 
 async function joinRoom(c){
-  if (!/^\d{4}$/.test(c)){ toast('방 코드 숫자 4자리를 공 안에 입력해 주세요'); codeIns[Math.max(0, codeIns.findIndex(x => !x.value))].focus(); return; }
+  if (!/^\d{4}$/.test(c)){ openCodeBox(); toast('방 코드 숫자 4자리를 공 안에 입력해 주세요'); codeIns[Math.max(0, codeIns.findIndex(x => !x.value))].focus(); return; }
   if (!roomApi){ toast('멀티플레이 모듈을 불러오지 못했어요. 새로고침해 주세요', 3600); return; }
   readName();
   $('#joinBtn').disabled = true; $('#createBtn').disabled = true;
@@ -1989,7 +2194,7 @@ async function joinRoom(c){
     return;
   }
   updateNetNote();
-  nr = room; mode = 'online'; code = c; S = null; peers = []; joinAt = Date.now(); lastClaim = -1; pubMark = ''; lastTurnKey = ''; topView = false; lastShot = null; shotLog = [];
+  nr = room; mode = 'online'; code = c; S = null; peers = []; joinAt = Date.now(); lastClaim = -1; pubMark = ''; avPubMark = ''; aimPubMark = ''; lastTurnKey = ''; topView = false; lastShot = null; shotLog = [];
   unsubs.push(nr.onPeers(ch => { peers = ch.peers; reconcile(); renderHUD(); }));
   unsubs.push(nr.onConnection(ok => { connected = ok; renderHUD(); }));
   nr.presence({pid:myPid, name:myName, st:null, shot:null, aim:null}).catch(()=>{});
@@ -2025,15 +2230,6 @@ async function quickJoin(){
   }
 }
 
-function startLocal(){
-  readName();
-  mode = 'local'; code = ''; lastShot = null; shotLog = [];
-  lastTurnKey = '';
-  const st = newRack([{pid:'L0', name:'플레이어 1'}, {pid:'L1', name:'플레이어 2'}], 1, lobbyMode, +$('#lobbyTarget').value, 0, 'local', lobbySize);
-  st.msg = '한 기기에서 번갈아 칩니다';
-  applyState(st);
-  enterGame();
-}
 function leave(){
   unsubs.forEach(u => { try { u(); } catch(e){} }); unsubs = [];
   if (nr) nr.leave().catch(()=>{});
@@ -2050,39 +2246,13 @@ function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.c
 function renderHUD(){
   if (mode === 'lobby') return;
   const online = mode === 'online';
-  $('#roomCode').textContent = online ? code : '2인';
-  $('#copyBtn').hidden = !online;
-  $('#netDot').className = 'dot ' + (online ? (connected ? 'on' : 'off') : '');
-  $('#gameMode').textContent = S ? `${MODE_NAME[S.mode]} · ${SIZES[S.size || 'mid'].name} · ${S.target}점 · ${S.inning || 1}이닝` : '';
+  $('#tmCode').textContent = online ? code : '----'; $('#tmRoom').hidden = $('#tmRoomSep').hidden = !online;
   const present = presentPids();
-  for (const i of [0,1]){
-    const box = $('#seat'+i); box.textContent = '';
-    const p = S && S.players[i];
-    box.classList.toggle('turn', !!(S && p && S.turn === i && S.winner < 0));
-    box.appendChild(el('span', 'bd ' + (i === 0 ? 'w' : 'y')));
-    if (!p){
-      box.appendChild(el('span','nm','빈 자리'));
-      box.appendChild(el('span','sc',''));
-      box.appendChild(el('span','tag', online ? `코드 ${code}를 알려 주세요` : ''));
-      continue;
-    }
-    const offline = online && !present.has(p.pid);
-    box.appendChild(el('span','nm', p.name));
-    const sc = el('span','sc', String(S.scores[i])); sc.appendChild(el('small', null, '/'+S.target)); box.appendChild(sc);
-    let tag = BALL_NAME[i];
-    if (S.winner === i) tag = '승리';
-    else if (offline) tag = '오프라인';
-    else if (S.turn === i && S.winner < 0) tag = BALL_NAME[i] + ' · 샷 차례';
-    else if (online && p.pid === myPid) tag = BALL_NAME[i] + ' · 나';
-    box.appendChild(el('span','tag', tag));
-    if (offline && !amSeated()){ const b = el('button','mini take','이 자리 이어받기'); b.addEventListener('click', () => takeSeat(i)); box.appendChild(b); }
-  }
+  SB.update();                                                         // the 3D scoreboard by the chair shows names, turn and points
+  const off = online && !amSeated() && S ? S.players.findIndex(p => p && !present.has(p.pid)) : -1;
+  $('#takeSeat').hidden = off < 0; $('#takeSeat').dataset.seat = String(off);
   const sp = $('#spect');
-  if (online){
-    const seated = new Set(S ? S.players.map(p => p.pid) : []);
-    const watchers = [...present].filter(x => !seated.has(x)).length;
-    sp.hidden = false; sp.textContent = (connected ? '' : '재연결 중 · ') + `관전 ${watchers}명` + (amSeated() ? '' : ' · 나는 관전 중');
-  } else sp.hidden = true;
+  sp.hidden = !(online && !connected); sp.textContent = '재연결 중';   // only shown while the connection is being restored
 
   // status plate only appears when it matters: game over, or waiting for an opponent. Turn is already shown on the scoreboard.
   const tm = $('#turnMsg'), hint = $('#hint'), lm = $('#lastMsg');
@@ -2092,9 +2262,9 @@ function renderHUD(){
   lm.textContent = ''; hint.textContent = '';
   tm.classList.toggle('mine', over);
   if (over){ tm.textContent = `${S.players[S.winner] ? S.players[S.winner].name : '플레이어'} 승리`; lm.textContent = S.msg || ''; lm.classList.add('good'); }
-  else if (waiting){ tm.textContent = '상대를 기다리는 중'; hint.textContent = '그동안 연습할 수 있어요. 상대가 앉으면 새 게임이 시작됩니다.'; }
-  $('#viewBtn').textContent = topView ? '3D 시점 (T)' : '탑뷰 (T)';
-  $('#fpBtn').textContent = firstPerson ? '3인칭 (V)' : '1인칭 (V)';
+  else if (waiting){ tm.textContent = '상대를 기다리는 중';  }
+  $('#viewBtn span').textContent = topView ? '3D 시점' : '탑뷰';
+  $('#fpBtn span').textContent = firstPerson ? '3인칭' : '1인칭';
   $('#newBtn').hidden = !amSeated();
   $('#replayBtn').disabled = !shotLog.length || !!playing || !!strike;
   const can = canAim();
@@ -2103,6 +2273,8 @@ function renderHUD(){
   layoutDock();
 }
 const bars = $('#bars');
+// mouse wheel over the bar scrolls the power (Shift: 1 at a time)
+bars.addEventListener('wheel', e => { if (!canAim()) return; e.preventDefault(); setLevel(level + (e.deltaY < 0 ? 1 : -1)*(e.shiftKey ? 1 : 2)); }, {passive: false});
 function setLevel(v){
   level = clamp(Math.round(v), 1, 100);
   try { localStorage.setItem('cr-power', String(level)); } catch(e){}
@@ -2167,6 +2339,7 @@ let drag = null, pinch = null;
 canvas.addEventListener('pointerdown', e => {
   audioInit();
   closeMenu();
+  boardView = null;                                                      // any touch brings the view back from the scoreboard
   canvas.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
   if (pointers.size === 2){ const [a,b] = [...pointers.values()]; pinch = {d:Math.hypot(a.x-b.x, a.y-b.y)}; drag = null; return; }
@@ -2194,8 +2367,8 @@ function endPointer(e){
   if (pointers.size < 2) pinch = null;
   if (!drag) return;
   // while aiming, a click on the table or a ball does nothing: the aim moves only by dragging
-  if (!drag.moved && (drag.kind === 'aim' || drag.kind === 'topaim')){}
-  else if (!drag.moved && (drag.kind === 'orbit' || drag.kind === 'none')) avatarTap(e);      // tap to walk your character there
+  if (!drag.moved && (drag.kind === 'aim' || drag.kind === 'topaim')){ if (boardHit(e)) boardLook(0); }   // only the scoreboard reacts to a click while aiming
+  else if (!drag.moved && (drag.kind === 'orbit' || drag.kind === 'none')){ if (boardHit(e)) boardLook(0); else avatarTap(e); }   // tap the scoreboard to look at it, elsewhere to walk there
   drag = null;
 }
 canvas.addEventListener('pointerup', endPointer);
@@ -2287,9 +2460,11 @@ window.addEventListener('keydown', e => {
   else if (can && e.code === 'KeyA') setSpin(spinX-0.1, spinY);
   else if (can && e.code === 'KeyD') setSpin(spinX+0.1, spinY);
   else if (can && e.code === 'KeyC') setSpin(0, 0);
-  else if (can && e.code === 'KeyE') setElev(elev + 5);
+  else if (can && e.code === 'KeyQ') setAim(aimA - (e.shiftKey ? 0.0006 : 0.002));   // 두께: nudge the aim a hair left / right
+  else if (can && e.code === 'KeyE') setAim(aimA + (e.shiftKey ? 0.0006 : 0.002));
   else if (e.code === 'KeyE' && !e.repeat) sitToggle();
-  else if (can && e.code === 'KeyQ') setElev(elev - 5);
+  else if (can && e.code === 'KeyX') setElev(elev + 5);
+  else if (can && e.code === 'KeyZ') setElev(elev - 5);
   else if (can && /^Digit[0-9]$/.test(e.code)){ const d = +e.code.slice(5); setLevel(d === 0 ? 100 : d*10); }
   else if (can && (e.key === '+' || e.key === '=')) setLevel(level + (e.shiftKey ? 1 : 5));
   else if (can && (e.key === '-' || e.key === '_')) setLevel(level - (e.shiftKey ? 1 : 5));
@@ -2297,7 +2472,7 @@ window.addEventListener('keydown', e => {
   else if (e.code === 'KeyT'){ topView = !topView; renderHUD(); }
   else if (e.code === 'KeyV'){ toggleFirstPerson(); }
   else if (e.code === 'KeyR'){ replayLast(); }
-  else if (e.code === 'Escape'){ $('#helpPanel').hidden = true; $('#ngPanel').hidden = true; $('#replayPanel').hidden = true; closeMenu(); }
+  else if (e.code === 'Escape'){ boardView = null; $('#helpPanel').hidden = true; $('#ngPanel').hidden = true; $('#replayPanel').hidden = true; closeMenu(); }
 });
 
 // lobby controls
@@ -2332,20 +2507,52 @@ function bindSeg(id, onPick){
 function selectSeg(id, m){ $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.mode === m))); }
 bindSeg('#lobbyMode', m => { lobbyMode = m; if (mode === 'lobby'){ lastRk = -1; applyState(newRack([], 1, m, 10, 0, '', lobbySize)); } });
 bindSeg('#ngMode', m => { ngMode = m; });
+// 목표 점수: preset buttons, or "직접 입력" for any 1–99
+function targetPicker(segId, hiddenId, customId){
+  const box = $(customId), hid = $(hiddenId);
+  const fromBox = () => { const v = Math.round(+box.value); if (v >= 1 && v <= 99) hid.value = String(v); };
+  bindSeg(segId, v => {
+    if (v === 'custom'){ box.hidden = false; if (!box.value) box.value = hid.value; fromBox(); box.focus(); box.select(); }
+    else { box.hidden = true; hid.value = v; }
+  });
+  box.addEventListener('input', fromBox);
+  box.addEventListener('change', () => { const v = clamp(Math.round(+box.value) || +hid.value || 10, 1, 99); box.value = String(v); hid.value = String(v); });
+  return v => {                                                  // show a given target (a preset button, or the box filled in)
+    const preset = [...$(segId).querySelectorAll('button')].some(b => b.dataset.mode === String(v));
+    selectSeg(segId, preset ? String(v) : 'custom'); box.hidden = preset; if (!preset) box.value = String(v); hid.value = String(v);
+  };
+}
+const showLobbyTarget = targetPicker('#lobbyTargetSeg', '#lobbyTarget', '#lobbyTargetCustom');
+const showNgTarget = targetPicker('#ngTargetSeg', '#ngTarget', '#ngTargetCustom');
 bindSeg('#lobbySize', z => { lobbySize = z; try { localStorage.setItem('cr-size', z); } catch(e){} if (mode === 'lobby'){ lastRk = -1; applyState(newRack([], 1, lobbyMode, 10, 0, '', z)); } });
 bindSeg('#ngSize', z => { ngSize = z; });
 $('#joinBtn').addEventListener('click', () => { audioInit(); joinRoom(getCode()); });
+// title-screen menu: "코드로 입장" opens in place; ↑ ↓ move between the menu items
+function toggleBox(btn, box, open){
+  const on = open == null ? box.hidden : open;
+  box.hidden = !on; btn.setAttribute('aria-expanded', String(on));
+  return on;
+}
+function openCodeBox(){ toggleBox($('#codeToggle'), $('#codeBox'), true); }
+$('#codeToggle').addEventListener('click', () => { if (toggleBox($('#codeToggle'), $('#codeBox'))) codeIns[Math.max(0, codeIns.findIndex(x => !x.value))].focus(); });
+if (getCode()) openCodeBox();                                   // opened from a shared link: the code is already in
+$('#lbMenu').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  if (e.target && e.target.tagName === 'INPUT') return;
+  const items = [...$('#lbMenu').querySelectorAll('.mi:not(:disabled)')], i = items.indexOf(document.activeElement);
+  e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
+});
 $('#quickBtn').addEventListener('click', () => { audioInit(); quickJoin(); });
 $('#createBtn').addEventListener('click', () => { audioInit(); const c = String(Math.floor(Math.random()*10000)).padStart(4,'0'); setCode(c); joinRoom(c); });
-$('#localBtn').addEventListener('click', () => { audioInit(); startLocal(); });
-$('#copyBtn').addEventListener('click', () => {
-  const b = $('#copyBtn'), link = location.origin + location.pathname + '#' + code;
+function copyLink(b){
+  const link = location.origin + location.pathname + '#' + code;
   try { navigator.clipboard.writeText(link).then(() => { b.textContent = '복사됨'; setTimeout(() => b.textContent = '링크 복사', 1500); }, () => toast(link, 5000)); }
   catch(e){ toast(link, 5000); }
-});
+}
+$('#tmCopy').addEventListener('click', () => copyLink($('#tmCopy')));
 function closeMenu(){ $('#tools').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded','false'); }
 $('#menuBtn').addEventListener('click', () => { const t = $('#tools'); t.classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', String(t.classList.contains('open'))); });
-$('#tools').addEventListener('click', e => { if (e.target.closest('button')) closeMenu(); });
+$('#tools').addEventListener('click', e => { if (e.target.closest('.tm')) closeMenu(); });   // copying the link keeps the menu open
 $('#replayBtn').addEventListener('click', openReplays);
 $('#replayClose').addEventListener('click', () => { $('#replayPanel').hidden = true; });
 $('#recStop').addEventListener('click', () => stopRecording());
@@ -2365,7 +2572,8 @@ function openReplays(){
 // video: capture this tab (HUD included) with the browser's screen-share picker; where that is not available,
 // fall back to the 3D canvas plus the game's sound. Recording stops on its own when the replay ends.
 let rec = null;
-function pickMime(){ for (const m of ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; return ''; }
+// MP4 (H.264 + AAC) first so the file plays anywhere; WebM only on browsers that can't record MP4 (e.g. Firefox)
+function pickMime(){ for (const m of ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; return ''; }
 async function recordShot(h){
   if (rec || playing || strike || !window.MediaRecorder){ if (!window.MediaRecorder) toast('이 브라우저는 영상 저장을 지원하지 않아요', 3000); return; }
   audioInit();
@@ -2391,7 +2599,7 @@ async function recordShot(h){
     const url = URL.createObjectURL(new Blob(chunks, {type}));
     const a = document.createElement('a'); a.href = url; a.download = `carom-replay-${h.no}.${ext}`; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
-    toast(tab ? '영상을 저장했어요' : '영상을 저장했어요 (3D 화면만 녹화됐어요)', 3000);
+    toast((tab ? '영상을 저장했어요' : '영상을 저장했어요 (3D 화면만 녹화됐어요)') + (ext === 'mp4' ? ' · MP4' : ' · 이 브라우저는 MP4 녹화를 지원하지 않아 WebM으로 저장했어요'), 3500);
     rec = null;
   };
   stream.getVideoTracks().forEach(t => t.addEventListener('ended', () => stopRecording()));   // user stopped sharing
@@ -2400,15 +2608,16 @@ async function recordShot(h){
   setTimeout(() => { if (rec === mr && !replayShot(h, () => stopRecording())) stopRecording(); }, 400);
 }
 function stopRecording(){ if (rec && rec.state !== 'inactive'){ try { rec.stop(); } catch(e){} } }
+$('#takeSeat').addEventListener('click', () => { const i = +$('#takeSeat').dataset.seat; if (i >= 0) takeSeat(i); });
 $('#viewBtn').addEventListener('click', () => { topView = !topView; renderHUD(); });
 $('#fpBtn').addEventListener('click', toggleFirstPerson);
-$('#soundBtn').addEventListener('click', () => { muted = !muted; $('#soundBtn').textContent = muted ? '소리 켜기' : '소리 끄기'; });
+$('#soundBtn').addEventListener('click', () => { muted = !muted; $('#soundBtn span').textContent = muted ? '소리 켜기' : '소리 끄기'; });
 $('#helpBtn').addEventListener('click', () => { $('#helpPanel').hidden = false; });
 $('#helpClose').addEventListener('click', () => { $('#helpPanel').hidden = true; });
 function openNewGame(){
   if (!S) return;
   ngMode = S.mode; selectSeg('#ngMode', S.mode); ngSize = S.size || 'mid'; selectSeg('#ngSize', ngSize);
-  const sel = $('#ngTarget'); if (![...sel.options].some(o => +o.value === S.target)) sel.add(new Option(String(S.target))); sel.value = String(S.target);
+  showNgTarget(S.target);
   $('#ngPanel').hidden = false;
 }
 $('#newBtn').addEventListener('click', openNewGame);
@@ -2420,7 +2629,7 @@ document.querySelectorAll('#hud button').forEach(b => b.addEventListener('click'
 
 function updateNetNote(){
   const n = $('#netNote');
-  n.textContent = roomApi ? '친구에게 이 주소와 방 코드를 알려 주세요 · 서로 직접(P2P) 연결됩니다' : '멀티플레이 모듈을 불러오지 못했어요. 새로고침해 주세요. 한 기기 2인은 가능합니다.';
+  n.textContent = roomApi ? '' : '멀티플레이 모듈을 불러오지 못했어요. 새로고침해 주세요.';   // only a status line when something needs saying
   $('#joinBtn').disabled = !roomApi; $('#createBtn').disabled = !roomApi; $('#quickBtn').disabled = !roomApi;
 }
 
@@ -2433,7 +2642,8 @@ window.addEventListener('resize', resize);
 resize();
 function fpSeat(){ if (!S || mode === 'lobby') return -1; return mode === 'local' ? S.turn : controlSeat(); }
 function fpActive(){ const i = fpSeat(); return firstPerson && !topView && i >= 0 && !!avatars[i] && !!avatars[i].headPos; }
-// the shooter's character while it walks over to the ball on your own turn (none in the top view)
+// the shooter's character while it walks over to the ball on your own turn: first person looks the way it walks
+// (the third-person view stays where it is; only the character moves)
 function walkCamAvatar(){
   if (!S || mode === 'lobby' || topView || !aimTurn() || turnReady()) return null;
   const A = avatars[S.turn];
@@ -2447,7 +2657,17 @@ function walkHeading(A, dt){
   const d = Math.atan2(Math.sin(want - walkYaw), Math.cos(want - walkYaw)); walkYaw += d*Math.min(1, dt*5);
   return walkYaw;
 }
+// looking at the scoreboard: after a click on it (until the next tap, drag or Esc), or for a moment when beads move
+let boardView = null;
+function boardLook(sec){ boardView = {until: sec ? performance.now() + sec*1000 : Infinity}; }
+function boardHit(e){ setRay(e); return ray.intersectObject(SB.group, true).length > 0; }
 function cameraGoal(dt){
+  if (boardView && performance.now() > boardView.until) boardView = null;
+  if (boardView){                                                        // straight in front of the board, a step back
+    const fx = Math.cos(SB_POS.a), fz = Math.sin(SB_POS.a);
+    gPos.set(SB_POS.x + fx*1.2, FLR + 1.3, SB_POS.z + fz*1.2); gLook.set(SB_POS.x, FLR + 1.17, SB_POS.z); gUp.set(0,1,0);
+    return;
+  }
   const aimCam = canAim() && !topView;
   const WA = walkCamAvatar(); if (!WA) walkYaw = null;
   if (fpActive()){
@@ -2469,11 +2689,6 @@ function cameraGoal(dt){
     const h = 1.3*Math.max(land ? ez/t : ex/t, land ? ex/(t*asp) : ez/(t*asp));
     gPos.set(0, h, 0); gLook.set(0,0,0);
     if (land) gUp.set(0,0,-1); else gUp.set(1,0,0);
-  } else if (WA){
-    // your turn, walking to the ball: look ahead the way you're going, from just behind your shoulders
-    const yw = walkHeading(WA, dt), fx = Math.cos(yw), fz = Math.sin(yw), sx = -fz*0.3, sz = fx*0.3;   // over the right shoulder
-    gPos.set(clamp(WA.x - fx*1.1 + sx, -ROOM_X + 0.2, ROOM_X - 0.2), FLOOR + 1.65, clamp(WA.z - fz*1.1 + sz, -ROOM_Z + 0.2, ROOM_Z - 0.2));
-    gLook.set(WA.x + fx*2.6, FLOOR + 0.55, WA.z + fz*2.6); gUp.set(0,1,0);
   } else if (aimCam){
     const c = cuePos(), dx = Math.cos(aimA), dz = Math.sin(aimA);
     gPos.set(c[0]-dx*ad*Math.cos(ap), R+ad*Math.sin(ap), c[1]-dz*ad*Math.cos(ap));
@@ -2589,10 +2804,11 @@ function frame(now){
   updateAimVisuals();
   fpEdgeTurn(dt);
   cameraGoal(dt);
-  const k = 1-Math.exp(-dt*(fpActive() ? 18 : canAim() && drag ? 16 : walkCamAvatar() ? 9 : 6));
+  const k = 1-Math.exp(-dt*(boardView ? 4 : fpActive() ? 18 : canAim() && drag ? 16 : 6));
   camPos.lerp(gPos, k); camLook.lerp(gLook, k); camUp.lerp(gUp, k).normalize();
   camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(camLook);
   updateAvatars(dt);
+  SB.tick(dt);
   // the lamp hangs between a high camera (top view / steep orbit) and the table, so drop it from view up there
   const lampOn = camPos.y < shade.position.y - 0.05;
   if (shade.visible !== lampOn){ lampParts.forEach(m => { m.visible = lampOn; }); hallCeil.forEach(m => { m.visible = lampOn; }); }
