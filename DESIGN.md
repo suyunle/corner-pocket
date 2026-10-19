@@ -13,9 +13,11 @@ colors:
   scoreboardOrange: "#ec7420"
 typography:
   display:
-    fontFamily: "Black Han Sans, Malgun Gothic, system-ui, sans-serif"
+    fontFamily: "Wanted Sans Variable, Pretendard, Malgun Gothic, system-ui, sans-serif"
   body:
-    fontFamily: "IBM Plex Sans KR, Malgun Gothic, system-ui, sans-serif"
+    fontFamily: "Wanted Sans Variable, Pretendard, Malgun Gothic, system-ui, sans-serif"
+  figures:
+    fontFamily: "Barlow Condensed, Wanted Sans Variable, system-ui, sans-serif"
 omitted:
   - section: spacing
     reason: "The changed object is modelled in metres; existing page spacing stays owned by index.html."
@@ -37,7 +39,11 @@ Runtime ownership remains in `index.html`: CSS `:root` owns the existing interfa
 
 ## Typography
 
-Keep the existing Black Han Sans display and IBM Plex Sans KR body families, with Korean system fallbacks. The scoreboard has no lettering. Do not add unrelated signage or promotional copy.
+Wanted Sans (variable, from jsDelivr) sets Korean headings and body; Barlow Condensed (Google Fonts) sets figures such as power, angles, room codes and target scores. Korean system fallbacks stay. The scoreboard has no lettering. Do not add unrelated signage or promotional copy.
+
+## Interface
+
+The HUD avoids generic app styling: no gradient lettering, no hairline borders, no backdrop blur over the live 3D canvas (it is recomputed every frame). Surfaces are solid plates with soft shadows; start-screen balls are flat colours. Controls are drawn as the real objects: the 당점 ball is a small on-demand WebGL render with the chalk mark on its surface, power is a cue drawn back from the ball, the match settings are a flat wooden board with beads on brass wires. The title intro is a carom shot (the cue strikes 당 into 구 and 장; screen edges act as cushions with sliding then rolling friction) that ends with the balls forming 당구장. Motion uses spring curves sampled into CSS `linear()`, exits run at about 60% of the entrance, and everything honours reduced motion. 조준 고정 locks the cue while the view can still turn.
 
 ## Layout
 

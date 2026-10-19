@@ -7,124 +7,228 @@
 <title>당구장</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600&display=swap">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
 <style>
-/* Layout: full-bleed 3D carom table; scoreboard on top, a large control dock (당점 · 세기 · 샷) on the right (bottom on phones) */
+/* Layout: full-bleed 3D carom table; the menu top right, a control dock (당점 · 큐 각도 · 세기 · 샷) on the right (bottom on phones)
+   Look: solid surfaces, no hairline borders, no gradient lettering. Wanted Sans for Korean, Barlow Condensed for figures.
+   The controls are drawn as the real things: a cue ball with a chalk mark, a cue you pull back, a cue you tilt.
+   Motion: springs (Motion's visualDuration/bounce model sampled into CSS linear()), exits ~60% of the entrance, transform/opacity only */
 :root{
   --bg:#100c0a;
-  --plate:rgba(27,20,16,.88);
-  --line:rgba(226,198,140,.22);
-  --fg:#f1e8d8;
-  --muted:#b6a78f;
-  --brass:#d6b062;
-  /* billiard-hall cursor: a swallow — slim lopsided arrowhead, forked tail, a cut-out in the middle; ivory (brass over anything clickable) */
-  --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23fffaf0'/%3E%3Cstop offset='1' stop-color='%23d9cfba'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='rgba(0,0,0,.38)' transform='translate(1.1 1.5)'/%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='url(%23g)' stroke='%231a110b' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M4.6 4.6 L17.6 12.4' stroke='%23ffffff' stroke-width='1' stroke-linecap='round' opacity='.75'/%3E%3C/svg%3E") 3 3, auto;
-  --cur-hot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f6dc9a'/%3E%3Cstop offset='1' stop-color='%23c39446'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='rgba(0,0,0,.38)' transform='translate(1.1 1.5)'/%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='url(%23g)' stroke='%231a110b' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M4.6 4.6 L17.6 12.4' stroke='%23fff6dc' stroke-width='1' stroke-linecap='round' opacity='.75'/%3E%3C/svg%3E") 3 3, pointer;
-  --brass-deep:#9a7533;
+  --plate:rgba(21,16,13,.95);
+  --plate-2:rgba(255,255,255,.055);
+  --plate-3:rgba(255,255,255,.09);
+  --fg:#f3ead9;
+  --muted:#a89a84;
+  --brass:#e2bb63;
+  --brass-hi:#f0cf82;
+  --brass-deep:#8d6a2b;
+  --felt:#2f6b55;
+  --chalk:#4f86cf;
   --alert:#e8705a;
   --ok:#86c9a0;
   --white-ball:#f3efe4;
   --yellow-ball:#f2c428;
   --red-ball:#c9222c;
-  --display:'Black Han Sans','Noto Sans KR','Malgun Gothic',system-ui,sans-serif;
-  --body:'IBM Plex Sans KR','Noto Sans KR','Malgun Gothic',system-ui,sans-serif;
+  --display:'Wanted Sans Variable','Wanted Sans','Pretendard','Malgun Gothic',system-ui,sans-serif;
+  --body:'Wanted Sans Variable','Wanted Sans','Pretendard','Malgun Gothic',system-ui,sans-serif;
+  --num:'Barlow Condensed','Wanted Sans Variable',system-ui,sans-serif;
+  --shadow:0 14px 36px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);
+  --cueball:radial-gradient(circle at 34% 28%,#fff,#efe9da 48%,#b4ab98);
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .9 0 0 0 0 .75 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* motion tokens */
+  --ease-out:cubic-bezier(.22,1,.36,1);
+  --ease-in:cubic-bezier(.55,0,.8,.25);
+  --t-exit:170ms;
+  --spring-snap:430ms linear(0, 0.027 2.3%, 0.091 4.7%, 0.175 7%, 0.455 14%, 0.541 16.3%, 0.618 18.6%, 0.686 20.9%, 0.745 23.3%, 0.796 25.6%, 0.874 30.2%, 0.926 34.9%, 0.971 41.9%, 1);
+  --spring-soft:690ms linear(0, 0.01 1.4%, 0.035 2.9%, 0.071 4.3%, 0.169 7.2%, 0.569 17.4%, 0.71 21.7%, 0.819 26.1%, 0.899 30.4%, 0.967 36.2%, 1.016 47.8%, 1);
+  --spring-pop:860ms linear(0, 0.014 1.2%, 0.05 2.3%, 0.103 3.5%, 0.17 4.7%, 0.662 11.6%, 0.806 14%, 0.923 16.3%, 1.012 18.6%, 1.073 20.9%, 1.108 23.3%, 1.123 25.6%, 1.111 30.2%, 0.998 45.3%, 1);
+  --spring-roll:970ms linear(0, 0.017 2.1%, 0.061 4.1%, 0.193 8.2%, 0.574 18.6%, 0.75 24.7%, 0.87 30.9%, 0.967 40.2%, 1);
+  /* billiard-hall cursor: a swallow — slim lopsided arrowhead, forked tail, a cut-out in the middle; ivory (brass over anything clickable) */
+  --cur:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23fffaf0'/%3E%3Cstop offset='1' stop-color='%23d9cfba'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='rgba(0,0,0,.38)' transform='translate(1.1 1.5)'/%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='url(%23g)' stroke='%231a110b' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M4.6 4.6 L17.6 12.4' stroke='%23ffffff' stroke-width='1' stroke-linecap='round' opacity='.75'/%3E%3C/svg%3E") 3 3, auto;
+  --cur-hot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f6dc9a'/%3E%3Cstop offset='1' stop-color='%23c39446'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='rgba(0,0,0,.38)' transform='translate(1.1 1.5)'/%3E%3Cpath d='M3 2.5 L22.5 14.2 L14.3 15.1 L12.6 24.8 Z M8.4 9.2 L13.6 12.7 L10.1 15.6 Z' fill-rule='evenodd' fill='url(%23g)' stroke='%231a110b' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M4.6 4.6 L17.6 12.4' stroke='%23fff6dc' stroke-width='1' stroke-linecap='round' opacity='.75'/%3E%3C/svg%3E") 3 3, pointer;
   color-scheme:dark;
+}
+@supports not (transition-timing-function:linear(0, 1)){
+  :root{--spring-snap:300ms cubic-bezier(.2,.9,.3,1.02);--spring-soft:420ms cubic-bezier(.2,.9,.3,1.04);--spring-pop:480ms cubic-bezier(.3,1.5,.5,1);--spring-roll:700ms cubic-bezier(.2,.8,.3,1)}
 }
 html{height:100%;box-sizing:border-box}
 *,*::before,*::after{box-sizing:inherit}
-body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);overflow:hidden;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 [hidden]{display:none!important}
 #app{position:relative;height:100%;overflow:hidden}
 #stage{position:absolute;inset:0}
 html,body{cursor:var(--cur)}
 #stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:var(--cur)}
-button,select{font-family:var(--body)}
+button,select,input{font-family:var(--body)}
 :focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.leaving{pointer-events:none!important}
+.ico{width:1em;height:1em;display:block;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 
-.btn{font:600 15px/1.2 var(--body);padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:var(--cur-hot);transition:background .15s,border-color .15s}
-.btn:hover{border-color:var(--brass)}
+/* ---------- buttons & plates ---------- */
+.btn{position:relative;font:650 15px/1.2 var(--body);padding:12px 16px;border-radius:12px;border:0;background:var(--plate-2);color:var(--fg);cursor:var(--cur-hot);
+  transition:transform var(--spring-snap),background-color .18s,color .18s,box-shadow .18s}
+.btn:active:not(:disabled){transform:scale(.965);transition:transform 90ms var(--ease-out)}
 .btn:disabled{opacity:.4;cursor:var(--cur)}
-.btn.primary{background:linear-gradient(#e2bf72,var(--brass-deep));color:#1b1209;border-color:transparent}
-.btn.primary:hover:not(:disabled){filter:brightness(1.06)}
-.btn.small{font-size:14px;padding:9px 13px;background:var(--plate);backdrop-filter:blur(6px)}
-.btn.small[aria-pressed="true"]{border-color:var(--brass);color:var(--brass)}
-.plate{background:var(--plate);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(6px)}
+/* primary: a solid brass key that physically presses down */
+.btn.primary{background:var(--brass);color:#22180c;box-shadow:0 3px 0 var(--brass-deep),0 8px 18px rgba(0,0,0,.3)}
+.btn.primary:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--brass-deep),0 4px 10px rgba(0,0,0,.3)}
+.btn.small{font-size:14px;padding:9px 13px;background:var(--plate);box-shadow:var(--shadow)}
+.btn.small[aria-pressed="true"]{color:var(--brass)}
+@media (hover:hover){
+  .btn:hover:not(:disabled){background-color:var(--plate-3)}
+  .btn.primary:hover:not(:disabled){background-color:var(--brass-hi)}
+  .btn.small:hover:not(:disabled){background-color:rgba(36,28,22,.95)}
+}
+.plate{background:var(--plate);border-radius:16px;box-shadow:var(--shadow)}   /* no backdrop blur: over the live 3D canvas it is recomputed every frame */
 
-.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-.seg.seven{grid-template-columns:repeat(6,1fr) 2.1fr;gap:5px}
-.seg.seven button{padding:9px 2px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.field.tcustom{margin-top:6px;padding:9px 12px;font-variant-numeric:tabular-nums}
+/* segmented choice: one felt chip slides under whichever option is picked (placed by syncSeg in the script) */
+.seg{position:relative;display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;border-radius:12px;background:rgba(0,0,0,.28)}
+.seg.seven{grid-template-columns:repeat(6,1fr);gap:3px}
+.seg.seven .cus{grid-column:1 / -1}
+.seg.seven button{padding:9px 2px;white-space:nowrap}
+.seg .chipbg{position:absolute;left:0;top:4px;width:100px;height:calc(100% - 8px);border-radius:9px;pointer-events:none;transform-origin:0 0;
+  transform:translateX(var(--sx,0px)) scaleX(var(--sw,0));opacity:0;background:#3a7c62;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.seg.ready .chipbg{opacity:1;transition:transform var(--spring-snap)}
+.seg button{position:relative;z-index:1;font:650 14px/1.2 var(--body);padding:10px 6px;border-radius:9px;border:0;background:transparent;color:var(--muted);cursor:var(--cur-hot);display:grid;gap:2px;justify-items:center;
+  transition:color .2s,transform var(--spring-snap)}
+.seg button:active{transform:scale(.94);transition-duration:90ms}
+.seg button small{font-weight:400;font-size:11px;color:inherit}
+.seg button[aria-pressed="true"]{color:#fff}
+.seg.seven button:not(.cus){font:600 17px/1 var(--num)}
+@media (hover:hover){ .seg button:hover{color:var(--fg)} }
+.field.tcustom{margin-top:6px;padding:9px 12px;font-variant-numeric:tabular-nums;animation:rise var(--spring-soft) both}
 select.field option{background:#1d1611;color:var(--fg)}   /* any native list left: dark, readable */
-.seg button{font:600 14px/1.2 var(--body);padding:10px 6px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);cursor:var(--cur-hot);display:grid;gap:2px;justify-items:center}
-.seg button small{font-weight:400;font-size:11px;color:var(--muted)}
-.seg button[aria-pressed="true"]{border-color:var(--brass);color:var(--fg);background:rgba(214,176,98,.12)}
 .optrow{display:flex;align-items:center;gap:10px;justify-content:space-between}
 .optrow label{margin:0}
 select.field{width:auto;padding:8px 10px}
 
 /* ---------- Lobby ---------- */
-.field{width:100%;font:16px var(--body);color:var(--fg);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.field{width:100%;font:500 16px var(--body);color:var(--fg);background:rgba(255,255,255,.06);border:0;border-radius:12px;padding:12px 14px;transition:background-color .2s}
+.field:hover{background:rgba(255,255,255,.08)}
+.field:focus{background:rgba(255,255,255,.1);outline:none}
+.field:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .field::placeholder{color:#7d705f}
 /* ---------- title screen: the hall in the background, menu on the left, match settings on the right ---------- */
-#lobby{position:absolute;inset:0;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;z-index:5}
+#lobby{position:absolute;inset:0;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;z-index:5;animation:fade-in .5s var(--ease-out) both}
+#lobby.leaving{animation:fade-out .3s var(--ease-in) both}
+#lobby.leaving .lb-main{animation:lobby-out .3s var(--ease-in) both}
 .lb-shade{position:fixed;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(8,6,4,.58),rgba(8,6,4,.9) 100%),
-             linear-gradient(0deg,rgba(8,6,4,.85) 0%,rgba(8,6,4,0) 26%)}   /* even shade behind the centred group, darker toward the edges */
+             linear-gradient(0deg,rgba(8,6,4,.85) 0%,rgba(8,6,4,0) 26%);   /* even shade behind the centred group, darker toward the edges */
+  /* the shade thins out gently toward the title so the balls aren't dimmed: a broad, nearly round falloff with no flat
+     bright middle, so it reads as the room's light rather than a spotlight (title3d sets where) */
+  -webkit-mask-image:radial-gradient(ellipse var(--tw,0px) var(--th,0px) at var(--tx,30%) var(--ty,35%),rgba(0,0,0,.4) 0%,rgba(0,0,0,.58) 30%,rgba(0,0,0,.8) 62%,#000 100%);
+  mask-image:radial-gradient(ellipse var(--tw,0px) var(--th,0px) at var(--tx,30%) var(--ty,35%),rgba(0,0,0,.4) 0%,rgba(0,0,0,.58) 30%,rgba(0,0,0,.8) 62%,#000 100%);
+  transition:opacity .8s var(--ease-out)}
+#lobby.intro-on .lb-shade{opacity:.45}
+@property --tw{syntax:'<length>';inherits:false;initial-value:0px}
+@property --th{syntax:'<length>';inherits:false;initial-value:0px}
+.lb-shade.closing{transition:opacity 1.2s cubic-bezier(.45,0,.25,1),--tw 1.2s cubic-bezier(.45,0,.25,1),--th 1.2s cubic-bezier(.45,0,.25,1)}
 .lb-main{position:relative}
 .lb-main{flex:1;display:grid;grid-template-columns:minmax(300px,400px) minmax(280px,330px);justify-content:center;align-items:center;gap:56px;width:100%;margin:0 auto;padding:28px 40px;box-sizing:border-box}   /* menu and settings as one centred group */
-.brand-title{font-family:var(--display);font-weight:400;font-size:clamp(58px,6.6vw,96px);line-height:.92;margin:0;letter-spacing:.005em;
-  background:linear-gradient(180deg,#fff7e6 0%,#efd79f 46%,#b98d44 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 22px rgba(0,0,0,.65))}
-.brand::after{content:'';display:block;width:140px;height:1px;margin-top:22px;background:linear-gradient(90deg,var(--brass),rgba(214,176,98,0))}
-.menu{display:grid;gap:2px;margin-top:26px}
-.mi{display:block;width:100%;padding:13px 18px 13px 18px;border:0;border-radius:3px;background:transparent;
-  color:var(--fg);text-align:left;cursor:var(--cur-hot);position:relative;font:inherit;transition:background .2s,transform .2s,color .2s}
-.mi::before{content:'';position:absolute;left:0;top:11px;bottom:11px;width:2px;background:var(--brass);transform:scaleY(0);transition:transform .2s}
-.mi-t{font-family:var(--display);font-size:27px;line-height:1.05;letter-spacing:.02em}
-.mi:hover:not(:disabled),.mi:focus-visible,.mi[aria-expanded="true"]{background:linear-gradient(90deg,rgba(214,176,98,.15),rgba(214,176,98,0) 88%);transform:translateX(5px);outline:none}
-.mi:hover:not(:disabled)::before,.mi:focus-visible::before,.mi[aria-expanded="true"]::before{transform:scaleY(1)}
-.mi.primary{background:linear-gradient(90deg,rgba(214,176,98,.2),rgba(214,176,98,.03) 90%);box-shadow:inset 0 0 0 1px rgba(214,176,98,.28)}
-.mi.primary::before{transform:scaleY(1)}
-.mi.primary .mi-t{color:#f4d690}
+/* 당구장: placeholders for the title; the real title is three balls on the 3D table (title3d), drawn where these sit */
+.brand{position:relative}
+.brand-title{display:flex;align-items:center;gap:.05em;font:900 clamp(64px,7.2vw,108px)/1 var(--display);margin:0}
+.tball{position:relative;flex:none;width:.92em;height:.92em;border-radius:50%;display:grid;place-items:center;
+  background:var(--c2);box-shadow:0 .07em .16em rgba(0,0,0,.45)}
+.tball b{font:900 .5em/1 var(--display);letter-spacing:-.04em;color:var(--ink);transform:rotate(var(--rot,0deg))}
+.tball.w{--c1:#fff;--c2:#ece6d6;--c3:#a59d8a;--ink:#1d140d}
+.tball.y{--c1:#fff3b8;--c2:#f2c428;--c3:#9e7a0a;--ink:#2a1a06}
+.tball.r{--c1:#ff8a8a;--c2:#d22a33;--c3:#6e0f14;--ink:#fff8ee}
+.tball.cue{--c1:#fff;--c2:#ece6d6;--c3:#a59d8a;background:radial-gradient(circle at 64% 40%,#c9222c 0 .045em,transparent .055em),radial-gradient(circle at 34% 28%,var(--c1),var(--c2) 52%,var(--c3))}
+.brand-title.pre .tball,.brand-title.gl3d .tball{visibility:hidden}
+.brand-title.swap .tball{animation:fade-in .5s var(--ease-out) both}   /* the 3D balls hand over to these, in place */
+.tball::after{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.6),rgba(255,255,255,0) 34%),radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 52%,rgba(0,0,0,.32) 100%)}
+.brand-title.swap .tball::after{animation:shade-melt 1.1s var(--ease-out) both}
+@keyframes shade-melt{0%,30%{opacity:1}to{opacity:0}}   /* gl3d: the title is drawn by real balls on the table (title3d); these only hold its place */
+/* until the three balls have come to rest, the rest of the title screen waits: hidden, its entrance held at the start */
+#lobby.intro-on .menu,#lobby.intro-on .net,#lobby.intro-on .lb-panel{visibility:hidden}
+#lobby.intro-on .mi,#lobby.intro-on .lb-panel,#lobby.intro-on .lb-panel > *{animation-play-state:paused}
+/* coming out of the intro the menu and settings start with the camera's pull-back, not after their usual load delays */
+#lobby.after-intro .mi{animation-delay:calc(var(--i,0) * 45ms)}
+#lobby.after-intro .lb-panel{animation-delay:0s}
+#lobby.after-intro .lb-panel > *{animation-delay:calc(var(--i,0) * 28ms + 60ms)}
+.menu{display:grid;gap:4px;margin-top:30px}
+.mi{display:block;width:100%;padding:12px 16px;border:0;border-radius:14px;background:transparent;
+  color:var(--fg);text-align:left;cursor:var(--cur-hot);position:relative;font:inherit;transition:background-color .25s;
+  animation:slide-in var(--spring-soft) both;animation-delay:calc(var(--i,0) * 55ms + 380ms)}
+.mi::before{content:'';position:absolute;left:16px;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;pointer-events:none;
+  background:var(--white-ball);box-shadow:0 2px 4px rgba(0,0,0,.45);
+  opacity:0;transform:translateX(-30px) rotate(-260deg);transition:opacity .12s,transform .18s var(--ease-in)}
+.mi::after{content:'';position:absolute;right:calc(100% - 14px);top:50%;width:170px;height:7px;margin-top:-3.5px;pointer-events:none;
+  clip-path:polygon(0 0,100% 22%,100% 78%,0 100%);
+  background:linear-gradient(90deg,rgba(42,24,16,0),#2a1810 22%,#2a1810 34%,#d2ae62 34% 36%,#c2955a 36% 40%,#e6cd9b 52%,#f0dfb7 calc(100% - 7px),#f6f0e3 calc(100% - 7px) calc(100% - 4px),var(--chalk) calc(100% - 4px));
+  opacity:0;transform:translateX(-60px);transition:opacity .12s,transform .2s var(--ease-in)}
+.mi:hover:not(:disabled)::after,.mi:focus-visible::after{opacity:1;transform:translateX(-7px);transition:opacity .15s,transform var(--spring-soft) .12s;animation:practice 1.15s ease-in-out .75s infinite}
+.mi.strike.strike::after,.mi.strike.strike:hover::after{opacity:1;animation:none;transform:translateX(4px);transition:none}
+.mi.launched.launched::before,.mi.launched.launched:hover::before{opacity:0;transition:none}
+.mi-t{position:relative;display:inline-block;font:800 28px/1.1 var(--display);letter-spacing:-.03em;transition:transform var(--spring-snap),color .2s}
+.mi:hover:not(:disabled),.mi:focus-visible,.mi[aria-expanded="true"]{background:rgba(226,187,99,.1);outline:none}
+.mi:hover:not(:disabled)::before,.mi:focus-visible::before,.mi[aria-expanded="true"]::before{opacity:1;transform:none;transition:opacity .1s,transform var(--spring-roll)}
+.mi:hover:not(:disabled) .mi-t,.mi:focus-visible .mi-t,.mi[aria-expanded="true"] .mi-t{transform:translateX(30px);color:var(--brass-hi)}
+.mi:active:not(:disabled) .mi-t{transform:translateX(30px) scale(.97);transition-duration:90ms}
+.mi:focus-visible{box-shadow:inset 0 0 0 2px var(--brass)}
 .mi:disabled{opacity:.42;cursor:var(--cur)}
-.codebox{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 18px 16px 18px}
+.codebox{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 16px 16px 16px}
+/* closed, it still holds its room (opening it must not move the title balls or the menu); the opening plays as it appears */
+.codebox[hidden]{display:flex!important;visibility:hidden}
+.codebox:not([hidden]){animation:fade-in .2s var(--ease-out) both}
+
 .codebox .code{padding:0;gap:10px;justify-content:flex-start}
-.codebox .ballin{width:50px;height:50px;font-size:22px}
+.codebox .ballin{width:50px;height:50px;font-size:24px}
 .codebox .btn{padding:12px 22px}
+.codebox:not([hidden]) .btn{animation:rise var(--spring-soft) .3s both}
 .net:empty{display:none}
-.net{margin:22px 0 0 18px;font-size:12px;line-height:1.5;color:var(--muted)}
-.lb-panel{align-self:center;display:grid;gap:9px;padding:22px 22px 20px;border-radius:4px;border:1px solid rgba(226,198,140,.16);
-  background:linear-gradient(180deg,rgba(26,19,15,.74),rgba(13,10,8,.84));backdrop-filter:blur(12px);box-shadow:0 28px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,232,180,.06)}
-.pn-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:13px;margin-bottom:3px;border-bottom:1px solid rgba(226,198,140,.13);
-  font:600 11px/1 var(--body);letter-spacing:.32em;color:var(--brass)}
-.lb-panel label{font-size:11.5px;color:var(--muted);letter-spacing:.08em;margin-top:5px}
-.lb-panel .seg button{border-radius:4px}
-.lb-panel .field{border-radius:4px}
-.lb-left > *,.lb-panel{animation:lbIn .8s cubic-bezier(.2,.7,.2,1) both}
-.lb-left > :nth-child(2){animation-delay:.08s} .lb-left > :nth-child(3){animation-delay:.16s} .lb-panel{animation-delay:.22s}
-@keyframes lbIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.lb-left > *,.lb-panel{animation:none}.mi{transition:none}}
+.net{margin:22px 0 0 16px;font-size:12px;line-height:1.5;color:var(--muted)}
+.lb-panel{position:relative;align-self:center;display:grid;gap:9px;padding:26px 24px 24px;border-radius:14px;
+  background:radial-gradient(circle at 13px 13px,#c9a55c 3px,transparent 3.6px),radial-gradient(circle at calc(100% - 13px) 13px,#c9a55c 3px,transparent 3.6px),
+    radial-gradient(circle at 13px calc(100% - 13px),#c9a55c 3px,transparent 3.6px),radial-gradient(circle at calc(100% - 13px) calc(100% - 13px),#c9a55c 3px,transparent 3.6px),#3b2416;
+  box-shadow:inset 0 0 0 6px #2c1a0f,0 26px 60px rgba(0,0,0,.5);animation:panel-rise var(--spring-soft) .45s both}
+.lb-panel > *{animation:rise var(--spring-soft) both;animation-delay:calc(var(--i,0) * 35ms + 560ms)}
+/* brass name plate */
+.pn-h{justify-self:start;font:800 15px/1 var(--display);letter-spacing:-.01em;color:#2a1a0c;background:#d4ae62;padding:8px 14px 9px;border-radius:6px;margin-bottom:6px}
+.lb-panel .field{background:#24150b;border-radius:8px}
+.lb-panel .field:hover,.lb-panel .field:focus{background:#1d1108}
+/* each row is a wire across the board, the options are beads on it */
+.lb-panel .seg{padding:0;gap:6px;grid-auto-rows:38px;background:linear-gradient(#a8833f 0 0) 0 50%/100% 3px no-repeat}
+.lb-panel .seg.seven{background:linear-gradient(#a8833f 0 0) 0 17.5px/100% 3px no-repeat,linear-gradient(#a8833f 0 0) 0 61.5px/100% 3px no-repeat}
+.lb-panel .seg .chipbg{display:none}
+.lb-panel .seg button{border-radius:999px;padding:0 4px;align-content:center;background:#5a3a25;color:#ecd9b4;font-weight:750;transition:background-color .18s,color .18s,transform var(--spring-snap)}
+.lb-panel .seg button[aria-pressed="true"]{background:#c62a2f;color:#fff;animation:bead-pick var(--spring-pop) both}
+@media (hover:hover){ .lb-panel .seg button:hover:not([aria-pressed="true"]){background:#6b4630;color:#fff4dc} }
+.lb-panel label{font-size:12px;font-weight:650;color:#bfa57a;margin-top:6px}
 @media (max-width:1100px) and (min-width:761px){
   .lb-main{grid-template-columns:minmax(280px,380px) minmax(250px,300px);gap:32px;padding:24px 28px}
 }
 @media (max-width:760px){
   .lb-shade{background:linear-gradient(180deg,rgba(8,6,4,.78),rgba(8,6,4,.9) 40%,rgba(8,6,4,.96))}
   .lb-main{grid-template-columns:1fr;gap:22px;padding:18px 16px 24px;align-items:start}
-  .brand-title{font-size:56px}
+  .brand-title{font-size:60px}
   .menu{margin-top:18px}
   .mi{padding:11px 12px}
-  .mi-t{font-size:23px}
-  .mi:hover:not(:disabled),.mi:focus-visible,.mi[aria-expanded="true"]{transform:none}
+  .mi::before{left:12px}
+  .mi-t{font-size:24px}
   .codebox{padding:8px 4px 12px 10px;gap:12px}
   .codebox .ballin{width:46px;height:46px}
   .net{margin-left:10px}
   .lb-panel{align-self:stretch}
 }
 .code{display:flex;justify-content:center;gap:14px;padding:4px 0}
-.ballin{width:62px;height:62px;border-radius:50%;border:none;text-align:center;font-family:var(--display);font-size:27px;color:#151210;caret-color:#151210;padding:0;
-  background:radial-gradient(circle at 33% 27%,rgba(255,255,255,.6),rgba(255,255,255,0) 24%),radial-gradient(circle at 42% 36%,var(--c),var(--cd));
-  box-shadow:0 8px 16px rgba(0,0,0,.55),inset -5px -7px 12px rgba(0,0,0,.3)}
-.ballin:focus-visible{outline:3px solid var(--brass);outline-offset:4px}
-.b1{--c:#fbf8ef;--cd:#b9b2a1}.b2{--c:#f6cf3c;--cd:#a57c0c}.b3{--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}.b4{--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}
+/* the four code balls roll in from the left and come to rest */
+.ballin{width:62px;height:62px;border-radius:50%;border:none;text-align:center;font:700 28px/1 var(--num);color:#151210;caret-color:#151210;padding:0;
+  background:var(--c);box-shadow:0 6px 14px rgba(0,0,0,.5);
+  animation:none}
+.codebox:not([hidden]) .ballin{animation:roll-in var(--spring-roll) both;animation-delay:calc(var(--k) * 60ms)}
+/* closing plays the opening backwards: the balls roll back out to the left, last in first out, and 입장 sinks away */
+.codebox.leaving{animation:none}
+.codebox.leaving .ballin{animation:roll-out .34s var(--ease-in) both;animation-delay:calc((3 - var(--k)) * 45ms)}
+.codebox.leaving .btn{animation:sink .2s var(--ease-in) both}
+.ballin:focus-visible{outline:2px solid var(--brass);outline-offset:5px}
+.b1{--k:3;--c:#fbf8ef;--cd:#b9b2a1}.b2{--k:2;--c:#f6cf3c;--cd:#a57c0c}.b3{--k:1;--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}.b4{--k:0;--c:#e2393f;--cd:#7a1015;color:#fff;caret-color:#fff}
 .row{display:flex;gap:10px}
 .row .btn{flex:1}
 
@@ -134,126 +238,254 @@ select.field{width:auto;padding:8px 10px}
 #hud, #stage, #hud *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #hud > *{pointer-events:auto}
 .topbar{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none}
-.topbar > *{pointer-events:auto}
+.topbar > *{pointer-events:auto;animation:drop-in var(--spring-soft) both;animation-delay:.2s}
 .dot{width:9px;height:9px;border-radius:50%;background:#6b5f50}
 .dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .dot.off{background:var(--alert)}
-.mini{font:600 12px var(--body);padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:var(--cur-hot)}
-  background:linear-gradient(180deg,transparent 8px,#c2a362 8px,#6e5430 10px,transparent 10px)}
-/* every bead is coloured (cream / red in fives, like a club board); the scored ones are slid left, a gap, then the rest */
+.mini{font:650 12px var(--body);padding:7px 11px;border-radius:8px;border:0;background:rgba(255,255,255,.08);color:var(--fg);cursor:var(--cur-hot);transition:transform var(--spring-snap),background-color .18s,color .18s}
+.mini:active{transform:scale(.94);transition-duration:90ms}
+@media (hover:hover){ .mini:hover{background:rgba(226,187,99,.18);color:var(--brass-hi)} }
 .spect{padding:9px 12px;font-size:13px;color:var(--muted);white-space:nowrap}
-#menuBtn{font-size:18px;line-height:1;padding:10px 14px;margin-left:auto}   /* always the top-right corner */
+.spect::before{content:'';display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:var(--alert);vertical-align:1px;animation:blink 1.1s steps(2,jump-none) infinite}
+#menuBtn{display:grid;place-items:center;font-size:18px;line-height:1;padding:11px 12px;margin-left:auto}   /* always the top-right corner */
+#menuBtn .ico{transition:transform var(--spring-snap)}
+#menuBtn[aria-expanded="true"] .ico{transform:rotate(90deg)}
 
-.status{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;width:max-content;max-width:min(620px,calc(100% - 560px));padding:11px 20px 12px;text-align:center;display:grid;gap:4px;justify-items:center}
+.status{position:absolute;left:50%;translate:-50% 0;bottom:16px;width:max-content;max-width:min(620px,calc(100% - 560px));padding:14px 22px 15px;text-align:center;display:grid;gap:5px;justify-items:center;
+  animation:rise var(--spring-soft) both}
+.status.leaving{animation:sink var(--t-exit) var(--ease-in) both}
 .lastmsg{font-size:14px;color:var(--muted);line-height:1.45}
-.lastmsg.good{color:var(--ok);font-weight:600}
-.turnmsg{font-family:var(--display);font-size:24px;line-height:1.2;letter-spacing:.01em;text-wrap:balance}
-.turnmsg.mine{color:var(--brass)}
+.lastmsg.good{color:var(--ok);font-weight:650}
+.turnmsg{font:800 24px/1.25 var(--display);letter-spacing:-.03em;text-wrap:balance}
+.turnmsg.mine{color:var(--brass);animation:pop-word var(--spring-pop) .15s both}
 .hint{font-size:12.5px;color:var(--muted);line-height:1.5}
 .status .btn{margin-top:6px}
-.tools{position:absolute;right:16px;top:72px;display:none;flex-direction:column;gap:1px;width:232px;padding:8px;z-index:6;box-shadow:0 18px 50px rgba(0,0,0,.5)}
-.tm{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--fg);font:600 14px/1.2 var(--body);text-align:left;cursor:var(--cur-hot);transition:background .15s}
-.tm:hover:not(:disabled),.tm:focus-visible{background:rgba(214,176,98,.12);outline:none}
+/* menu: unfolds from the ☰ corner, items follow one after another; folds away faster */
+.tools{position:absolute;right:16px;top:72px;display:flex;flex-direction:column;gap:2px;width:236px;padding:8px;z-index:6;
+  visibility:hidden;pointer-events:none;opacity:0;transform:translateY(-6px) scale(.96);transform-origin:top right;
+  transition:opacity .14s var(--ease-in),transform .16s var(--ease-in),visibility 0s linear .16s}
+.tools.open{visibility:visible;pointer-events:auto;opacity:1;transform:none;transition:opacity .2s var(--ease-out),transform var(--spring-snap),visibility 0s}
+.tools > *{opacity:0;transform:translateY(-4px);transition:opacity .1s,transform .1s}
+.tools.open > *{opacity:1;transform:none;transition:opacity .22s var(--ease-out) calc(var(--i,0) * 26ms + 40ms),transform var(--spring-snap) calc(var(--i,0) * 26ms + 40ms)}
+.tm{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:var(--fg);font:600 14px/1.2 var(--body);text-align:left;cursor:var(--cur-hot);transition:background-color .15s}
+.tm:hover:not(:disabled),.tm:focus-visible{background:rgba(226,187,99,.12);outline:none}
 .tm:disabled{opacity:.38;cursor:var(--cur)}
-.tm kbd{min-width:22px;padding:3px 6px;border:1px solid rgba(226,198,140,.28);border-radius:4px;background:rgba(255,255,255,.04);font:600 11px/1 var(--body);color:var(--muted);text-align:center}
-.tm.out{color:#e39a88}
-.tm-sep{height:1px;margin:6px 6px;background:var(--line)}
-.tm-room{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:8px 12px 6px}
-.tm-room .lbl{font-size:11px;letter-spacing:.08em;color:var(--muted)}
-.tm-room b{grid-row:2;font-family:var(--display);font-weight:400;font-size:26px;line-height:1;letter-spacing:.2em;color:var(--brass);font-variant-numeric:tabular-nums}
+.tm kbd{min-width:24px;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.07);font:600 12px/1 var(--num);color:var(--muted);text-align:center;transition:color .15s,background-color .15s}
+.tm:hover:not(:disabled) kbd{color:#22180c;background:var(--brass)}
+.tm.out{color:#e99a88}
+.tm-sep{height:6px}
+.tm-room{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:10px 12px;margin-bottom:2px;border-radius:12px;background:rgba(0,0,0,.25)}
+.tm-room .lbl{font-size:11px;font-weight:600;color:var(--muted)}
+.tm-room b{grid-row:2;font:700 30px/1 var(--num);letter-spacing:.14em;color:var(--brass);font-variant-numeric:tabular-nums}
 .tm-room .mini{grid-column:2;grid-row:1 / span 2}
-.tools.open{display:flex}
 
-/* control dock */
-.dock{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:244px;padding:14px;display:grid;gap:14px}
+/* ---------- control dock ---------- */
+/* slides in when it is your shot, sections settle in turn, slips away as you strike */
+.dock{position:absolute;right:16px;top:50%;translate:0 -50%;width:268px;padding:16px;display:grid;gap:16px;border-radius:20px;animation:dock-in var(--spring-soft) both}
+.dock > *{animation:rise var(--spring-soft) both;animation-delay:calc(var(--i,0) * 45ms + 60ms)}
+.dock.leaving{animation:dock-out var(--t-exit) var(--ease-in) both}
+.dock.leaving > *{animation:none}
 .dock.off .ctl{opacity:.38;pointer-events:none}
-/* 당점: cue-ball face in front, the object ball the aim line meets drawn behind it, offset sideways by the hit thickness */
-.spinwrap{position:relative;display:grid;place-items:center;height:186px;margin:0 -14px;overflow:hidden;--fd:150px}
+.dk-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:650;color:var(--muted)}
+.dk-h b{font:700 21px/1 var(--num);color:var(--fg);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.dk-spin{display:grid;gap:4px}
+/* 당점: the cue ball, tip rings on its face, a blue chalk mark where the tip meets it.
+   The object ball the aim line meets sits behind it, shifted by the hit thickness */
+.spinwrap{position:relative;isolation:isolate;display:grid;place-items:center;height:180px;margin:0 -16px;overflow:hidden;--fd:158px}
 .face{width:var(--fd);height:var(--fd);border-radius:50%;position:relative;z-index:1;overflow:hidden;cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none;
-  background:radial-gradient(circle at 38% 32%,#ffffff,#ece6d6 48%,#a8a090);box-shadow:inset -8px -10px 18px rgba(0,0,0,.25),0 6px 16px rgba(0,0,0,.45)}
-.obj{position:absolute;left:50%;top:50%;width:calc(var(--fd)*.92);height:calc(var(--fd)*.92);border-radius:50%;pointer-events:none;
-  transform:translate(calc(-50% + var(--ox,0px)),calc(-50% - var(--fd)*.06));
-  background:radial-gradient(circle at 38% 32%,var(--oc1,#fff),var(--oc2,#ece6d6) 48%,var(--oc3,#a8a090));box-shadow:inset -8px -10px 18px rgba(0,0,0,.3)}
-.face .ax{position:absolute;background:rgba(60,45,30,.18);pointer-events:none}
-.face .ax.v{left:50%;top:8%;bottom:8%;width:1px}
-.face .ax.h{top:50%;left:8%;right:8%;height:1px}
+  --px:0;--py:0;background:radial-gradient(circle at 46% 40%,#fbf8f0,#e9e2d1 55%,#b3aa96 88%,#958c79);
+  box-shadow:inset -10px -14px 22px rgba(60,45,25,.28),0 14px 24px rgba(0,0,0,.5);transition:transform var(--spring-snap)}
+.face.drag{transform:scale(.975)}
+/* with WebGL the ball itself is drawn in 3D (spinGL); the flat layers are only the fallback */
+.face canvas{position:absolute;inset:0;width:100%;height:100%;display:none;pointer-events:none}
+.face.gl{background:transparent;box-shadow:0 14px 24px rgba(0,0,0,.5)}
+.face.gl canvas{display:block}
+.face.gl .tilt,.face.gl .spec,.face.gl .gx,.face.gl .gy,.face.gl .pt{display:none}
+.face .tilt{position:absolute;inset:0;pointer-events:none;transform:translate(calc(var(--px) * 7px),calc(var(--py) * -7px))}
+.face .spec{position:absolute;inset:0;pointer-events:none;border-radius:50%;
+  background:radial-gradient(circle at 36% 27%,rgba(255,255,255,.95) 0 6%,rgba(255,255,255,0) 22%);transform:translate(calc(var(--px) * -10px),calc(var(--py) * 10px))}
+.face .gx,.face .gy{position:absolute;pointer-events:none;background:rgba(79,134,207,.4);opacity:0;transition:opacity .2s}
+.face .gx{left:0;right:0;top:50%;height:1.5px;margin-top:-.75px;transform:translateY(calc(var(--py) * var(--fd) / -2))}
+.face .gy{top:0;bottom:0;left:50%;width:1.5px;margin-left:-.75px;transform:translateX(calc(var(--px) * var(--fd) / 2))}
+.face.drag .gx,.face.drag .gy{opacity:1}
+.face .ptw{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;transform:translate(calc(var(--px) * var(--fd) / 2),calc(var(--py) * var(--fd) / -2))}
+.face .puff{position:absolute;left:-14px;top:-14px;width:28px;height:28px;border-radius:50%;background:rgba(79,134,207,.35);pointer-events:none}
+.obj{position:absolute;left:50%;top:50%;width:calc(var(--fd)*.9);height:calc(var(--fd)*.9);border-radius:50%;pointer-events:none;
+  transform:translate(calc(-50% + var(--ox,0px)),calc(-50% - var(--fd)*.07 - var(--oy,0px))) scale(var(--os,1));transition:transform .16s var(--ease-out);
+  background:radial-gradient(circle at 38% 32%,var(--oc1,#fff),var(--oc2,#ece6d6) 48%,var(--oc3,#a8a090));filter:brightness(.7);box-shadow:inset -8px -10px 18px rgba(0,0,0,.3)}
+/* tip guides: 1 and 2 tips from centre, as soft printed rings on the ball */
+.face .ring{position:absolute;left:50%;top:50%;border-radius:50%;pointer-events:none;border:1.5px dashed rgba(90,70,45,.22);transform:translate(-50%,-50%)}
+.face .ring.r1{width:33%;height:33%}
+.face .ring.r2{width:66%;height:66%}
+.face .ax{position:absolute;pointer-events:none;background:rgba(90,70,45,.13)}
+.face .ax.v{left:50%;top:6%;bottom:6%;width:1.5px;margin-left:-.75px}
+.face .ax.h{top:50%;left:6%;right:6%;height:1.5px;margin-top:-.75px}
 .face .nogo{position:absolute;left:0;right:0;bottom:0;top:100%;border-radius:0 0 999px 999px;pointer-events:none;
-  background:rgba(0,0,0,.42);border-top:2px solid rgba(255,244,226,.9);box-shadow:0 -1px 0 rgba(0,0,0,.45)}   /* 당점 the cue can't reach (ball by the rail): shaded, with a clear edge line */
-.face .pt{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff7a7a,var(--red-ball));box-shadow:0 0 0 3px rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.4);left:50%;top:50%;pointer-events:none}
-/* 큐 각도 (세워치기): vertical slider at the right of the 당점 ball, up = steeper cue */
-.elev{position:absolute;right:10px;top:12px;bottom:12px;width:30px;z-index:2;display:grid;grid-template-rows:auto 1fr;justify-items:center;gap:4px;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
-.elev .ev{font:600 11px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
-.elev.on .ev{color:var(--brass)}
-.elev .trk{position:relative;width:8px;border-radius:4px;background:rgba(255,255,255,.1);border:1px solid var(--line);overflow:hidden}
-.elev .fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,var(--brass-deep),var(--brass))}
-.pw{display:grid}
-/* 세기: one continuous 1–100 gauge, tap or drag anywhere to set it */
-.gauge{position:relative;height:52px;border-radius:12px;overflow:hidden;cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none;background:rgba(255,255,255,.07);border:1px solid var(--line)}
-.gauge .fill{position:absolute;left:0;top:0;bottom:0;width:50%;background:rgba(214,176,98,.22);pointer-events:none}
-.gauge .fill::after{content:'';position:absolute;right:-2px;top:8px;bottom:8px;width:4px;border-radius:2px;background:var(--brass);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
-.gauge .tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.14);pointer-events:none}
-.gauge .num{position:absolute;inset:0;display:grid;place-items:center;font:400 24px/1 var(--display);color:var(--fg);text-shadow:0 1px 3px rgba(0,0,0,.7);font-variant-numeric:tabular-nums;pointer-events:none}
-.shotrow{display:grid;grid-template-columns:52px 1fr 52px;gap:8px}
-.shotrow .nudge{font:600 20px var(--body);border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--fg);cursor:var(--cur-hot);touch-action:none}
-#shotBtn{font-family:var(--display);font-size:24px;font-weight:400;padding:14px 10px;border-radius:12px}
+  background:repeating-linear-gradient(135deg,rgba(40,24,14,.42) 0 5px,rgba(40,24,14,.3) 5px 10px);box-shadow:0 -2px 0 rgba(140,40,30,.55)}   /* 당점 the cue can't reach (ball by the rail) */
+.face .pt{position:absolute;width:24px;height:24px;left:-12px;top:-12px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#3d74c0 0 32%,rgba(79,134,207,.75) 46%,rgba(79,134,207,.25) 62%,transparent 72%);
+  transition:transform var(--spring-snap)}
+.face.drag .pt{transform:scale(1.15)}
+.dock:not(.leaving) .face .pt{animation:pop-in-pt var(--spring-pop) .35s backwards}
+/* 큐 각도: a side view of the ball on the cloth; the cue tilts with the angle, the arc shows how far */
+.dk-bars{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vcol{display:grid;gap:7px;align-content:start}
+.vcol .dk-h b{font-size:22px;transition:color .2s}
+.vcol small{justify-self:center;font-size:11.5px;font-weight:600;color:var(--muted);transition:color .2s}
+/* 큐 각도: the same kind of picture as the power bar, seen from the side: a ball on the cloth and the cue leaning
+   against it at the set angle. Drag up to stand the cue up. */
+.vbar{position:relative;height:150px;border-radius:12px;overflow:hidden;background:rgba(0,0,0,.28);container-type:size;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;--e:0}
+.vbar .cloth{position:absolute;left:0;right:0;bottom:0;height:14px;background:#2c5e4b;pointer-events:none}
+.vbar .ball{position:absolute;right:18px;bottom:14px;width:22px;height:22px;border-radius:50%;background:var(--white-ball);box-shadow:0 2px 4px rgba(0,0,0,.45);pointer-events:none}
+.vbar .cue{position:absolute;right:41px;bottom:21.5px;width:80cqh;height:7px;pointer-events:none;transform-origin:100% 50%;
+  clip-path:polygon(0 0,100% 22%,100% 78%,0 100%);
+  background:linear-gradient(90deg,#2a1810 0 30%,#d2ae62 30% 32%,#c2955a 32% 40%,#e6cd9b 52%,#f0dfb7 calc(100% - 7px),#f6f0e3 calc(100% - 7px) calc(100% - 4px),var(--chalk) calc(100% - 4px));
+  transform:rotate(calc(var(--e) * 75deg));transition:transform .14s var(--ease-out)}
+.vbar.drag .cue{transition:none}
+.dk-elev.on .dk-h b,.dk-elev.on small{color:var(--brass)}
+/* 세기: the cue stands under the ball and is drawn down; the further down, the harder the shot */
+.gauge{position:relative;height:150px;border-radius:12px;overflow:hidden;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;background:rgba(0,0,0,.28);container-type:size;--p:.5}
+.gauge .scale{position:absolute;right:9px;top:40px;bottom:12px;width:4px;pointer-events:none;
+  background:radial-gradient(circle,rgba(243,234,217,.28) 1.4px,transparent 1.8px) 0 0/100% 10% repeat-y}
+.gauge .ball{position:absolute;left:50%;top:10px;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:var(--white-ball);box-shadow:0 3px 6px rgba(0,0,0,.45);pointer-events:none}
+.gauge .cue{position:absolute;left:50%;top:40px;width:9px;height:100%;margin-left:-4.5px;pointer-events:none;
+  clip-path:polygon(22% 0,78% 0,100% 100%,0 100%);
+  background:linear-gradient(180deg,var(--chalk) 0 5px,#f6f0e3 5px 8px,#f0dfb7 8px,#e6cd9b 48%,#c2955a 60%,#d2ae62 60% 62%,#2a1810 62%);
+  transform:translateY(calc(var(--p) * (100cqh - 66px)));transition:transform .14s var(--ease-out)}
+.gauge.drag .cue{transition:none}
+#pwNum{transition:color .2s}
+.dk-pw.hot #pwNum{color:var(--alert)}
+.aimrow{display:grid;grid-template-columns:50px 1fr 50px;gap:8px;margin-bottom:-6px}
+.shotrow{display:grid}
+.aimrow .nudge{display:grid;place-items:center;font-size:18px;border-radius:12px;border:0;background:var(--plate-2);color:var(--fg);cursor:var(--cur-hot);touch-action:none;
+  transition:transform var(--spring-snap),background-color .18s,color .18s}
+.aimrow .nudge:active{transform:scale(.9);transition-duration:80ms}
+@media (hover:hover){ .aimrow .nudge:hover{background:var(--plate-3);color:var(--brass-hi)} }
+/* 조준 고정: the padlock's shackle swings shut when the aim is locked */
+.lock{display:flex;align-items:center;justify-content:center;gap:7px;height:42px;border:0;border-radius:12px;background:var(--plate-2);color:var(--muted);font:650 13px var(--body);cursor:var(--cur-hot);
+  transition:background-color .2s,color .2s,transform var(--spring-snap)}
+.lock:active{transform:scale(.95);transition-duration:90ms}
+.lock .ico{font-size:17px;overflow:visible}
+.lock .shackle{transform-box:fill-box;transform-origin:100% 100%;transform:translateY(-2.5px) rotate(28deg);transition:transform .18s var(--ease-in)}
+.lock[aria-pressed="true"]{background:rgba(226,187,99,.2);color:var(--brass-hi)}
+.lock[aria-pressed="true"] .shackle{transform:none;transition:transform var(--spring-pop)}
+@media (hover:hover){ .lock:hover{background:var(--plate-3);color:var(--fg)} .lock[aria-pressed="true"]:hover{background:rgba(226,187,99,.28);color:var(--brass-hi)} }
+#shotBtn{font:900 24px/1 var(--display);padding:14px 10px;border-radius:12px;letter-spacing:-.02em}
 #shotBtn small{display:block;font:400 11px var(--body);opacity:.75;margin-top:2px}
 
-#ngPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 32px));padding:18px;display:grid;gap:12px;background:rgba(27,20,16,.97)}
-#ngPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
-#replayPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:18px 20px;display:grid;gap:10px;background:rgba(27,20,16,.97);z-index:6}
-#replayPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
+/* dialogs grow out of the middle of the table and drop back quicker */
+#ngPanel,#replayPanel,#helpPanel{position:absolute;left:50%;top:50%;translate:-50% -50%;animation:panel-in var(--spring-soft) both;border-radius:20px}
+#ngPanel.leaving,#replayPanel.leaving,#helpPanel.leaving{animation:panel-out var(--t-exit) var(--ease-in) both}
+#ngPanel{width:min(360px,calc(100% - 32px));padding:22px;display:grid;gap:12px;background-color:rgba(24,18,14,.97);z-index:6}
+#ngPanel h2,#replayPanel h2,#helpPanel h2{margin:0;font:800 24px/1.2 var(--display);letter-spacing:-.03em}
+#replayPanel{width:min(440px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:22px;display:grid;gap:10px;background-color:rgba(24,18,14,.97);z-index:6}
 #replayList{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:50vh;overflow:auto}
-#replayList li{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
-#replayList .no{font-family:var(--display);color:var(--brass);min-width:28px}
+#replayList li{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.045);
+  animation:rise .45s var(--ease-out) both;animation-delay:calc(var(--i,0) * 30ms + 90ms)}
+#replayList .no{font:700 19px var(--num);color:var(--brass);min-width:28px}
 #replayList .who{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #replayList .who small{display:block;font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-#recBadge{position:absolute;left:50%;top:12px;transform:translateX(-50%);padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;z-index:7}
-#replayInfo{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);padding:10px 16px;display:flex;align-items:center;gap:14px;z-index:7;font-size:13px}
-#replayInfo .rib{width:48px;height:48px;border-radius:50%;position:relative;flex:none;background:radial-gradient(circle at 34% 28%,#fff,#e8e2d4 55%,#b9b2a2);box-shadow:inset -3px -4px 8px rgba(0,0,0,.25)}
-#replayInfo .rib::before,#replayInfo .rib::after{content:'';position:absolute;background:rgba(0,0,0,.18)}
-#replayInfo .rib::before{left:50%;top:8%;bottom:8%;width:1px}
-#replayInfo .rib::after{top:50%;left:8%;right:8%;height:1px}
-#replayInfo .rib i{position:absolute;width:11px;height:11px;border-radius:50%;background:#d23b2f;transform:translate(-50%,-50%);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+#recBadge{position:absolute;left:50%;translate:-50% 0;top:12px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:13px;z-index:7;animation:drop-in var(--spring-soft) both}
+#replayInfo{position:absolute;left:50%;translate:-50% 0;bottom:16px;padding:10px 16px;display:flex;align-items:center;gap:14px;z-index:7;font-size:13px;animation:rise var(--spring-soft) both}
+#replayInfo.leaving,#recBadge.leaving{animation:fade-out var(--t-exit) var(--ease-in) both}
+#replayInfo .rib{width:48px;height:48px;border-radius:50%;position:relative;flex:none;background:var(--cueball);box-shadow:inset -3px -4px 8px rgba(0,0,0,.25)}
+#replayInfo .rib::before,#replayInfo .rib::after{content:'';position:absolute;background:rgba(90,70,45,.15)}
+#replayInfo .rib::before{left:50%;top:8%;bottom:8%;width:1.5px}
+#replayInfo .rib::after{top:50%;left:8%;right:8%;height:1.5px}
+#replayInfo .rib i{position:absolute;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle,#3d74c0 0 35%,rgba(79,134,207,.5) 60%,transparent 72%);transform:translate(-50%,-50%);animation:pop-in var(--spring-pop) .2s both}
 #replayInfo .rit{display:grid;gap:5px;min-width:150px}
-#replayInfo .rit b{font-weight:600}
-/* same look as the 세기 bar: quiet track, faint brass fill, brass handle at the power */
-#replayInfo .rip{position:relative;height:12px;border-radius:4px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
-#replayInfo .rip i{position:absolute;left:0;top:0;bottom:0;display:block;border-radius:3px 0 0 3px;background:rgba(214,176,98,.22)}
-#replayInfo .rip i::after{content:'';position:absolute;right:-2px;top:1px;bottom:1px;width:3px;border-radius:2px;background:var(--brass);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+#replayInfo .rit b{font-weight:650}
+#replayInfo .rip{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+#replayInfo .rip i{position:absolute;left:0;top:0;bottom:0;display:block;border-radius:4px;background:var(--brass);transform-origin:left;animation:grow .7s var(--ease-out) .25s both}
 #replayInfo small{color:var(--muted)}
-#recBadge .recdot{width:10px;height:10px;border-radius:50%;background:var(--alert);box-shadow:0 0 8px var(--alert)}
-#helpPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:18px 20px;display:grid;gap:10px;background:rgba(27,20,16,.97);font-size:14px;line-height:1.6}
-#helpPanel h2{margin:0;font-family:var(--display);font-weight:400;font-size:24px}
-#helpPanel dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
-#helpPanel dt{font-weight:600;color:var(--brass);white-space:nowrap}
+#recBadge .recdot{width:10px;height:10px;border-radius:50%;background:var(--alert);box-shadow:0 0 8px var(--alert);animation:blink 1.2s steps(2,jump-none) infinite}
+#helpPanel{width:min(420px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;padding:22px;display:grid;gap:10px;background-color:rgba(24,18,14,.97);font-size:14px;line-height:1.6;z-index:6}
+#helpPanel dl{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:0}
+#helpPanel dt{font-weight:750;color:var(--brass);white-space:nowrap}
 #helpPanel dd{margin:0;color:var(--muted)}
-#toast{position:absolute;left:50%;top:120px;transform:translateX(-50%);padding:12px 18px;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
-#toast.show{opacity:1}
+#toast{position:absolute;left:50%;translate:-50% 0;top:120px;padding:12px 18px;font-size:15px;font-weight:550;opacity:0;transform:translateY(-10px) scale(.97);pointer-events:none;max-width:calc(100% - 32px);text-align:center;z-index:8;
+  transition:opacity .14s var(--ease-in),transform .16s var(--ease-in)}
+#toast.show{opacity:1;transform:none;transition:opacity .22s var(--ease-out),transform var(--spring-soft)}
+
+/* title intro: lettered balls and the cue that strikes them, above everything, never catching the pointer */
+.intro{position:fixed;inset:0;z-index:20;pointer-events:none;overflow:hidden}
+.intro .tball{position:absolute;left:0;top:0;will-change:transform}
+.icue{position:absolute;left:0;top:0;height:12px;width:min(60vw,560px);margin-top:-6px;transform-origin:100% 50%;will-change:transform,opacity;
+  clip-path:polygon(0 0,100% 25%,100% 75%,0 100%);
+  background:linear-gradient(90deg,#2a1810 0 30%,#d2ae62 30% 31.5%,#b98b52 31.5% 34%,#e6cd9b 45%,#f0dfb7 calc(100% - 10px),#f6f0e3 calc(100% - 10px) calc(100% - 6px),var(--chalk) calc(100% - 6px))}
+/* the struck menu ball flying at the screen, then the cover it leaves while the table connects */
+.flyball{position:fixed;z-index:30;border-radius:50%;pointer-events:none;will-change:transform;
+  background:var(--white-ball)}
+#cover{position:fixed;inset:0;z-index:29;display:grid;place-items:center;align-content:center;gap:16px;
+  background:var(--white-ball);color:#3b2c1e;font:700 15px var(--body)}
+#cover i{width:14px;height:14px;border-radius:50%;background:#c9222c;animation:orbit 1s linear infinite}
+#cover.out{animation:cover-out .45s var(--ease-in) both}
+
+/* ---------- keyframes ---------- */
+@keyframes practice{50%{transform:translateX(-20px)}}
+@keyframes bead-pick{from{transform:scale(.82)}}
+@keyframes pop-in-pt{from{transform:scale(0)}}
+@keyframes orbit{from{transform:rotate(0) translateX(18px)}to{transform:rotate(360deg) translateX(18px)}}
+@keyframes cover-out{to{opacity:0;transform:scale(1.06)}}
+@keyframes fade-in{from{opacity:0}}
+@keyframes fade-out{to{opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes sink{to{opacity:0;transform:translateY(10px)}}
+@keyframes drop-in{from{opacity:0;transform:translateY(-14px)}}
+@keyframes slide-in{from{opacity:0;transform:translateX(-18px)}}
+@keyframes letter-in{from{opacity:0;transform:translateY(.3em)}}
+@keyframes ball-arrive{from{opacity:0;transform:translateX(-2.6em) rotate(-540deg)}20%{opacity:1}}
+@keyframes pop-word{from{opacity:0;transform:scale(.8)}}
+@keyframes panel-rise{from{opacity:0;transform:translateY(22px) scale(.98)}}
+@keyframes lobby-out{to{opacity:0;transform:scale(.97)}}
+@keyframes roll-out{75%{opacity:1}to{opacity:0;transform:translateX(calc(-1 * (var(--k) + 1) * 60px - 30px)) rotate(calc(-1 * (var(--k) + 1) * 130deg - 70deg))}}
+@keyframes roll-in{from{opacity:0;transform:translateX(calc(-1 * (var(--k) + 1) * 60px - 30px)) rotate(calc(-1 * (var(--k) + 1) * 130deg - 70deg))}25%{opacity:1}}
+@keyframes panel-in{from{opacity:0;transform:scale(.94) translateY(8px)}}
+@keyframes panel-out{to{opacity:0;transform:scale(.97) translateY(4px)}}
+@keyframes dock-in{from{opacity:0;transform:translateX(28px)}}
+@keyframes dock-out{to{opacity:0;transform:translateX(20px)}}
+@keyframes pop-in{from{transform:translate(-50%,-50%) scale(0)}}
+@keyframes grow{from{transform:scaleX(0)}}
+@keyframes blink{50%{opacity:.25}}
 
 @media (max-width:1100px) and (min-width:761px){
   .status{max-width:calc(100% - 480px)}
 }
 @media (max-width:760px){
   .topbar{flex-wrap:wrap;gap:6px;top:8px}
-  .vs{font-size:11px}
   .spect{display:none}
   #menuBtn{margin-left:auto}
   .tools{top:64px}
-  .dock{top:auto;transform:none;right:8px;left:8px;bottom:8px;width:auto;padding:10px;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center}
-  .spinwrap{grid-row:span 2;--fd:100px;width:156px;height:124px;margin:-10px 0 -10px -10px}
-  .elev{right:2px;top:8px;bottom:8px;width:24px}
-  .gauge{height:46px}
-  .shotrow{grid-template-columns:44px 1fr 44px}
-  #shotBtn{font-size:20px;padding:10px 6px}
+  .dock{top:auto;translate:none;right:8px;left:8px;bottom:8px;width:auto;padding:10px 12px;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center;border-radius:18px}
+  @keyframes dock-in{from{opacity:0;transform:translateY(32px)}}
+  @keyframes dock-out{to{opacity:0;transform:translateY(24px)}}
+  .dk-spin{align-self:center;align-content:center}
+  .dk-spin .dk-h{font-size:11.5px}
+  .dk-spin .dk-h b{font-size:16px}
+  .spinwrap{--fd:96px;width:118px;height:110px;margin:0 -6px}
+  .dk-bars{gap:8px}
+  .vcol{gap:4px}
+  .vcol .dk-h b{font-size:17px}
+  .vcol small{display:none}
+  .vbar,.gauge{height:96px}
+  .gauge .ball{width:20px;height:20px;margin-left:-10px;top:8px}
+  .gauge .cue{top:31px;transform:translateY(calc(var(--p) * (100cqh - 52px)))}
+  .aimrow{grid-template-columns:40px 1fr 40px;gap:6px;margin-bottom:0}
+  .lock{height:36px;font-size:12px}
+  .dk-spin{grid-row:auto}
+  .aimrow,.shotrow{grid-column:1 / -1}
+  #shotBtn{font-size:19px;padding:10px 6px}
   #shotBtn small{display:none}
-  .status{max-width:calc(100% - 32px);width:calc(100% - 32px);padding:7px 12px;bottom:var(--dockh,200px)}
-  .turnmsg{font-size:18px}
+  .status{max-width:calc(100% - 32px);width:calc(100% - 32px);padding:8px 12px;bottom:var(--dockh,200px)}
+  .turnmsg{font-size:19px}
   .lastmsg{font-size:12.5px}
   .hint{display:none}
   .ballin{width:54px;height:54px;font-size:24px}
   #toast{top:150px}
 }
-@media (prefers-reduced-motion:reduce){ #toast{transition:none} }
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:1ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:1ms!important;transition-delay:0s!important}
+}
 </style>
 </head>
 <body>
@@ -264,7 +496,7 @@ select.field{width:auto;padding:8px 10px}
     <div class="topbar">
       <button id="takeSeat" class="btn small" hidden>빈 자리 이어받기</button>
       <div class="spect plate" id="spect"></div>
-      <button id="menuBtn" class="btn small" aria-expanded="false" aria-label="메뉴">☰</button>
+      <button id="menuBtn" class="btn small" aria-expanded="false" aria-label="메뉴"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
     </div>
 
     <div class="status plate" id="status">
@@ -288,29 +520,43 @@ select.field{width:auto;padding:8px 10px}
     </div>
 
     <div class="dock plate" id="dock">
-      <div class="spinwrap ctl">
-        <div class="obj" id="spinObj" hidden></div>
-        <div class="face" id="spinFace" role="slider" aria-label="당점 (두 번 누르면 중앙)">
-          <div class="ax v"></div><div class="ax h"></div>
-          <div class="nogo" id="spinNogo" hidden></div>
-          <div class="pt" id="spinPt"></div>
-        </div>
-        <div class="elev" id="elev" role="slider" aria-label="큐 각도 (세워치기)" aria-valuemin="0" aria-valuemax="75" aria-valuenow="0" tabindex="0">
-          <span class="ev" id="elevVal">0°</span>
-          <div class="trk"><div class="fill" id="elevFill"></div></div>
+      <div class="dk-spin ctl">
+        <div class="dk-h"><span>당점</span><b id="spinVal">중앙</b></div>
+        <div class="spinwrap">
+          <div class="obj" id="spinObj" hidden></div>
+          <div class="face" id="spinFace" role="slider" aria-label="당점 (두 번 누르면 중앙)">
+            <canvas id="spinGL" aria-hidden="true"></canvas>
+            <div class="tilt"><div class="ax v"></div><div class="ax h"></div><div class="ring r1"></div><div class="ring r2"></div></div>
+            <div class="spec"></div>
+            <div class="nogo" id="spinNogo" hidden></div>
+            <div class="gx"></div><div class="gy"></div>
+            <div class="ptw"><div class="pt" id="spinPt"></div></div>
+          </div>
         </div>
       </div>
-      <div class="pw ctl">
-        <div class="gauge" id="bars" role="slider" aria-label="세기" aria-valuemin="1" aria-valuemax="100" tabindex="0">
-          <div class="fill" id="pwFill"></div>
-          <div class="tick" style="left:25%"></div><div class="tick" style="left:50%"></div><div class="tick" style="left:75%"></div>
-          <b class="num" id="pwNum">50</b>
+      <div class="dk-bars ctl">
+        <div class="vcol dk-elev">
+          <div class="dk-h"><span>큐 각도</span><b id="elevVal">0°</b></div>
+          <div class="vbar" id="elev" role="slider" aria-label="큐 각도 (세워치기)" aria-valuemin="0" aria-valuemax="75" aria-valuenow="0" tabindex="0">
+            <div class="cloth"></div><div class="cue"></div><div class="ball"></div>
+          </div>
+          <small id="elevHint">수평</small>
         </div>
+        <div class="vcol dk-pw">
+          <div class="dk-h"><span>세기</span><b id="pwNum">50</b></div>
+          <div class="gauge" id="bars" role="slider" aria-label="세기 (큐를 아래로 당길수록 세게)" aria-valuemin="1" aria-valuemax="100" tabindex="0">
+            <div class="scale"></div><div class="cue"></div><div class="ball"></div>
+          </div>
+          <small>당길수록 세게</small>
+        </div>
+      </div>
+      <div class="aimrow ctl">
+        <button class="nudge" id="nudgeL" aria-label="조준 왼쪽으로 조금"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="lock" id="aimLock" aria-pressed="false" title="조준 고정 (L)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path class="shackle" d="M8 11V8a4 4 0 0 1 8 0v3"/><rect x="5" y="11" width="14" height="9.5" rx="2.2"/></svg><span>조준 고정</span></button>
+        <button class="nudge" id="nudgeR" aria-label="조준 오른쪽으로 조금"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
       </div>
       <div class="shotrow ctl">
-        <button class="nudge" id="nudgeL" aria-label="조준 왼쪽으로 조금">◀</button>
         <button class="btn primary" id="shotBtn">샷</button>
-        <button class="nudge" id="nudgeR" aria-label="조준 오른쪽으로 조금">▶</button>
       </div>
     </div>
 
@@ -342,7 +588,7 @@ select.field{width:auto;padding:8px 10px}
     <div id="helpPanel" class="plate" hidden>
       <h2>조작법</h2>
       <dl>
-        <dt>조준</dt><dd>화면 좌우로 끌기 · ← → (Shift 미세)</dd>
+        <dt>조준</dt><dd>화면 좌우로 끌기 (천천히 끌면 미세하게) · ← → (Shift 더 미세) · L 조준 고정</dd>
         <dt>두께</dt><dd>Q · E</dd>
         <dt>당점</dt><dd>공 그림 끌기 · W A S D · C 중앙</dd>
         <dt>큐 각도</dt><dd>오른쪽 막대 · Z · X</dd>
@@ -356,7 +602,7 @@ select.field{width:auto;padding:8px 10px}
     </div>
   </div>
 
-  <div id="lobby">
+  <div id="lobby" data-exit="300">
     <div class="lb-shade" aria-hidden="true"></div>
     <main class="lb-main">
       <section class="lb-left">
@@ -367,7 +613,7 @@ select.field{width:auto;padding:8px 10px}
           <button id="quickBtn" class="mi primary"><span class="mi-t">빠른 참가</span></button>
           <button id="createBtn" class="mi"><span class="mi-t">방 만들기</span></button>
           <button id="codeToggle" class="mi" aria-expanded="false" aria-controls="codeBox"><span class="mi-t">코드로 입장</span></button>
-          <div class="codebox" id="codeBox" hidden>
+          <div class="codebox" id="codeBox" data-exit="490" hidden>
             <div class="code">
               <input id="c0" class="ballin b1" inputmode="numeric" maxlength="1" aria-label="방 코드 첫째 자리" autocomplete="off">
               <input id="c1" class="ballin b2" inputmode="numeric" maxlength="1" aria-label="방 코드 둘째 자리" autocomplete="off">
@@ -918,8 +1164,9 @@ glow.rotation.x = Math.PI/2; glow.position.set(0,1.034,0); scene.add(glow);
 const lampParts = [shade, glow];
 for (const sx of [-0.85,0.85]){ const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,CEIL-1.08,6), brassMat); ch.position.set(sx,(CEIL+1.08)/2,0); scene.add(ch); lampParts.push(ch); }
 scene.add(new THREE.HemisphereLight(0x8a7560, 0x120a06, 0.35));
+const spots = [];                                                   // the three lamps over the table, left to right
 for (const x of [-0.75,0,0.75]){
-  const s = new THREE.SpotLight(0xffe8c4, 1.25, 4.5, 0.9, 0.65, 1.2);
+  const s = new THREE.SpotLight(0xffe8c4, 1.25, 4.5, 0.9, 0.65, 1.2); spots.push(s);
   s.position.set(x,1.0,0); s.target.position.set(x*1.05,0,0);
   s.castShadow = true; s.shadow.mapSize.set(1024,1024); s.shadow.bias = -0.0004; s.shadow.camera.near = 0.3; s.shadow.camera.far = 3;
   scene.add(s); scene.add(s.target);
@@ -1958,6 +2205,94 @@ const getCode = () => codeIns.map(i => i.value).join('');
 const setCode = c => codeIns.forEach((i,k) => { i.value = c[k] || ''; });
 if (/^#\d{4}$/.test(location.hash)) setCode(location.hash.slice(1));
 
+/* ---------- UI motion ---------- */
+// show / hide with an exit animation (.leaving). The final state never waits on an animation event: a timer settles it,
+// and showing again mid-exit cancels the exit at once.
+function setVis(e, on){
+  if (on){ if (e._ht){ clearTimeout(e._ht); e._ht = 0; e.classList.remove('leaving'); } e.hidden = false; return; }
+  if (e.hidden || e._ht) return;
+  if (reduceMotion || document.hidden){ e.hidden = true; return; }
+  e.classList.add('leaving');
+  e._ht = setTimeout(() => { e._ht = 0; e.classList.remove('leaving'); e.hidden = true; }, +e.dataset.exit || 180);
+}
+const isShown = e => !e.hidden && !e._ht;
+// --i on each child drives the CSS stagger delays
+function stagger(sel, kids){ document.querySelectorAll(sel).forEach(p => { let i = 0; for (const c of p.children) if (!kids || c.matches(kids)) c.style.setProperty('--i', i++); }); }
+// segmented choices: one felt chip under the picked button, sprung across when the pick changes
+function syncSeg(wrap){
+  const bg = wrap._bg, b = wrap.querySelector('button[aria-pressed="true"]');
+  if (!bg || !wrap.offsetWidth) return;                          // not on screen: the ResizeObserver places it once it is
+  bg.style.setProperty('--sx', (b ? b.offsetLeft : 0) + 'px');
+  bg.style.setProperty('--sw', b ? (b.offsetWidth/100).toFixed(4) : '0');
+  if (!wrap.classList.contains('ready')) requestAnimationFrame(() => wrap.classList.add('ready'));
+}
+const segRO = window.ResizeObserver ? new ResizeObserver(es => es.forEach(x => syncSeg(x.target))) : null;
+document.querySelectorAll('.seg').forEach(w => { w._bg = document.createElement('span'); w._bg.className = 'chipbg'; w.prepend(w._bg); if (segRO) segRO.observe(w); });
+// a code ball gives a little when a digit lands in it
+function knock(e){ if (reduceMotion || !e.animate) return; e.animate([{transform:'scale(1)'}, {transform:'scale(.84)', offset:.3}, {transform:'scale(1)'}], {duration:380, easing:'cubic-bezier(.3,1.5,.5,1)'}); }
+(function(){                                                     // 당구장: the title is three balls with a syllable on each
+  const t = $('.brand-title'), word = t.textContent.trim();
+  t.setAttribute('aria-label', word); t.textContent = ''; if (!reduceMotion){ t.classList.add('pre'); $('#lobby').classList.add('intro-on'); }   // hidden until title3d has its balls in place
+  [...word].forEach((c, i) => { const s = document.createElement('span'); s.className = 'tball ' + 'wyr'[i % 3]; s.setAttribute('aria-hidden', 'true'); const b = document.createElement('b'); b.textContent = c; s.appendChild(b); t.appendChild(s); });
+})();
+stagger('#lbMenu', '.mi'); stagger('.lb-panel'); stagger('#dock'); stagger('#tools');
+
+// the title balls are built once their font is in (the letters are painted onto the balls)
+(document.fonts ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]) : Promise.resolve()).then(() => requestAnimationFrame(() => title3d ? title3d.start() : settleTitle()));
+function settleTitle(){
+  const was = $('#lobby').classList.contains('intro-on');
+  if (was) $('#lobby').classList.add('after-intro');
+  $('.brand-title').classList.remove('pre'); $('#lobby').classList.remove('intro-on');
+  if (was && getCode()) setTimeout(() => { if (mode === 'lobby') openCodeBox(); }, 520);   // a shared link's code: open the box as the menu comes in
+}
+
+/* 빠른 참가 · 방 만들기: the cue strikes the menu ball, it flies at the screen and fills it, and stays as a cover until the table is up */
+let launching = false;
+function strikeOut(btn){
+  if (reduceMotion){ showCover(); return Promise.resolve(); }
+  btn.classList.add('strike');                                         // holds the cue out and stops the practice strokes
+  let contact = 80;
+  try {
+    btn._cue = btn.animate([
+      {opacity: 1, transform: 'translateX(-7px)', easing: 'cubic-bezier(.25,.7,.3,1)'},
+      {opacity: 1, transform: 'translateX(-42px)', offset: .55, easing: 'cubic-bezier(.75,0,1,.55)'},   // back-swing
+      {opacity: 1, transform: 'translateX(10px)', offset: .82, easing: 'cubic-bezier(.2,.8,.4,1)'},     // through the ball
+      {opacity: 1, transform: 'translateX(4px)'}
+    ], {duration: 430, pseudoElement: '::after', fill: 'forwards'});
+    contact = 335;                                                     // the tip meets the ball late in the forward stroke
+  } catch(e){}
+  return new Promise(res => setTimeout(() => {
+    sfxBudget = 2; sfx('ball', 1.3);
+    const br = btn.getBoundingClientRect(), bs = getComputedStyle(btn, '::before'), d = parseFloat(bs.width) || 18;
+    const x = br.left + (parseFloat(bs.left) || 16), y = br.top + br.height/2 - d/2;
+    btn.classList.add('launched');
+    const b = document.createElement('div'); b.className = 'flyball'; b.style.cssText = `left:${x}px;top:${y}px;width:${d}px;height:${d}px`; document.body.appendChild(b);
+    const cx = innerWidth/2 - (x + d/2), cy = innerHeight/2 - (y + d/2), S = 3*Math.hypot(innerWidth, innerHeight)/d, run = Math.min(170, innerWidth*.25);
+    const a = b.animate([
+      {transform: 'translate(0,0) scale(1) rotate(0deg)', easing: 'cubic-bezier(.15,.8,.35,1)'},
+      {transform: `translate(${run}px,-6px) scale(1.5) rotate(240deg)`, offset: .3, easing: 'cubic-bezier(.7,0,.95,.45)'},
+      {transform: `translate(${cx}px,${cy}px) scale(${S}) rotate(560deg)`}
+    ], {duration: 760, fill: 'forwards'});
+    a.finished.catch(() => {}).then(() => { showCover(); b.remove(); res(); });
+  }, contact));
+}
+function showCover(){
+  if ($('#cover')) return;
+  const c = document.createElement('div'); c.id = 'cover'; c.setAttribute('role', 'status');
+  c.appendChild(document.createElement('i')); c.appendChild(document.createTextNode('테이블로 가는 중'));
+  document.body.appendChild(c);
+}
+function dropCover(){
+  document.querySelectorAll('.mi.strike, .mi.launched').forEach(m => { m.classList.remove('strike', 'launched'); if (m._cue){ m._cue.cancel(); m._cue = null; } });
+  const c = $('#cover'); if (!c || c.classList.contains('out')) return;
+  c.classList.add('out'); setTimeout(() => c.remove(), reduceMotion ? 0 : 460);
+}
+function launchThen(btn, go){
+  if (launching) return;
+  launching = true; audioInit();
+  strikeOut(btn).then(go).catch(() => {}).then(() => { launching = false; if (mode === 'lobby') dropCover(); });   // still in the lobby: it failed, lift the cover
+}
+
 function toast(msg, ms){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms || 2600); }
 function readName(){ myName = (nameIn.value.trim() || '플레이어').slice(0,12); try { localStorage.setItem('cr-name', nameIn.value.trim()); } catch(e){} }
 
@@ -1998,7 +2333,10 @@ function applyState(st){
   const key = S.n+'|'+S.turn;
   if (key !== lastTurnKey){
     lastTurnKey = key;
-    setSpin(0,0); setElev(0);                                    // every turn starts from a still table and a neutral cue: no 당점 or raised cue left over
+    // the rail limit on 당점 belongs to where the cue ball was last turn: drop it first, or setSpin(0,0) would be clamped
+    // up to it and the new turn would start with top spin nobody chose (it is worked out again for the new position)
+    syMin = -1; $('#spinNogo').hidden = true;
+    setSpin(0,0); setElev(0); setAimLock(false);                                    // every turn starts from a still table and a neutral cue: no 당점 or raised cue left over
     if (isMyTurn()){
       defaultAim();
       if (mode === 'online' && !wasMine && S.players.length > 1 && S.winner < 0){ sfxBudget = 2; sfx('turn'); toast('내 차례예요'); }
@@ -2050,13 +2388,15 @@ function startPlayback(res, target, sh, replay, startAt){
 function logShot(before, sh, after){
   const who = before.players[sh.c] ? before.players[sh.c].name : BALL_NAME[sh.c];
   const av = avatars.map(A => A ? {x: A.x, z: A.z, h: A.h, seat: A.seat} : null);   // where the characters were (for the replay)
-  lastShot = {balls: before.balls.map(b => b && b.slice()), sh, who, msg: after && after.msg || '', no: shotLog.length + 1, av};
+  const q = ballMeshes.map(m => m.quaternion.toArray());               // how each ball was turned before the shot, so the replay starts the same
+  lastShot = {balls: before.balls.map(b => b && b.slice()), sh, who, msg: after && after.msg || '', no: shotLog.length + 1, av, q};
   shotLog.push(lastShot); if (shotLog.length > 200) shotLog.shift();
 }
 function replayShot(h, onEnd){
   if (!h || playing || strike || !S) return false;
   audioInit();
   startPlayback(simulate(h.balls, h.sh), S, h.sh, true);
+  if (h.q) h.q.forEach((q, i) => replayMeshes[i].quaternion.fromArray(q));
   playing.onEnd = onEnd; playing.label = h.no;
   playing.sh = h.sh; playing.ball = h.balls[h.sh.c].slice(); playing.av = h.av || null; playing.placed = false;
   replaySaved = avatars.map(A => { const J = newJoints(); for (const k in J) J[k].copy(A.JS[k]); return {x: A.x, z: A.z, h: A.h, seat: A.seat, sit: A.sit, stance: A.stance, path: A.path.slice(), JS: J}; });
@@ -2066,7 +2406,7 @@ function replayShot(h, onEnd){
   $('#riWho').textContent = h.who + ' · 세기 ' + h.sh.p;
   const sd = Math.round(Math.hypot(sx, sy)*10)/10;
   $('#riTxt').textContent = '당점 ' + (sd < 0.05 ? '중앙' : (sy > 0.05 ? '상단 ' : sy < -0.05 ? '하단 ' : '') + (sx > 0.05 ? '오른쪽 ' : sx < -0.05 ? '왼쪽 ' : '') + Math.round(sd*10)/10 + '팁') + (h.sh.el ? ' · 큐 ' + h.sh.el + '°' : '');
-  $('#replayInfo').hidden = false;
+  setVis($('#replayInfo'), true);
   toast(`다시 보기 · ${h.no}번째 샷 (${h.who})`, 2000);
   return true;
 }
@@ -2074,7 +2414,7 @@ function replayLast(){ replayShot(lastShot); }
 // after a replay the characters go back to exactly where they were before it
 let replaySaved = null;
 function endReplay(){
-  $('#replayInfo').hidden = true;
+  setVis($('#replayInfo'), false);
   replayMeshes.forEach(m => { m.visible = false; }); placeMeshes();
   if (!replaySaved) return;
   replaySaved.forEach((v, i) => { const A = avatars[i]; if (!A) return; A.x = v.x; A.z = v.z; A.h = v.h; A.seat = v.seat; A.sit = v.sit; A.stance = v.stance; A.path = v.path; for (const k in v.JS) A.JS[k].copy(v.JS[k]); A.ownStanceAt = 0; A.goalKey = ''; });
@@ -2221,12 +2561,12 @@ async function quickJoin(){
   if (room){
     setCode(room.code);
     toast(`${room.name || '상대'}님의 ${MODE_NAME[room.mode]} 방에 들어가요`, 2400);
-    joinRoom(room.code);
+    await joinRoom(room.code);
   } else {
     const c = String(Math.floor(Math.random()*10000)).padStart(4,'0');
     setCode(c);
     toast('열린 방이 없어서 새 방을 만들었어요. 다음에 빠른 참가하는 사람이 이 방으로 들어와요', 4200);
-    joinRoom(c);
+    await joinRoom(c);
   }
 }
 
@@ -2236,10 +2576,10 @@ function leave(){
   nr = null; mode = 'lobby'; peers = []; playing = null; strike = null; oppAim = null; topView = false;
   try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
   setCode('');                                                   // a fresh code for the next room (not the one just left)
-  $('#hud').hidden = true; $('#ngPanel').hidden = true; $('#helpPanel').hidden = true; $('#lobby').hidden = false;
+  $('#hud').hidden = true; $('#ngPanel').hidden = true; $('#helpPanel').hidden = true; $('#replayPanel').hidden = true; closeMenu(); setVis($('#lobby'), true);
   lastRk = -1; applyState(newRack([], 1, lobbyMode, 10, 0, '', lobbySize));
 }
-function enterGame(){ $('#lobby').hidden = true; $('#hud').hidden = false; oyaw = Math.PI*0.5+0.5; renderHUD(); layoutDock(); }
+function enterGame(){ setVis($('#lobby'), false); $('#hud').hidden = false; oyaw = Math.PI*0.5+0.5; renderHUD(); layoutDock(); dropCover(); }
 
 /* ================= HUD ================= */
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -2257,7 +2597,7 @@ function renderHUD(){
   // status plate only appears when it matters: game over, or waiting for an opponent. Turn is already shown on the scoreboard.
   const tm = $('#turnMsg'), hint = $('#hint'), lm = $('#lastMsg');
   const over = !!(S && S.winner >= 0), waiting = !!(S && online && S.players.length < 2 && !playing && !strike);
-  $('#status').hidden = !(over || waiting);
+  setVis($('#status'), over || waiting);
   $('#rematchBtn').hidden = !(over && amSeated());
   lm.textContent = ''; hint.textContent = '';
   tm.classList.toggle('mine', over);
@@ -2268,7 +2608,7 @@ function renderHUD(){
   $('#newBtn').hidden = !amSeated();
   $('#replayBtn').disabled = !shotLog.length || !!playing || !!strike;
   const can = canAim();
-  $('#dock').hidden = !can;                                  // 당점 · 세기 · 샷 controls only while it is your turn
+  setVis($('#dock'), can && !boardView);                    // 당점 · 세기 · 샷 controls only while it is your turn, and not while the camera shows the score
   $('#shotBtn').disabled = !can;
   layoutDock();
 }
@@ -2278,9 +2618,9 @@ bars.addEventListener('wheel', e => { if (!canAim()) return; e.preventDefault();
 function setLevel(v){
   level = clamp(Math.round(v), 1, 100);
   try { localStorage.setItem('cr-power', String(level)); } catch(e){}
-  $('#pwFill').style.width = level + '%';
-  bars.style.setProperty('--gw', bars.clientWidth + 'px');
+  bars.style.setProperty('--p', ((level - 1)/99).toFixed(3));          // how far the cue is drawn back from the ball
   $('#pwNum').textContent = String(level);
+  $('.dk-pw').classList.toggle('hot', level >= 85);
   bars.setAttribute('aria-valuenow', String(level));
 }
 // 당점 below this can't be reached: the cue has to clear the rail behind a ball that sits near the cushion
@@ -2296,37 +2636,108 @@ function railDrawLimit(){
   const lim = (clear - R)/(R*TIP);
   return lim <= -0.85 ? -1 : Math.min(0.3, lim);
 }
+/* 당점 ball in 3D: an ivory ball under the hall's key light, tip rings and cross lines lying on its surface, and the blue
+   chalk mark wrapped onto the ball where the tip meets it. Its own small renderer, drawn only when the 당점 moves or the
+   dock changes size, so it costs nothing while it sits still. */
+const spinGL = (() => {
+  const cv = $('#spinGL'), face = $('#spinFace');
+  let rd; try { rd = new THREE.WebGLRenderer({canvas: cv, alpha: true, antialias: true}); } catch(e){ return null; }
+  rd.outputEncoding = THREE.sRGBEncoding; rd.toneMapping = THREE.ACESFilmicToneMapping; rd.toneMappingExposure = 1.05;
+  const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10); cam.position.z = 5;
+  const mat = new THREE.MeshPhysicalMaterial({color: 0xf3efe4, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.06});
+  if (scene.environment){ mat.envMap = scene.environment; mat.envMapIntensity = 0.5; }
+  sc.add(new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), mat));
+  sc.add(new THREE.HemisphereLight(0xfff6e6, 0x3a2a1c, 0.75));
+  const key = new THREE.DirectionalLight(0xffefd6, 1.5); key.position.set(-1.4, 2, 2.4); sc.add(key);
+  const rim = new THREE.DirectionalLight(0x9fb8e0, 0.35); rim.position.set(2, -1, -1); sc.add(rim);
+  // guides lying on the surface: rings one and two tips out, and the two centre lines
+  const guide = new THREE.Group(); sc.add(guide);
+  const gm = new THREE.LineDashedMaterial({color: 0x5a462d, transparent: true, opacity: 0.32, dashSize: 0.045, gapSize: 0.035});
+  const onBall = (x, y) => new THREE.Vector3(x, y, Math.sqrt(Math.max(0, 1 - x*x - y*y))*1.004);
+  const line = (pts, loop) => { const g = new THREE.BufferGeometry().setFromPoints(pts); const l = new (loop ? THREE.LineLoop : THREE.Line)(g, gm); l.computeLineDistances(); guide.add(l); };
+  for (const rr of [1/3, 2/3]) line(Array.from({length: 96}, (_, i) => { const a = i/96*Math.PI*2; return onBall(rr*Math.cos(a), rr*Math.sin(a)); }), true);
+  line(Array.from({length: 61}, (_, i) => onBall(0, -0.92 + i*0.92/30)));
+  line(Array.from({length: 61}, (_, i) => onBall(-0.92 + i*0.92/30, 0)));
+  // the chalk mark: a small cap of the sphere, fading out toward its rim
+  const chalk = canvasTex(8, 64, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(48,104,186,1)'); gr.addColorStop(.45, 'rgba(70,128,205,.85)'); gr.addColorStop(.75, 'rgba(79,134,207,.3)'); gr.addColorStop(1, 'rgba(79,134,207,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  chalk.wrapS = THREE.RepeatWrapping;
+  const mark = new THREE.Mesh(new THREE.SphereGeometry(1.006, 32, 10, 0, Math.PI*2, 0, 0.2), new THREE.MeshBasicMaterial({map: chalk, transparent: true, depthWrite: false}));
+  sc.add(mark);
+  const UPV = new THREE.Vector3(0, 1, 0), n = new THREE.Vector3();
+  let w = 0, lastX = 0, lastY = 0;
+  function draw(x, y){
+    lastX = x; lastY = y;
+    if (!w) return;
+    n.copy(onBall(x, y)).normalize(); mark.quaternion.setFromUnitVectors(UPV, n);
+    guide.rotation.set(-y*0.14, x*0.14, 0);                          // the printed guides lean a touch toward the tip, as if the ball turned
+    rd.render(sc, cam);
+  }
+  function fit(){ const s = face.clientWidth; if (!s) return; if (s !== w){ w = s; rd.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); rd.setSize(s, s, false); } draw(lastX, lastY); }
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(face);
+  face.classList.add('gl');
+  return {draw, fit};
+})();
+// the chalk mark (and with it the ball's light and rings) follows the set 당점 on a spring: snappy under the finger,
+// a softer settle with a touch of overshoot when it jumps (tap, centre, keys)
+const spinView = {x: 0, y: 0, vx: 0, vy: 0, raf: 0, t: 0, stiff: 380, zeta: 0.72};
+function viewSpin(now){
+  const V = spinView, dt = Math.min(0.033, (now - V.t)/1000) || 0.016, k = V.stiff, c = 2*Math.sqrt(k)*V.zeta;
+  V.t = now;
+  V.vx += (k*(spinX - V.x) - c*V.vx)*dt; V.x += V.vx*dt;
+  V.vy += (k*(spinY - V.y) - c*V.vy)*dt; V.y += V.vy*dt;
+  const rest = Math.abs(spinX - V.x) < 5e-4 && Math.abs(spinY - V.y) < 5e-4 && Math.abs(V.vx) + Math.abs(V.vy) < 5e-3;
+  if (rest){ V.x = spinX; V.y = spinY; V.vx = V.vy = 0; }
+  const f = $('#spinFace'); f.style.setProperty('--px', V.x.toFixed(4)); f.style.setProperty('--py', V.y.toFixed(4));
+  if (spinGL) spinGL.draw(V.x, V.y);
+  V.raf = rest ? 0 : requestAnimationFrame(viewSpin);
+}
+function kickSpin(){
+  const V = spinView;
+  if (reduceMotion){ V.x = spinX; V.y = spinY; const f = $('#spinFace'); f.style.setProperty('--px', V.x); f.style.setProperty('--py', V.y); if (spinGL) spinGL.draw(V.x, V.y); return; }
+  if (!V.raf){ V.t = performance.now(); V.raf = requestAnimationFrame(viewSpin); }
+}
 function setSpin(x, y){
   if (y < syMin) y = syMin;
   const l = Math.hypot(x, y);
   if (l > 0.85){ x *= 0.85/l; y *= 0.85/l; if (y < syMin){ y = syMin; x = Math.sign(x)*Math.sqrt(Math.max(0, 0.85*0.85 - y*y)); } }
-  spinX = Math.round(x*20)/20; spinY = Math.round(y*20)/20;
-  if (spinY < syMin - 1e-9) spinY = Math.ceil(syMin*20)/20;
-  $('#spinPt').style.left = (50 + spinX*50)+'%';
-  $('#spinPt').style.top = (50 - spinY*50)+'%';
+  spinX = Math.round(x*100)/100; spinY = Math.round(y*100)/100;
+  if (spinY < syMin - 1e-9) spinY = Math.ceil(syMin*100)/100;
+  kickSpin();
+  const ax = Math.abs(spinX), ay = Math.abs(spinY), n = v => v.toFixed(2);
+  $('#spinVal').textContent = ax < 0.05 && ay < 0.05 ? '중앙'
+    : [ay >= 0.05 ? (spinY > 0 ? '상 ' : '하 ') + n(ay) : '', ax >= 0.05 ? (spinX > 0 ? '우 ' : '좌 ') + n(ax) : ''].filter(Boolean).join(' · ');
 }
 function setElev(v){
   elev = clamp(Math.round(v), 0, EL_MAX);
   $('#elevVal').textContent = elev + '°';
-  $('#elevFill').style.height = (elev/EL_MAX*100) + '%';
-  $('#elev').classList.toggle('on', elev > 0);
+  $('#elevHint').textContent = elev === 0 ? '수평' : elev < 30 ? '살짝 세움' : elev < 55 ? '세워치기' : '마세이';
+  $('#elev').style.setProperty('--e', (elev/EL_MAX).toFixed(4));                 // tilts the cue in the side view and fills the arc
+  $('.dk-elev').classList.toggle('on', elev > 0);
   $('#elev').setAttribute('aria-valuenow', String(elev));
 }
 // 두께: show the object ball the aim line meets behind the 당점 face, shifted by its lateral offset (0 = full hit, ±2R = miss)
 const spinObj = $('#spinObj'), OBJ_TONES = [['#ffffff','#ece6d6','#a8a090'], ['#fff3b8','#f2c428','#9e7a0a'], ['#ff8a8a','#c9222c','#6e0f14'], ['#ff8a8a','#c9222c','#6e0f14']];
 let objMark = '';
-function setThickness(hit, lat){
-  const mark = hit < 0 ? '' : hit + '|' + lat.toFixed(4);
+// list: the balls the aim line passes within a ball's width of, nearest first, as {i, lat, t}.
+// The nearest is the one the cue ball meets; the others sit behind it in perspective (smaller, higher, darker).
+const objEls = [spinObj];
+for (let k = 1; k < NB - 1; k++){ const o = spinObj.cloneNode(); o.removeAttribute('id'); spinObj.after(o); objEls.push(o); }
+function setThickness(list){
+  const mark = list.map(q => q.i + ':' + q.lat.toFixed(4) + ':' + q.t.toFixed(3)).join('|');
   if (mark === objMark) return;
   objMark = mark;
-  spinObj.hidden = hit < 0;
-  if (hit < 0) return;
-  const t = OBJ_TONES[hit];
-  spinObj.style.setProperty('--oc1', t[0]); spinObj.style.setProperty('--oc2', t[1]); spinObj.style.setProperty('--oc3', t[2]);
-  spinObj.style.setProperty('--ox', `calc(var(--fd) * ${(lat/(2*R)).toFixed(4)})`);
+  objEls.forEach((el, k) => {
+    const q = list[k]; el.hidden = !q;
+    if (!q) return;
+    const tone = OBJ_TONES[q.i], f = k ? clamp(list[0].t/q.t, 0.42, 1) : 1;   // apparent size relative to the nearest ball
+    el.style.setProperty('--oc1', tone[0]); el.style.setProperty('--oc2', tone[1]); el.style.setProperty('--oc3', tone[2]);
+    el.style.setProperty('--ox', `calc(var(--fd) * ${(q.lat/(2*R)*f).toFixed(4)})`);
+    el.style.setProperty('--oy', `calc(var(--fd) * ${((1 - f)*0.22).toFixed(4)})`);
+    el.style.setProperty('--os', f.toFixed(3));
+    el.style.zIndex = String(-k); el.style.filter = `brightness(${(0.7 - k*0.12).toFixed(2)})`;
+  });
 }
 function layoutDock(){
-  const g = $('#bars'); if (g.clientWidth) g.style.setProperty('--gw', g.clientWidth + 'px');
   if (window.innerWidth <= 760){ const d = $('#dock'); $('#status').style.setProperty('--dockh', (d.offsetHeight + 16) + 'px'); }
 }
 
@@ -2346,7 +2757,7 @@ canvas.addEventListener('pointerdown', e => {
   let kind = 'orbit';
   if (canAim()) kind = topView ? 'topaim' : 'aim';
   else if (topView) kind = 'none';
-  drag = {kind, x:e.clientX, y:e.clientY, sx:e.clientX, sy:e.clientY, moved:false};
+  drag = {kind, x:e.clientX, y:e.clientY, sx:e.clientX, sy:e.clientY, moved:false, t:performance.now(), push:0};
 });
 canvas.addEventListener('pointermove', e => {
   if (!pointers.has(e.pointerId)) return;
@@ -2356,8 +2767,13 @@ canvas.addEventListener('pointermove', e => {
   const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
   drag.x = e.clientX; drag.y = e.clientY;
   if (Math.hypot(e.clientX-drag.sx, e.clientY-drag.sy) > 6) drag.moved = true;
-  const sens = (fine || e.shiftKey) ? 0.0009 : 0.0045;
-  if (drag.kind === 'topaim' && drag.moved){ const h = tableHit(e); if (h){ const c = cuePos(); if (Math.hypot(h.x-c[0],h.z-c[1]) > 0.02) setAim(Math.atan2(h.z-c[1], h.x-c[0])); } }
+  // aim follows the hand's speed, like a mouse: a slow drag turns the cue a hair at a time, a quick sweep turns it fast
+  const nowMs = performance.now(), v = Math.abs(dx)/Math.max(4, nowMs - drag.t); drag.t = nowMs;
+  const sens = (fine || e.shiftKey) ? 0.0004 : 0.0006 + 0.0039*Math.pow(Math.min(1, v/1.6), 1.6);
+  if ((drag.kind === 'aim' || drag.kind === 'topaim') && aimLock){                  // locked: the cue stays put, only the view moves
+    if (drag.kind === 'aim'){ camYawOff += dx*0.006; ap = clamp(ap + dy*0.004, 0.06, 1.25); }
+  }
+  else if (drag.kind === 'topaim' && drag.moved){ const h = tableHit(e); if (h){ const c = cuePos(); if (Math.hypot(h.x-c[0],h.z-c[1]) > 0.02) setAim(Math.atan2(h.z-c[1], h.x-c[0])); } }
   else if (drag.kind === 'aim'){ setAim(aimA + dx*sens); ap = clamp(ap + dy*0.004, 0.06, 1.25); }
   else if (drag.kind === 'orbit' && fpActive()){ fpYaw += dx*0.005; fpPitch = clamp(fpPitch - dy*0.004, -1.2, 0.8); }
   else if (drag.kind === 'orbit'){ oyaw += dx*0.006; opitch = clamp(opitch + dy*0.004, 0.12, 1.45); }
@@ -2391,44 +2807,71 @@ canvas.addEventListener('pointercancel', endPointer);
 function zoom(k){ if (topView || fpActive()) return; if (canAim()) ad = clamp(ad*k, 0.18, 3.6); else odist = clamp(odist*k, 0.5, 7); }
 canvas.addEventListener('wheel', e => { e.preventDefault(); zoom(Math.exp(e.deltaY*0.0012)); }, {passive:false});
 
-// 당점 picker
+// 당점 picker: the tip goes where you point (every edge reachable) and the chalk mark trails the pointer on a soft,
+// non-bouncing spring while you drag, so it moves calmly instead of jumping
 const spinFace = $('#spinFace');
 let sdrag = false;
+function puff(){ if (reduceMotion) return; const p = document.createElement('div'); p.className = 'puff'; spinFace.querySelector('.ptw').appendChild(p);
+  p.animate([{transform: 'scale(.4)', opacity: .9}, {transform: 'scale(2.2)', opacity: 0}], {duration: 420, easing: 'cubic-bezier(.2,.7,.3,1)'}).finished.then(() => p.remove(), () => p.remove()); }
 const spinFrom = e => { const r = spinFace.getBoundingClientRect(); setSpin(((e.clientX-r.left)/r.width)*2-1, -(((e.clientY-r.top)/r.height)*2-1)); };
-spinFace.addEventListener('pointerdown', e => { if (!canAim()) return; sdrag = true; spinFace.setPointerCapture(e.pointerId); spinFrom(e); });
+spinFace.addEventListener('pointerdown', e => {
+  if (!canAim()) return;
+  sdrag = true; spinFace.setPointerCapture(e.pointerId); spinFace.classList.add('drag');
+  spinView.stiff = 110; spinView.zeta = 1;                            // slow, no overshoot while following the hand
+  spinFrom(e); puff();
+});
 spinFace.addEventListener('pointermove', e => { if (sdrag) spinFrom(e); });
-spinFace.addEventListener('pointerup', () => { sdrag = false; });
-spinFace.addEventListener('pointercancel', () => { sdrag = false; });
-spinFace.addEventListener('dblclick', () => setSpin(0,0));
+const spinEnd = () => { sdrag = false; spinFace.classList.remove('drag'); spinView.stiff = 380; spinView.zeta = 0.72; };
+spinFace.addEventListener('pointerup', spinEnd);
+spinFace.addEventListener('pointercancel', spinEnd);
+spinFace.addEventListener('dblclick', () => { setSpin(0,0); puff(); });
 
-// 큐 각도 (세워치기): drag or tap the bar, double-tap to lay the cue flat again
-const elevEl = $('#elev'), elevTrk = elevEl.querySelector('.trk');
+// 큐 각도 (세워치기): drag up the bar to raise the cue (tap to jump there); double-tap lays it flat again
+const elevEl = $('#elev');
 let edrag = false;
-const elevFrom = e => { const r = elevTrk.getBoundingClientRect(); setElev((1 - clamp((e.clientY-r.top)/r.height, 0, 1))*EL_MAX); };
-elevEl.addEventListener('pointerdown', e => { if (!canAim()) return; edrag = true; elevEl.setPointerCapture(e.pointerId); elevFrom(e); });
+const elevFrom = e => { const r = elevEl.getBoundingClientRect(); setElev((1 - clamp((e.clientY - r.top - 8)/(r.height - 16), 0, 1))*EL_MAX); };
+const elevEnd = () => { edrag = false; elevEl.classList.remove('drag'); };
+elevEl.addEventListener('pointerdown', e => { if (!canAim()) return; edrag = true; elevEl.classList.add('drag'); elevEl.setPointerCapture(e.pointerId); elevFrom(e); });
 elevEl.addEventListener('pointermove', e => { if (edrag) elevFrom(e); });
-elevEl.addEventListener('pointerup', () => { edrag = false; });
-elevEl.addEventListener('pointercancel', () => { edrag = false; });
+elevEl.addEventListener('pointerup', elevEnd);
+elevEl.addEventListener('pointercancel', elevEnd);
 elevEl.addEventListener('dblclick', () => setElev(0));
+elevEl.addEventListener('wheel', e => { if (!canAim()) return; e.preventDefault(); setElev(elev + (e.deltaY < 0 ? 1 : -1)); }, {passive: false});
 
-// 세기: tap or slide across the bars
+// 세기: grab the cue and draw it back from the ball (the tip follows the pointer); tap to set it straight away
 let bdrag = false;
-const barFrom = e => { const r = bars.getBoundingClientRect(); setLevel(1 + clamp((e.clientX-r.left)/r.width, 0, 1)*99); };
-bars.addEventListener('pointerdown', e => { if (!canAim()) return; bdrag = true; bars.setPointerCapture(e.pointerId); barFrom(e); });
+const barFrom = e => {                                          // the tip rests just under the ball (40px from the top); fully drawn it is 26px off the bottom
+  const r = bars.getBoundingClientRect(), small = r.height < 120, rest = small ? 31 : 40, span = r.height - (small ? 52 : 66);
+  setLevel(1 + clamp((e.clientY - r.top - rest)/span, 0, 1)*99);
+};
+const barEnd = () => { bdrag = false; bars.classList.remove('drag'); };
+bars.addEventListener('pointerdown', e => { if (!canAim()) return; bdrag = true; bars.classList.add('drag'); bars.setPointerCapture(e.pointerId); barFrom(e); });
 bars.addEventListener('pointermove', e => { if (bdrag) barFrom(e); });
-bars.addEventListener('pointerup', () => { bdrag = false; });
-bars.addEventListener('pointercancel', () => { bdrag = false; });
+bars.addEventListener('pointerup', barEnd);
+bars.addEventListener('pointercancel', barEnd);
 $('#shotBtn').addEventListener('click', shoot);
 
 // fine aim nudge (hold to repeat)
 function holdRepeat(btn, fn){
   let t = null, iv = null;
   const stop = () => { clearTimeout(t); clearInterval(iv); t = iv = null; };
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); if (!canAim()) return; fn(); t = setTimeout(() => { iv = setInterval(() => { if (canAim()) fn(); }, 35); }, 320); });
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); if (!canAim()) return; let n = 0; fn(n); t = setTimeout(() => { iv = setInterval(() => { if (canAim()) fn(++n); }, 35); }, 320); });
   ['pointerup','pointerleave','pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
 }
-holdRepeat($('#nudgeL'), () => { setAim(aimA - (fine ? 0.0006 : 0.002)); });
-holdRepeat($('#nudgeR'), () => { setAim(aimA + (fine ? 0.0006 : 0.002)); });
+// a tap is a hair; holding speeds up gradually
+const nudgeStep = n => fine ? 0.0003 : Math.min(0.004, 0.0006*(1 + n*0.1));
+holdRepeat($('#nudgeL'), n => { setAim(aimA - nudgeStep(n)); });
+holdRepeat($('#nudgeR'), n => { setAim(aimA + nudgeStep(n)); });
+
+// 조준 고정: while locked, dragging the table only turns and tilts the view around the cue ball; the cue never moves
+// (◀ ▶ and the arrow keys still fine-tune it).
+// Every new turn starts unlocked.
+let aimLock = false, camYawOff = 0;
+function setAimLock(on){ aimLock = !!on; if (!aimLock) camYawOff = 0;   // unlocking swings the view back behind the cue
+  const b = $('#aimLock'); b.setAttribute('aria-pressed', String(aimLock)); b.querySelector('span').textContent = aimLock ? '조준 고정됨' : '조준 고정'; }
+function nudgeLock(){ const b = $('#aimLock'); if (reduceMotion || !b.animate) return;
+  b.animate([{transform:'translateX(0)'}, {transform:'translateX(-5px)'}, {transform:'translateX(4px)'}, {transform:'translateX(-2px)'}, {transform:'translateX(0)'}], {duration: 360, easing: 'ease-out'}); }
+$('#aimLock').addEventListener('click', () => setAimLock(!aimLock));
 
 // E next to a sofa: sit down (or get up again). Not on your own turn: then you're walking to the ball.
 function sitToggle(){
@@ -2449,17 +2892,18 @@ window.addEventListener('blur', () => { avKeys = {}; });
 window.addEventListener('keydown', e => {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
   if (mode === 'lobby') return;
-  const step = e.shiftKey ? 0.0006 : fine ? 0.0015 : 0.008;
+  const step = e.shiftKey ? 0.0004 : fine ? 0.001 : e.repeat ? 0.004 : 0.0015;   // a press is fine, holding the key turns faster
   const can = canAim();
   if (e.code === 'ArrowLeft' && can){ setAim(aimA - step); e.preventDefault(); }
   else if (e.code === 'ArrowRight' && can){ setAim(aimA + step); e.preventDefault(); }
   else if (e.code === 'ArrowUp'){ ap = clamp(ap+0.03, 0.06, 1.25); e.preventDefault(); }
   else if (e.code === 'ArrowDown'){ ap = clamp(ap-0.03, 0.06, 1.25); e.preventDefault(); }
-  else if (can && e.code === 'KeyW') setSpin(spinX, spinY+0.1);
-  else if (can && e.code === 'KeyS') setSpin(spinX, spinY-0.1);
-  else if (can && e.code === 'KeyA') setSpin(spinX-0.1, spinY);
-  else if (can && e.code === 'KeyD') setSpin(spinX+0.1, spinY);
+  else if (can && e.code === 'KeyW') setSpin(spinX, spinY+(e.shiftKey ? 0.02 : 0.05));
+  else if (can && e.code === 'KeyS') setSpin(spinX, spinY-(e.shiftKey ? 0.02 : 0.05));
+  else if (can && e.code === 'KeyA') setSpin(spinX-(e.shiftKey ? 0.02 : 0.05), spinY);
+  else if (can && e.code === 'KeyD') setSpin(spinX+(e.shiftKey ? 0.02 : 0.05), spinY);
   else if (can && e.code === 'KeyC') setSpin(0, 0);
+  else if (can && e.code === 'KeyL' && !e.repeat) setAimLock(!aimLock);
   else if (can && e.code === 'KeyQ') setAim(aimA - (e.shiftKey ? 0.0006 : 0.002));   // 두께: nudge the aim a hair left / right
   else if (can && e.code === 'KeyE') setAim(aimA + (e.shiftKey ? 0.0006 : 0.002));
   else if (e.code === 'KeyE' && !e.repeat) sitToggle();
@@ -2472,7 +2916,7 @@ window.addEventListener('keydown', e => {
   else if (e.code === 'KeyT'){ topView = !topView; renderHUD(); }
   else if (e.code === 'KeyV'){ toggleFirstPerson(); }
   else if (e.code === 'KeyR'){ replayLast(); }
-  else if (e.code === 'Escape'){ boardView = null; $('#helpPanel').hidden = true; $('#ngPanel').hidden = true; $('#replayPanel').hidden = true; closeMenu(); }
+  else if (e.code === 'Escape'){ boardView = null; setVis($('#helpPanel'), false); setVis($('#ngPanel'), false); setVis($('#replayPanel'), false); closeMenu(); }
 });
 
 // lobby controls
@@ -2480,12 +2924,12 @@ codeIns.forEach((inp, i) => {
   inp.addEventListener('input', () => {
     const v = inp.value.replace(/\D/g,'');
     if (v.length > 1){ setCode((getCode().slice(0,i) + v).slice(0,4)); codeIns[Math.min(3, i+v.length)].focus(); return; }
-    inp.value = v;
+    inp.value = v; if (v) knock(inp);
     if (v && i < 3) codeIns[i+1].focus();
   });
   inp.addEventListener('keydown', e => {
     // a digit always replaces this box's digit and moves on (typing into a filled box used to shuffle the code)
-    if (/^\d$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey){ e.preventDefault(); inp.value = e.key; if (i < 3) codeIns[i+1].focus(); return; }
+    if (/^\d$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey){ e.preventDefault(); inp.value = e.key; knock(inp); if (i < 3) codeIns[i+1].focus(); return; }
     if (e.key === 'Backspace' && !inp.value && i > 0){ codeIns[i-1].focus(); codeIns[i-1].value = ''; e.preventDefault(); }
     else if (e.key === 'Enter') joinRoom(getCode());
     else if (e.key === 'ArrowLeft' && i > 0) codeIns[i-1].focus();
@@ -2501,10 +2945,11 @@ function bindSeg(id, onPick){
   const wrap = $(id);
   wrap.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
     wrap.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    syncSeg(wrap);
     onPick(b.dataset.mode);
   }));
 }
-function selectSeg(id, m){ $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.mode === m))); }
+function selectSeg(id, m){ $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.mode === m))); syncSeg($(id)); }
 bindSeg('#lobbyMode', m => { lobbyMode = m; if (mode === 'lobby'){ lastRk = -1; applyState(newRack([], 1, m, 10, 0, '', lobbySize)); } });
 bindSeg('#ngMode', m => { ngMode = m; });
 // 목표 점수: preset buttons, or "직접 입력" for any 1–99
@@ -2529,21 +2974,21 @@ bindSeg('#ngSize', z => { ngSize = z; });
 $('#joinBtn').addEventListener('click', () => { audioInit(); joinRoom(getCode()); });
 // title-screen menu: "코드로 입장" opens in place; ↑ ↓ move between the menu items
 function toggleBox(btn, box, open){
-  const on = open == null ? box.hidden : open;
-  box.hidden = !on; btn.setAttribute('aria-expanded', String(on));
+  const on = open == null ? !isShown(box) : open;
+  setVis(box, on); btn.setAttribute('aria-expanded', String(on));
   return on;
 }
 function openCodeBox(){ toggleBox($('#codeToggle'), $('#codeBox'), true); }
 $('#codeToggle').addEventListener('click', () => { if (toggleBox($('#codeToggle'), $('#codeBox'))) codeIns[Math.max(0, codeIns.findIndex(x => !x.value))].focus(); });
-if (getCode()) openCodeBox();                                   // opened from a shared link: the code is already in
+if (getCode() && !$('#lobby').classList.contains('intro-on')) openCodeBox();   // opened from a shared link: the code is already in (after the intro: settleTitle)
 $('#lbMenu').addEventListener('keydown', e => {
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
   if (e.target && e.target.tagName === 'INPUT') return;
   const items = [...$('#lbMenu').querySelectorAll('.mi:not(:disabled)')], i = items.indexOf(document.activeElement);
   e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
 });
-$('#quickBtn').addEventListener('click', () => { audioInit(); quickJoin(); });
-$('#createBtn').addEventListener('click', () => { audioInit(); const c = String(Math.floor(Math.random()*10000)).padStart(4,'0'); setCode(c); joinRoom(c); });
+$('#quickBtn').addEventListener('click', () => launchThen($('#quickBtn'), quickJoin));
+$('#createBtn').addEventListener('click', () => launchThen($('#createBtn'), () => { const c = String(Math.floor(Math.random()*10000)).padStart(4,'0'); setCode(c); return joinRoom(c); }));
 function copyLink(b){
   const link = location.origin + location.pathname + '#' + code;
   try { navigator.clipboard.writeText(link).then(() => { b.textContent = '복사됨'; setTimeout(() => b.textContent = '링크 복사', 1500); }, () => toast(link, 5000)); }
@@ -2554,7 +2999,7 @@ function closeMenu(){ $('#tools').classList.remove('open'); $('#menuBtn').setAtt
 $('#menuBtn').addEventListener('click', () => { const t = $('#tools'); t.classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', String(t.classList.contains('open'))); });
 $('#tools').addEventListener('click', e => { if (e.target.closest('.tm')) closeMenu(); });   // copying the link keeps the menu open
 $('#replayBtn').addEventListener('click', openReplays);
-$('#replayClose').addEventListener('click', () => { $('#replayPanel').hidden = true; });
+$('#replayClose').addEventListener('click', () => { setVis($('#replayPanel'), false); });
 $('#recStop').addEventListener('click', () => stopRecording());
 // replay list: newest first, each shot can be watched again or saved as a video
 function openReplays(){
@@ -2563,17 +3008,26 @@ function openReplays(){
     const li = el('li'), who = el('span', 'who', h.who);
     who.appendChild(el('small', null, h.msg || ''));
     const play = el('button', 'mini', '보기'), rec = el('button', 'mini', '영상 저장');
-    play.addEventListener('click', () => { $('#replayPanel').hidden = true; replayShot(h); });
-    rec.addEventListener('click', () => { $('#replayPanel').hidden = true; recordShot(h); });
+    play.addEventListener('click', () => { setVis($('#replayPanel'), false); replayShot(h); });
+    rec.addEventListener('click', () => { setVis($('#replayPanel'), false); recordShot(h); });
+    li.style.setProperty('--i', Math.min(ul.children.length, 10));
     li.append(el('span', 'no', String(h.no)), who, play, rec); ul.appendChild(li);
   });
-  $('#replayPanel').hidden = false;
+  setVis($('#replayPanel'), true);
 }
 // video: capture this tab (HUD included) with the browser's screen-share picker; where that is not available,
 // fall back to the 3D canvas plus the game's sound. Recording stops on its own when the replay ends.
 let rec = null;
 // MP4 (H.264 + AAC) first so the file plays anywhere; WebM only on browsers that can't record MP4 (e.g. Firefox)
-function pickMime(){ for (const m of ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; return ''; }
+// MP4 (H.264, with AAC when there is sound) first so the file plays anywhere; WebM only where MP4 can't be recorded (e.g. Firefox).
+// Asking for an audio codec on a stream with no sound track can make the recorder refuse to start, so the list follows the tracks.
+function mimeList(stream){
+  const audio = stream.getAudioTracks().length > 0;
+  const list = audio
+    ? ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    : ['video/mp4;codecs=avc1.640028', 'video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+  return window.MediaRecorder ? list.filter(m => MediaRecorder.isTypeSupported(m)) : [];
+}
 async function recordShot(h){
   if (rec || playing || strike || !window.MediaRecorder){ if (!window.MediaRecorder) toast('이 브라우저는 영상 저장을 지원하지 않아요', 3000); return; }
   audioInit();
@@ -2588,13 +3042,18 @@ async function recordShot(h){
     stream = canvas.captureStream(60);
     try { const d = actx.createMediaStreamDestination(); sfxOut().connect(d); d.stream.getAudioTracks().forEach(t => stream.addTrack(t)); stream._audioTap = d; } catch(e){}
   }
-  const mime = pickMime(), chunks = [];
-  let mr; try { mr = new MediaRecorder(stream, mime ? {mimeType: mime, videoBitsPerSecond: 8e6} : undefined); } catch(e){ toast('영상 녹화를 시작하지 못했어요', 3000); stream.getTracks().forEach(t => t.stop()); return; }
+  const chunks = [];
+  let mr = null, mime = '';
+  for (const m of [...mimeList(stream), '']){                          // '' = the browser's own default, last resort
+    try { mr = new MediaRecorder(stream, m ? {mimeType: m, videoBitsPerSecond: 8e6} : undefined); mime = m; mr.start(250); break; }
+    catch(e){ mr = null; }
+  }
+  if (!mr){ toast('영상 녹화를 시작하지 못했어요', 3000); stream.getTracks().forEach(t => t.stop()); return; }
   mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   mr.onstop = () => {
     stream.getTracks().forEach(t => t.stop());
     if (stream._audioTap){ try { sfxOut().disconnect(stream._audioTap); } catch(e){} }
-    $('#recBadge').hidden = true;
+    setVis($('#recBadge'), false);
     const type = (mr.mimeType || mime || 'video/webm').split(';')[0], ext = type.includes('mp4') ? 'mp4' : 'webm';
     const url = URL.createObjectURL(new Blob(chunks, {type}));
     const a = document.createElement('a'); a.href = url; a.download = `carom-replay-${h.no}.${ext}`; document.body.appendChild(a); a.click(); a.remove();
@@ -2603,8 +3062,7 @@ async function recordShot(h){
     rec = null;
   };
   stream.getVideoTracks().forEach(t => t.addEventListener('ended', () => stopRecording()));   // user stopped sharing
-  rec = mr; $('#recBadge').hidden = false; closeMenu();
-  mr.start(250);
+  rec = mr; setVis($('#recBadge'), true); closeMenu();
   setTimeout(() => { if (rec === mr && !replayShot(h, () => stopRecording())) stopRecording(); }, 400);
 }
 function stopRecording(){ if (rec && rec.state !== 'inactive'){ try { rec.stop(); } catch(e){} } }
@@ -2612,18 +3070,18 @@ $('#takeSeat').addEventListener('click', () => { const i = +$('#takeSeat').datas
 $('#viewBtn').addEventListener('click', () => { topView = !topView; renderHUD(); });
 $('#fpBtn').addEventListener('click', toggleFirstPerson);
 $('#soundBtn').addEventListener('click', () => { muted = !muted; $('#soundBtn span').textContent = muted ? '소리 켜기' : '소리 끄기'; });
-$('#helpBtn').addEventListener('click', () => { $('#helpPanel').hidden = false; });
-$('#helpClose').addEventListener('click', () => { $('#helpPanel').hidden = true; });
+$('#helpBtn').addEventListener('click', () => { setVis($('#helpPanel'), true); });
+$('#helpClose').addEventListener('click', () => { setVis($('#helpPanel'), false); });
 function openNewGame(){
   if (!S) return;
   ngMode = S.mode; selectSeg('#ngMode', S.mode); ngSize = S.size || 'mid'; selectSeg('#ngSize', ngSize);
   showNgTarget(S.target);
-  $('#ngPanel').hidden = false;
+  setVis($('#ngPanel'), true);
 }
 $('#newBtn').addEventListener('click', openNewGame);
 $('#rematchBtn').addEventListener('click', () => newGame());
-$('#ngCancel').addEventListener('click', () => { $('#ngPanel').hidden = true; });
-$('#ngStart').addEventListener('click', () => { $('#ngPanel').hidden = true; newGame(ngMode, +$('#ngTarget').value, ngSize); });
+$('#ngCancel').addEventListener('click', () => { setVis($('#ngPanel'), false); });
+$('#ngStart').addEventListener('click', () => { setVis($('#ngPanel'), false); newGame(ngMode, +$('#ngTarget').value, ngSize); });
 $('#leaveBtn').addEventListener('click', leave);
 document.querySelectorAll('#hud button').forEach(b => b.addEventListener('click', () => b.blur()));
 
@@ -2690,7 +3148,7 @@ function cameraGoal(dt){
     gPos.set(0, h, 0); gLook.set(0,0,0);
     if (land) gUp.set(0,0,-1); else gUp.set(1,0,0);
   } else if (aimCam){
-    const c = cuePos(), dx = Math.cos(aimA), dz = Math.sin(aimA);
+    const c = cuePos(), va = aimA + camYawOff, dx = Math.cos(va), dz = Math.sin(va);   // camYawOff: looking around while the aim is locked
     gPos.set(c[0]-dx*ad*Math.cos(ap), R+ad*Math.sin(ap), c[1]-dz*ad*Math.cos(ap));
     gLook.set(c[0]+dx*0.3, 0, c[1]+dz*0.3); gUp.set(0,1,0);
   } else {
@@ -2698,6 +3156,8 @@ function cameraGoal(dt){
     if (mode === 'lobby' && !reduceMotion) oyaw += dt*0.07;
     gPos.set(Math.cos(oyaw)*Math.cos(opitch)*odist, Math.sin(opitch)*odist, Math.sin(oyaw)*Math.cos(opitch)*odist);
     gLook.set(0,-0.05,0); gUp.set(0,1,0);
+    const tp = mode === 'lobby' && title3d && title3d.pose();          // lobby: hold the view that frames the title balls (glides there after a game)
+    if (tp){ gPos.copy(tp.pos); gLook.copy(tp.look); }
   }
   wasAimCam = aimCam;
 }
@@ -2733,7 +3193,7 @@ const pullOf = lv => 0.03 + lv*0.002;
 function updateAimVisuals(){
   guideLine.visible = objLine.visible = tanLine.visible = ghost.visible = ghostRing.visible = turnRing.visible = false;
   stick.visible = false; cueOut = false;
-  if (!canAim() || strike) setThickness(-1);
+  if (!canAim() || strike) setThickness([]);
   if (!S || mode === 'lobby') return;
   if (strike){
     // back-swing then strike
@@ -2760,8 +3220,15 @@ function updateAimVisuals(){
     }
     const c = cuePos(), dx = Math.cos(aimA), dz = Math.sin(aimA);
     const tr = aimTrace(c[0], c[1], dx, dz, cueIdx());
-    if (tr.hit >= 0 && turnReady()){ const o = S.balls[tr.hit]; setThickness(tr.hit, (o[0]-c[0])*-dz + (o[1]-c[1])*dx); }
-    else setThickness(-1);
+    if (turnReady()){                                                  // every ball ahead within a ball's width of the line
+      const ahead = [];
+      for (let b = 0; b < NB; b++){
+        const o = S.balls[b]; if (b === cueIdx() || !o) continue;
+        const t = (o[0]-c[0])*dx + (o[1]-c[1])*dz, lat = (o[0]-c[0])*-dz + (o[1]-c[1])*dx;
+        if (t > 0 && Math.abs(lat) < 2*R) ahead.push({i: b, lat, t});
+      }
+      setThickness(ahead.sort((p, q) => p.t - q.t));
+    } else setThickness([]);
     if (guides && turnReady()){
       setLine(guideLine, c[0], c[1], tr.x, tr.z);
       if (tr.hit >= 0){
@@ -2796,17 +3263,45 @@ function updateAimVisuals(){
     cueOut = true; stick.visible = turnReady() && shooterSettled;
   }
 }
+/* auto quality: when frames keep coming in late, step down render resolution first, then the side lamps' shadows
+   (each shadow-casting lamp is another pass over the scene). A fast machine never leaves the top step. Only steps down
+   during a session, so it can't flap between levels. */
+const DPR0 = Math.min(window.devicePixelRatio || 1, 2);
+const QUALITY = [[DPR0, 3], [Math.min(DPR0, 1.5), 3], [Math.min(DPR0, 1.25), 3], [Math.min(DPR0, 1), 3], [Math.min(DPR0, 1), 1], [Math.min(DPR0, 0.8), 1]]
+  .filter((q, i, a) => !i || q[0] !== a[i-1][0] || q[1] !== a[i-1][1]);
+let qLevel = 0, qAcc = 0, qN = 0, qSkip = 120;
+function setQuality(l){
+  qLevel = l; const [dpr, lit] = QUALITY[l];
+  if (renderer.getPixelRatio() !== dpr){ renderer.setPixelRatio(dpr); resize(); }
+  let changed = false;
+  spots.forEach((s, i) => { const c = lit === 3 || i === 1; if (s.castShadow !== c){ s.castShadow = c; changed = true; } });
+  if (changed) scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => { m.needsUpdate = true; }); });   // shaders recompile for the new shadow count
+  qSkip = 90;                                                          // let the new level settle before judging it
+}
+function govern(ms){
+  if (qSkip > 0){ qSkip--; return; }                                   // start-up and just after a change: shader compiles, not the steady rate
+  if (ms > 250 || document.hidden) return;                             // a stalled or hidden tab is not a frame-rate sample
+  qAcc += ms; qN++;
+  if (qN < 60) return;
+  const avg = qAcc/qN; qAcc = qN = 0;
+  if (avg > 22 && qLevel < QUALITY.length - 1) setQuality(qLevel + 1);   // slower than ~45 fps for a second
+}
 let last = performance.now();
 function frame(now){
+  govern(now - last);
   const dt = Math.min(0.05, (now-last)/1000); last = now;
   if (strike){ strike.t = (netNow() - strike.hit + STRIKE_MS)/1000; if (strike.t >= STRIKE_MS/1000){ const s = strike; strike = null; s.then(); } }
   if (playing) stepPlayback(dt);
   updateAimVisuals();
   fpEdgeTurn(dt);
   cameraGoal(dt);
-  const k = 1-Math.exp(-dt*(boardView ? 4 : fpActive() ? 18 : canAim() && drag ? 16 : 6));
+  // while the camera is on the scoreboard (after a point, or when you look at it) the controls step aside, and come back with it
+  if (mode !== 'lobby'){ const dock = $('#dock'), on = canAim() && !boardView; if (on !== isShown(dock)){ setVis(dock, on); if (on) layoutDock(); } }
+  const gr = title3d ? title3d.glide() : -1;
+  const k = 1-Math.exp(-dt*(boardView ? 4 : gr >= 0 ? gr : fpActive() ? 18 : canAim() && drag ? 16 : 6));
   camPos.lerp(gPos, k); camLook.lerp(gLook, k); camUp.lerp(gUp, k).normalize();
   camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(camLook);
+  if (title3d) title3d.tick(now, dt);                                  // lobby: the title balls on the table, and the camera that frames them
   updateAvatars(dt);
   SB.tick(dt);
   // the lamp hangs between a high camera (top view / steep orbit) and the table, so drop it from view up there
@@ -2816,6 +3311,216 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 setInterval(() => { if (mode === 'online'){ reconcile(); renderHUD(); } }, 1500);
+
+/* ================= Title: 당 · 구 · 장 on the real table =================
+   The title is three real balls on the lobby's table, under the hall's lamps. The camera is placed so they sit exactly where
+   the layout puts the title (and at its size), and stays there while you're in the lobby.
+   The intro is a break on that table: the cue strikes 당 from the far end into 구 and 장, and the cushions are the table's
+   own. Each ball runs along its path unfolded through the cushions (a straight line to a mirror image of its spot): sliding
+   friction for the first stretch, rolling after, and every cushion keeps CUSH of the speed. Launch speeds are solved
+   backwards from "at rest exactly on its spot"; 당's speed into the pair is its speed out of the hit over KEEP. The balls
+   really roll, and each one's starting turn is worked out backwards so it stops with its letter facing the camera.
+   The first tap or key (while the browser still holds the sound back) only turns the sound on; after that it skips. */
+const title3d = (() => {
+  const t = $('.brand-title'), slots = [...t.querySelectorAll('.tball')], word = slots.map(e => e.textContent);
+  if (slots.length !== 3) return null;
+  const CUSH = 0.74, SLIDE = 3.4, SLIDE_PART = 0.14, LONGEST = 2.6, KEEP = 0.42, DS = 0.002;
+  // the title keeps one ball size and one framing whatever table is picked (중대 / 대대), so switching never nudges it;
+  // only the intro's cushions follow the table actually standing there
+  const R = 0.03275, TITLE_X = -1.224*0.45;
+  const meshes = [], UPV = new THREE.Vector3(0, 1, 0), dummy = new THREE.Object3D();
+  const cam = new THREE.PerspectiveCamera(45, 1, 0.02, 60), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), ray = new THREE.Ray();
+  const qInc = new THREE.Quaternion(), axis = new THREE.Vector3(), pa = new THREE.Vector3(), pb = new THREE.Vector3();
+  let pose = null, poseKey = '', phase = 'wait', run = null, wasLobby = false, glideFrom = 0, glideUntil = 0, fadeFrom = 0, handFrom = 0;
+
+  function build(){
+    word.forEach((ch, i) => {
+      const tex = canvasTex(512, 256, (g, w, h) => {
+        g.fillStyle = BALL_HEX[i]; g.fillRect(0, 0, w, h);
+        g.fillStyle = i === 2 ? '#fff8ee' : '#1d140d';
+        g.font = `900 ${Math.round(h*0.34)}px "Wanted Sans Variable","Wanted Sans",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(ch, w*0.25, h*0.53);                                // u = 0.25 is the sphere's +z side: the face that will look at the camera
+      });
+      const m = new THREE.Mesh(ballGeo, new THREE.MeshPhysicalMaterial({map: tex, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.9}));
+      m.castShadow = true; m.visible = false; scene.add(m); meshes.push(m);
+    });
+  }
+  // camera and resting spots for the current layout: the middle slot's ray meets the cloth near the table's near end,
+  // backed off until a ball there is the slot's size on screen; the other two slots' rays give their spots
+  function solve(){
+    const W_ = innerWidth, H_ = innerHeight, rects = slots.map(e => e.getBoundingClientRect());
+    if (!rects[1].height) return null;
+    cam.fov = camera.fov; cam.aspect = W_/H_; cam.updateProjectionMatrix();
+    const ndc = r => [((r.left + r.width/2)/W_)*2 - 1, -(((r.top + r.height/2)/H_)*2 - 1)];
+    const half = Math.tan(cam.fov*Math.PI/360), my = ndc(rects[1])[1];
+    const pitch = Math.max(30*Math.PI/180, Math.atan(my*half) + 0.24);   // the title's row has to look down onto the cloth
+    const fwd = new THREE.Vector3(Math.cos(pitch), -Math.sin(pitch), 0);
+    cam.position.set(0, 0, 0); cam.up.set(0, 1, 0); cam.lookAt(fwd); cam.updateMatrixWorld();
+    const dirOf = n => new THREE.Vector3(n[0], n[1], 0.5).unproject(cam).normalize();
+    const dMid = dirOf(ndc(rects[1])), depth = R*H_/(rects[1].height*half);   // ball radius on screen = half the slot's height
+    const pos = new THREE.Vector3(TITLE_X, R, 0).addScaledVector(dMid, -depth/dMid.dot(fwd));
+    plane.constant = -R;
+    const targets = [];
+    for (const r of rects){
+      ray.set(pos, dirOf(ndc(r))); const q = new THREE.Vector3();
+      if (!ray.intersectPlane(plane, q) || Math.abs(q.x) > HW - R || Math.abs(q.z) > HH - R) return null;
+      targets.push(q);
+    }
+    const faces = targets.map(q => { dummy.position.copy(q); dummy.up.set(0, 1, 0); dummy.lookAt(pos); return dummy.quaternion.clone(); });
+    // keep the hall's shade off the title
+    const a = rects[0], b = rects[2], sh = $('.lb-shade').style;
+    sh.setProperty('--tx', ((a.left + b.right)/2/W_*100).toFixed(2) + '%'); sh.setProperty('--ty', ((a.top + a.bottom)/2/H_*100).toFixed(2) + '%');
+    const rw = b.right - a.left; sh.setProperty('--tw', (rw*1.05).toFixed(0) + 'px'); sh.setProperty('--th', (rw*0.78).toFixed(0) + 'px');   // about 1.35 : 1
+    return {pos, look: pos.clone().add(fwd), targets, faces};
+  }
+  function rest(){ meshes.forEach((m, i) => { m.position.copy(pose.targets[i]); m.quaternion.copy(pose.faces[i]); }); }
+  function relayout(){
+    const r = slots[1].getBoundingClientRect();
+    const key = [innerWidth, innerHeight, Math.round(r.left), Math.round(r.top), Math.round(r.height)].join('|');
+    if (key === poseKey) return !!pose;
+    poseKey = key; pose = solve();
+    t.classList.toggle('gl3d', !!pose);                                // no fit (e.g. a very odd window): the flat title stands in
+    if (!pose) return false;
+    if (phase === 'intro') finish(); else rest();                       // a layout change mid-intro settles it at once
+    return true;
+  }
+
+  // ---------- the break ----------
+  const fold = (u, lo, hi) => { const w = hi - lo, m = ((u - lo) % (2*w) + 2*w) % (2*w); return m <= w ? lo + m : hi - (m - w); };
+  const mirror = (v, n, lo, hi) => { const w = hi - lo; if (!n) return v; if (n > 0) return n % 2 ? 2*hi - v + (n - 1)*w : v + n*w; return -n % 2 ? 2*lo - v - (-n - 1)*w : v + n*w; };
+  const walls = (u0, u1, lo, hi) => { const w = hi - lo, out = [], a = Math.min(u0, u1), b = Math.max(u0, u1);
+    for (let k = Math.ceil((a - lo)/w); lo + k*w < b; k++){ const B = lo + k*w; if (B > a) out.push(B); } return out; };
+  function plan(){
+    const lx = -HW + R, hx = HW - R, lz = -HH + R, hz = HH - R, d0 = R + 0.0006;
+    const xr = HW*0.32, contactX = xr + Math.sqrt(4*R*R - d0*d0), x0 = Math.min(hx - 0.04, contactX + 0.85);
+    const from = [[contactX, 0], [xr, -d0], [xr, d0]], how = [[0, 0], [0, -1], [0, 1]];   // 당 straight on, 구 off the near-side rail, 장 off the far-side rail
+    const balls = pose.targets.map((tp, i) => {
+      const [sx, sz] = from[i], [nx, nz] = how[i];
+      const ux = mirror(tp.x, nx, lx, hx), uz = mirror(tp.z, nz, lz, hz), L = Math.hypot(ux - sx, uz - sz), dx = (ux - sx)/L, dz = (uz - sz)/L;
+      const pts = [{s: L*SLIDE_PART, e: 1}];
+      for (const B of walls(sx, ux, lx, hx)) pts.push({s: (B - sx)/dx, e: CUSH});
+      for (const B of walls(sz, uz, lz, hz)) pts.push({s: (B - sz)/dz, e: CUSH});
+      pts.sort((a, b) => a.s - b.s);
+      const bounds = [0, ...pts.map(q => q.s), L], kept = [1, ...pts.map(q => q.e)], seg = [];
+      let vEnd = 0;                                                    // backwards from at rest on the spot (unit rolling friction)
+      for (let j = bounds.length - 2; j >= 0; j--){
+        const a = bounds[j + 1] <= L*SLIDE_PART + 1e-9 ? SLIDE : 1, v0 = Math.sqrt(vEnd*vEnd + 2*a*(bounds[j + 1] - bounds[j]));
+        seg.unshift({s0: bounds[j], a, v0, v1: vEnd}); vEnd = v0/kept[j];
+      }
+      let T = 0; for (const g of seg){ g.t0 = T; g.T = (g.v0 - g.v1)/g.a; T += g.T; }
+      return {i, sx, sz, dx, dz, L, seg, T, pre: i ? 0 : x0 - contactX};
+    });
+    const k = Math.max(...balls.map(b => b.T))/LONGEST;                // one cloth for all three: scale time so the longest run takes LONGEST
+    for (const b of balls){ b.T /= k; for (const g of b.seg){ g.t0 /= k; g.T /= k; g.v0 *= k; g.v1 *= k; g.a *= k*k; } }
+    const d = balls[0], aIn = SLIDE*k*k, vIn = d.seg[0].v0/KEEP, vStart = Math.sqrt(vIn*vIn + 2*aIn*d.pre), TA = (vStart - vIn)/aIn;
+    const at = (b, s, out) => b.pre && s < b.pre ? out.set(x0 - s, R, 0)
+      : out.set(fold(b.sx + b.dx*(s - b.pre), lx, hx), R, fold(b.sz + b.dz*(s - b.pre), lz, hz));
+    // roll the whole way once, to know each ball's turn on arrival; start it turned so that it arrives letter-on
+    for (const b of balls){
+      const total = b.pre + b.L; b.n = Math.max(1, Math.ceil(total/DS)); b.ds = total/b.n; b.k = 0;
+      const q = new THREE.Quaternion();
+      for (let k2 = 0; k2 < b.n; k2++) rollStep(b, k2, q, at);
+      b.q = q.invert().multiply(pose.faces[b.i]);                      // q_start = (total roll)⁻¹ · face
+    }
+    const HIT = 250 + 760*.84, BREAK = HIT + TA*1000;
+    const sounds = [{t: HIT, k: 'ball', v: 0.45}, {t: BREAK, k: 'ball', v: Math.min(2, vIn)}];
+    for (const b of balls) b.seg.forEach((g, j) => { if (j && Math.abs(b.seg[j - 1].v1 - g.v0) > 1e-9) sounds.push({t: BREAK + g.t0*1000, k: 'rail', v: b.seg[j - 1].v1}); });
+    sounds.sort((p1, p2) => p1.t - p2.t);
+    return {balls, at, x0, aIn, vStart, HIT, BREAK, end: BREAK + LONGEST*1000, sounds, si: 0};
+  }
+  function rollStep(b, k2, q, at){                                     // turn q by rolling from step k2 to k2+1 (axis = up × travel)
+    at(b, k2*b.ds, pa); at(b, (k2 + 1)*b.ds, pb); pb.sub(pa);
+    const l = Math.hypot(pb.x, pb.z); if (l < 1e-12) return;
+    axis.set(pb.z/l, 0, -pb.x/l); qInc.setFromAxisAngle(axis, l/R); q.premultiply(qInc);
+  }
+  const posAt = (b, t) => { if (t <= 0) return 0; if (t >= b.T) return b.L; let g = b.seg[0]; for (const q of b.seg) if (q.t0 <= t) g = q; const u = t - g.t0; return g.s0 + g.v0*u - 0.5*g.a*u*u; };
+
+  let t0 = 0, unlocked = false;
+  const tap = () => { if (!unlocked){ unlocked = true; audioInit(); if (actx && actx.state !== 'running') actx.resume().catch(()=>{}); return; } finish(); };
+  function begin(){
+    run = plan(); phase = 'intro'; t0 = performance.now();
+    run.balls.forEach(b => { meshes[b.i].quaternion.copy(b.q); run.at(b, 0, meshes[b.i].position); });
+    audioInit(); unlocked = !!actx && actx.state === 'running';
+    addEventListener('pointerdown', tap, true); addEventListener('keydown', tap, true);
+  }
+  function finish(){
+    if (phase !== 'intro') return;
+    phase = 'rest'; run = null;
+    removeEventListener('pointerdown', tap, true); removeEventListener('keydown', tap, true);
+    stick.visible = false; rest();
+    setTimeout(handOver, 380);                                         // a beat at rest, then everything moves at once (handOver)
+  }
+  function step(now){
+    const e = now - t0, R_ = run;
+    while (R_.si < R_.sounds.length && R_.sounds[R_.si].t <= e){ const q = R_.sounds[R_.si++]; if (e - q.t < 120){ sfxBudget = 3; sfx(q.k, q.v); } }
+    // the cue: slides in behind 당, draws back, strikes through it, leaves
+    const c = (e - 250)/760;
+    if (c > 0 && c < 1){
+      const ease = (a, b, u) => a + (b - a)*u, sm = u => u*u*(3 - 2*u);
+      const pull = c < .4 ? ease(0.3, 0.02, 1 - Math.pow(1 - c/.4, 3)) : c < .74 ? ease(0.02, 0.09, sm((c - .4)/.34)) : c < .86 ? ease(0.09, -0.004, Math.pow((c - .74)/.12, 2)) : ease(-0.004, 0.04, (c - .86)/.14);
+      poseStick(R_.x0, 0, -1, 0, Math.max(0, pull), 0, 0, 0);
+    }
+    for (const b of R_.balls){
+      let s;
+      if (e < R_.BREAK) s = b.pre ? (e < R_.HIT ? 0 : (u => R_.vStart*u - 0.5*R_.aIn*u*u)((e - R_.HIT)/1000)) : 0;
+      else s = b.pre + posAt(b, (e - R_.BREAK)/1000);
+      const m = meshes[b.i]; R_.at(b, s, m.position);
+      const kNow = Math.min(b.n, Math.floor(s/b.ds));
+      while (b.k < kNow) rollStep(b, b.k++, m.quaternion, R_.at);
+    }
+    if (e >= R_.end) finish();
+  }
+  // the balls become the flat title in the same place; the camera then pulls back to the lobby's slow turn round the
+  // table (cameraGoal, eased in by glide()), the shade's clear patch closes and the lobby's own balls fade back in
+  function handOver(){
+    if (phase !== 'rest') return;
+    const now = performance.now();
+    phase = 'hand'; handFrom = now;
+    settleTitle();                                                     // the menu and settings come in now, with the light and the camera
+    t.classList.remove('gl3d'); t.classList.add('swap');               // the flat balls fade in over the real ones...
+    meshes.forEach(m => { m.material.transparent = true; });           // ...which fade out underneath (tick)
+    glideFrom = now; glideUntil = now + 3400; fadeFrom = now;          // the camera sets off at once, but eases in (glide())
+    const sh = $('.lb-shade'); sh.classList.add('closing'); sh.style.setProperty('--tw', '0px'); sh.style.setProperty('--th', '0px');
+    placeMeshes(); for (const m of ballMeshes){ m.material.transparent = true; m.material.opacity = 0; m.castShadow = false; }
+  }
+  function fadeRack(now){                                             // now = Infinity: left for a game mid-fade, finish it at once
+    if (!fadeFrom) return;
+    const u = Math.min(1, (now - fadeFrom - 500)/700);                 // after the pull-back has begun
+    for (const m of ballMeshes){ m.material.opacity = Math.max(0, u); if (u >= 1){ m.material.transparent = false; m.castShadow = true; } }   // shadow only once the ball is fully there
+    if (u >= 1) fadeFrom = 0;
+  }
+  function tick(now, dt){
+    if (phase === 'hand'){
+      const u = Math.min(1, (now - handFrom)/520), o = 1 - u*u*(3 - 2*u);
+      meshes.forEach(m => { m.material.opacity = o; m.visible = mode === 'lobby' && o > 0; m.castShadow = o > 0.5; });   // shadows go with the first half of the fade
+      if (u >= 1){ phase = 'done'; meshes.forEach(m => { m.visible = false; m.material.opacity = 1; m.material.transparent = false; m.castShadow = true; }); }
+      fadeRack(mode === 'lobby' ? now : Infinity);
+      return;
+    }
+    if (phase === 'done'){ meshes.forEach(m => { m.visible = false; }); fadeRack(mode === 'lobby' ? now : Infinity); return; }
+    if (mode !== 'lobby' || phase === 'wait'){ if (mode !== 'lobby'){ meshes.forEach(m => { m.visible = false; }); wasLobby = false; } return; }
+    if (!relayout()){ meshes.forEach(m => { m.visible = false; }); return; }
+    if (!wasLobby && phase === 'intro'){                               // the intro starts already framed; otherwise cameraGoal glides here
+      camPos.copy(pose.pos); camLook.copy(pose.look); camUp.set(0, 1, 0);
+      camera.position.copy(camPos); camera.up.copy(camUp); camera.lookAt(camLook);
+    }
+    wasLobby = true;
+    for (const m of ballMeshes) m.visible = false;                     // the lobby's rack makes way for the title balls
+    meshes.forEach(m => { m.visible = true; });
+    if (phase === 'intro') step(now);
+  }
+  function start(){
+    build(); phase = 'rest';
+    if (!relayout()){ phase = 'done'; t.classList.remove('gl3d'); settleTitle(); return; }
+    t.classList.remove('pre');
+    if (reduceMotion || mode !== 'lobby'){ phase = 'done'; t.classList.remove('gl3d'); settleTitle(); return; }
+    begin();
+  }
+  return {start, tick, pose: () => (phase === 'intro' || phase === 'rest' ? pose : null), glide: () => {                                                     // pull-back easing rate, or -1 when not pulling back
+    const now = performance.now(); if (now >= glideUntil) return -1;
+    const u = Math.min(1, (now - glideFrom)/1100); return 1.5*u*u*(3 - 2*u);   // starts still, so the hand-over settles before it moves
+  }};
+})();
 
 /* ================= Boot ================= */
 selectSeg('#lobbySize', lobbySize);
